@@ -5,8 +5,8 @@ from pydantic import BaseModel, Field
 from src.constants import JudgeType, JudgeStatus
 
 
-class JudgeResultCreateSchema(BaseModel):
-    """DB schema for creating judge results in postgres."""
+class JudgeCreateSchema(BaseModel):
+    """DB schema for creating judge in postgres."""
 
     evaluation_id: int = Field(description="Foreign key to evaluations table")
     judge_type: JudgeType = Field(description="Type of judge")
@@ -31,8 +31,8 @@ class JudgeResultCreateSchema(BaseModel):
     )
 
 
-class JudgeResultSchema(JudgeResultCreateSchema):
-    """DB schema for reading judge results from postgres."""
+class JudgeSchema(JudgeCreateSchema):
+    """DB schema for reading judge from postgres."""
 
     id: int = Field(description="Unique identifier")
     created_at: datetime = Field(description="Timestamp when result was created")

@@ -3,8 +3,8 @@ import sqlalchemy as sa
 from src.db.pg import sa_metadata
 
 
-judge_results_table = sa.Table(
-    "judge_results",
+judges_table = sa.Table(
+    "judges",
     sa_metadata,
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
     sa.Column("created_at", sa.DateTime, server_default=sa.func.now(), nullable=False),

@@ -38,7 +38,7 @@ class OpenAiJudge(BaseJudgeService):
             model_name=settings.LLM_MODEL,
         )
 
-    def _get_judge_result(self, question: str, answer: str) -> JudgeResult:
+    def _get_judge(self, question: str, answer: str) -> JudgeResult:
         messages = [
             {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": question},

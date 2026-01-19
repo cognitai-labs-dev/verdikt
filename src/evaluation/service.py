@@ -5,10 +5,10 @@ from src.config import settings
 from src.constants import JudgeType, JudgeStatus
 from src.crud.evaluation import evaluations_crud
 from src.crud.evaluation_run import evaluation_runs_crud
-from src.crud.judge_result import judge_results_crud
+from src.crud.judge import judge_crud
 from src.schemas.evaluation import EvaluationCreateSchema, EvaluationSchema
 from src.schemas.evaluation_run import EvaluationRunCreateSchema
-from src.schemas.judge_result import JudgeResultCreateSchema
+from src.schemas.judge import JudgeCreateSchema
 
 
 class EvaluationService:
@@ -35,21 +35,21 @@ class EvaluationService:
         for provider, model in self.llm_judges:
             self.logger.info("Using %s | %s judge", provider, model)
             for evaluation in db_evals:
-                judge_result = JudgeResultCreateSchema(
+                judge = JudgeCreateSchema(
                     evaluation_id=evaluation.id,
                     judge_model=model,
                     judge_type=JudgeType.LLM,
                     status=JudgeStatus.PENDING,
                 )
-                judge_results_crud.create(judge_result)
+                judge_crud.create(judge)
 
     @staticmethod
     def _create_human_judging(db_evals: list[EvaluationSchema]):
         for evaluation in db_evals:
-            judge_result = JudgeResultCreateSchema(
+            judge = JudgeCreateSchema(
                 evaluation_id=evaluation.id,
                 judge_model="human",
                 judge_type=JudgeType.HUMAN,
                 status=JudgeStatus.PENDING,
             )
-            judge_results_crud.create(judge_result)
+            judge_crud.create(judge)

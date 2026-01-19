@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel
 
 from src.constants import JudgeType
-from src.crud.judge_result import judge_results_crud
+from src.crud.judge import judge_crud
 
 
 class JudgeResult(BaseModel):
@@ -15,17 +15,17 @@ class JudgeResult(BaseModel):
 
 class BaseJudgeService(ABC):
     def __init__(self, judge_type: JudgeType, judge_model: str):
-        self.crud = judge_results_crud
+        self.crud = judge_crud
         self.type = judge_type
         self.model = judge_model
         self.logger = logging.getLogger(__name__)
 
-    def start(self, judge_result_id: int) -> None:
+    def start(self, judge_id: int) -> None:
         self.logger.info("Running %s judge", self.type)
-        # return self._get_judge_result(judge_result., answer)
+        # return self._get_judge(judge., answer)
 
     @abstractmethod
-    def _get_judge_result(self, question: str, answer: str) -> JudgeResult:
+    def _get_judge(self, question: str, answer: str) -> JudgeResult:
         """
         Implement either for human or llm
         """

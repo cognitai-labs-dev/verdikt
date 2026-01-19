@@ -6,7 +6,7 @@ class HumanJudge(BaseJudgeService):
     def __init__(self):
         super().__init__(JudgeType.HUMAN, "Human")
 
-    def _get_judge_result(self, question: str, answer: str) -> JudgeResult:
+    def _get_judge(self, question: str, answer: str) -> JudgeResult:
         """
         TODO: create interface for interactions so it can be used for web, slack cli ...
         """
