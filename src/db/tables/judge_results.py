@@ -1,0 +1,23 @@
+import sqlalchemy as sa
+
+from src.db.pg import sa_metadata
+
+
+judge_results_table = sa.Table(
+    "judge_results",
+    sa_metadata,
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column("created_at", sa.DateTime, server_default=sa.func.now(), nullable=False),
+    sa.Column(
+        "evaluation_id", sa.Integer, sa.ForeignKey("evaluations.id"), nullable=False
+    ),
+    sa.Column("judge_type", sa.String(50), nullable=False),
+    sa.Column("judge_model", sa.String(50), nullable=True),
+    sa.Column("reasoning", sa.Text, nullable=False),
+    sa.Column("passed", sa.Boolean, nullable=False),
+    sa.Column("score", sa.Integer, nullable=False),
+    sa.Column("input_tokens", sa.Integer, nullable=True),
+    sa.Column("output_tokens", sa.Integer, nullable=True),
+    sa.Column("input_tokens_cost", sa.Float, nullable=True),
+    sa.Column("output_tokens_cost", sa.Float, nullable=True),
+)

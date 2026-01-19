@@ -1,0 +1,105 @@
+.deploy:
+  stage: deploy
+  image: registry.gitlab.heu.cz/docker-tools/pipelines:v8.0
+  script:
+    - source <( grep current_version .bumpversion.cfg | tr -d ' ' )
+    - /entrypoint.sh "echo done"
+    - |
+      cat << EOF
+      helm upgrade \
+      --install \
+      --namespace="$KUBE_NAMESPACE" \
+      --wait \
+      --set image.repository="$IMAGE_REPOSITORY" \
+      --set image.tag="$IMAGE_TAG" \
+      --values chart/ai-assistant/values.yaml \
+      --values chart/ai-assistant/$CHART_VALUES_FILE \
+      "$CI_PROJECT_NAME" chart/ai-assistant
+      EOF
+    - helm3 upgrade
+      --install
+      --namespace="$KUBE_NAMESPACE"
+      --wait
+      --set image.repository="$IMAGE_REPOSITORY"
+      --set image.tag="$IMAGE_TAG"
+      --values chart/ai-assistant/values.yaml
+      --values chart/ai-assistant/$CHART_VALUES_FILE
+      "$CI_PROJECT_NAME" chart/ai-assistant
+  environment:
+    name: gcp-$GCP_ENVIRONMENT
+    url: https://$DNS_DOMAIN
+  when: manual
+
+.cleanup-dev:
+  stage: deploy
+  image: registry.gitlab.heu.cz/docker-tools/pipelines:v8.0
+  variables:
+    GCP_ENVIRONMENT: dev
+  script:
+    - /entrypoint.sh "echo done"
+    - helm3 uninstall --namespace="$KUBE_NAMESPACE" "$CI_PROJECT_NAME"
+
+
+cleanup-dev-manual:
+  extends: .cleanup-dev
+  only:
+    refs:
+      - branches
+  except:
+    - master
+  when: manual
+
+
+deploy-dev:
+  extends: .deploy
+  tags:
+    - gcp
+    - dev
+  needs:
+    - build-dev
+  variables:
+    CHART_VALUES_FILE: values.dev.yaml
+    GCP_ENVIRONMENT: dev
+    DNS_DOMAIN: "$CI_PROJECT_NAME.$GCP_DEV_DOMAIN"
+  only:
+    refs:
+      - branches
+  except:
+    - master
+
+
+deploy-pre-prod:
+  extends: .deploy
+  tags:
+    - gcp
+    - pre-prod
+  needs:
+    - build-prod
+  variables:
+    CHART_VALUES_FILE: values.pre-prod.yaml
+    GCP_ENVIRONMENT: pre-prod
+    DNS_DOMAIN: "$CI_PROJECT_NAME.$GCP_PRE_PROD_DOMAIN"
+  only:
+    refs:
+      - master
+  except:
+    refs:
+      - pipeline
+
+deploy-prod:
+  extends: .deploy
+  tags:
+    - gcp
+    - prod
+  needs:
+    - build-prod
+  variables:
+    CHART_VALUES_FILE: values.prod.yaml
+    GCP_ENVIRONMENT: prod
+    DNS_DOMAIN: "$CI_PROJECT_NAME.$GCP_PROD_DOMAIN"
+  only:
+    refs:
+      - master
+  except:
+    refs:
+      - pipeline
