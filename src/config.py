@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from src.juding.schemas import LLMJudgeConfig
+from src.judging.schemas import LLMJudgeConfig
 
 ROOT_DIR = Path(__file__).parent.parent
 

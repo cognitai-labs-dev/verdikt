@@ -9,6 +9,13 @@ judges_table = sa.Table(
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
     sa.Column("created_at", sa.DateTime, server_default=sa.func.now(), nullable=False),
     sa.Column(
+        "updated_at",
+        sa.DateTime,
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
+        nullable=False,
+    ),
+    sa.Column(
         "evaluation_id", sa.Integer, sa.ForeignKey("evaluations.id"), nullable=False
     ),
     sa.Column("status", sa.String(50), nullable=False),

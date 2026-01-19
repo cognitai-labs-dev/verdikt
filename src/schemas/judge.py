@@ -36,3 +36,21 @@ class JudgeSchema(JudgeCreateSchema):
 
     id: int = Field(description="Unique identifier")
     created_at: datetime = Field(description="Timestamp when result was created")
+    updated_at: datetime = Field(description="Timestamp when the row was updated")
+
+
+class JudgeUpdateSchema(BaseModel):
+    """Schema for updating a judge."""
+
+    id: int
+    updated_at: datetime = Field(
+        default=datetime.now(), description="Timestamp when the row was updated"
+    )
+    status: JudgeStatus | None = None
+    reasoning: str | None = None
+    passed: bool | None = None
+    score: int | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    input_tokens_cost: float | None = None
+    output_tokens_cost: float | None = None
