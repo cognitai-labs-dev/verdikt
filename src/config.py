@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     PG_USER: str = "postgresql"
     PG_PASSWORD: str = "alpharius"
 
+    WORKER_WAIT_TIME: int = 5
+    WORKER_BATCH_SIZE: int = 2
+
     @property
     def postgresql(self):
         return f"postgresql+psycopg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}"

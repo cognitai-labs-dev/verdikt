@@ -3,8 +3,11 @@ from asyncio import gather
 
 from tenacity import sleep
 
+from llm import Client
+from src.config import settings
 from src.constants import JudgeStatus
 from src.crud.judge import judge_crud
+from src.depedencies import instructor_client
 from src.schemas.judge import JudgeSchema, JudgeUpdateSchema
 
 
@@ -12,8 +15,12 @@ class JudgeProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.running = True
-        self.batch_size = 2
-        self.wait_time = 5
+        self.batch_size = settings.WORKER_BATCH_SIZE
+        self.wait_time = settings.WORKER_WAIT_TIME
+        # Temporarily just used openai
+        self.client = Client(
+            [], instructor_client, settings.JUDGING_LLM_MODELS[0].model
+        )
 
     async def run(self):
         while self.running:
