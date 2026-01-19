@@ -42,6 +42,28 @@ Evaluator deployed as standalone service. Callable from:
 
 # Evaluation app architecture
 
+```mermaid
+flowchart TB
+    User([User])
+    App[Application]
+    API[FastAPI Backend]
+    DB[(Database)]
+    Worker[LLMJudgeWorker]
+    LLM[LLM Provider]
+    Frontend["FE app"]
+    TestSuite["App Test suite"]
+
+    User -->|views results & submits human judgments| API
+    Frontend -->|Get result for evals| DB
+    TestSuite -->|Call for evals without human evals| API
+    App -->|POST evaluation for development| API
+    API -->|store evaluations & judgments| DB
+    API -->|query results| DB
+    Worker -->|poll pending judgments| DB
+    Worker -->|mark complete| DB
+    Worker -->|call for verdict| LLM
+```
+
 Consists of a backend and fronend parts.
 
 ## Backend
