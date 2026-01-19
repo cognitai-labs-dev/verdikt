@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, insert
 
 from src.config import settings
 from src.db.tables.evaluations import evaluations_table
-from src.schemas import EvaluationCreateSchema, EvaluationSchema
+from src.schemas.evaluation import EvaluationCreateSchema, EvaluationSchema
 
 
 class EvaluationsCRUD:

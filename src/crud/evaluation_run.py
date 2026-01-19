@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, insert
 
 from src.config import settings
 from src.db.tables.evaluation_runs import evaluation_runs_table
-from src.schemas import EvaluationRunCreateSchema
+from src.schemas.evaluation_run import EvaluationRunCreateSchema
 
 
 class EvaluationRunsCRUD:

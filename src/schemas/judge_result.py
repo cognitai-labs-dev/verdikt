@@ -2,18 +2,23 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from src.constants import JudgeType, JudgeStatus
+
 
 class JudgeResultCreateSchema(BaseModel):
     """DB schema for creating judge results in postgres."""
 
     evaluation_id: int = Field(description="Foreign key to evaluations table")
-    judge_type: str = Field(max_length=50, description="Type of judge")
-    judge_model: str | None = Field(
-        default=None, max_length=50, description="Model used by judge"
+    judge_type: JudgeType = Field(description="Type of judge")
+    judge_model: str = Field(max_length=50, description="Model used by judge")
+    status: JudgeStatus
+    reasoning: str | None = Field(
+        default=None, description="Reasoning why the score and passed mark"
     )
-    reasoning: str = Field(description="Reasoning why the score and passed mark")
-    passed: bool = Field(description="Whether the evaluation passed")
-    score: int = Field(description="Score given by judge")
+    passed: bool | None = Field(
+        default=None, description="Whether the evaluation passed"
+    )
+    score: int | None = Field(default=None, description="Score given by judge")
     input_tokens: int | None = Field(default=None, description="Number of input tokens")
     output_tokens: int | None = Field(
         default=None, description="Number of output tokens"

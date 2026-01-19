@@ -11,11 +11,12 @@ judge_results_table = sa.Table(
     sa.Column(
         "evaluation_id", sa.Integer, sa.ForeignKey("evaluations.id"), nullable=False
     ),
+    sa.Column("status", sa.String(50), nullable=False),
     sa.Column("judge_type", sa.String(50), nullable=False),
-    sa.Column("judge_model", sa.String(50), nullable=True),
-    sa.Column("reasoning", sa.Text, nullable=False),
-    sa.Column("passed", sa.Boolean, nullable=False),
-    sa.Column("score", sa.Integer, nullable=False),
+    sa.Column("judge_model", sa.String(50), nullable=False),
+    sa.Column("reasoning", sa.Text, nullable=True),
+    sa.Column("passed", sa.Boolean, nullable=True),
+    sa.Column("score", sa.Integer, nullable=True),
     sa.Column("input_tokens", sa.Integer, nullable=True),
     sa.Column("output_tokens", sa.Integer, nullable=True),
     sa.Column("input_tokens_cost", sa.Float, nullable=True),

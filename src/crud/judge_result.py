@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine, insert
+from sqlalchemy import create_engine, insert, select
 
 from src.config import settings
 from src.db.tables.judge_results import judge_results_table
-from src.schemas import JudgeResultCreateSchema
+from src.schemas.judge_result import JudgeResultCreateSchema, JudgeResultSchema
 
 
 class JudgeResultsCRUD:
@@ -23,6 +23,14 @@ class JudgeResultsCRUD:
             new_id = conn.execute(stmt).fetchone()[0]
             conn.commit()
         return new_id
+
+    def get(self, judge_id: int) -> JudgeResultSchema | None:
+        stmt = select(self.table).where(self.table.c.id == judge_id)
+        with self.engine.connect() as conn:
+            row = conn.execute(stmt).fetchone()
+        if row is None:
+            return None
+        return JudgeResultSchema.model_validate(row._mapping)
 
 
 judge_results_crud = JudgeResultsCRUD()

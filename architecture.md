@@ -112,9 +112,8 @@ Frontend part is PURELY for interacting with the human for judging and displayin
 
 ## Implementation plan
 
-- adjust evaluation runner to only creating pending judges
 - create judge worker and parallelize
 - create basic api
+- human judge api 
 - deploy
-- human judge api (add status column to judge_results)
 - basic FE for human judging

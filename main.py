@@ -1,7 +1,7 @@
 from src.api.schemas import EvaluationRunApiSchema, EvaluationApiSchema
+from src.evaluation.service import EvaluationService
 from src.logging import setup_logging
 
-from src.runner import EvaluationRunner
 
 setup_logging()
 
@@ -46,8 +46,8 @@ def create_example_request() -> EvaluationRunApiSchema:
 
 def run_evaluation():
     request = create_example_request()
-    runner = EvaluationRunner()
-    runner.run(request)
+    runner = EvaluationService()
+    runner.create(request)
 
 
 if __name__ == "__main__":
