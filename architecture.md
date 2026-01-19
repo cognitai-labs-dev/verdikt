@@ -45,22 +45,20 @@ Evaluator deployed as standalone service. Callable from:
 ```mermaid
 flowchart TB
     User([User])
-    App[Application]
+    App[AI Application]
     API[FastAPI Backend]
     DB[(Database)]
     Worker[LLMJudgeWorker]
     LLM[LLM Provider]
-    Frontend["FE app"]
-    TestSuite["App Test suite"]
+    Frontend[FE app]
+    TestSuite[AI App Test suite]
 
     User -->|views results & submits human judgments| API
-    Frontend -->|Get result for evals| DB
+    Frontend -->|Get result for evals| API 
     TestSuite -->|Call for evals without human evals| API
     App -->|POST evaluation for development| API
-    API -->|store evaluations & judgments| DB
-    API -->|query results| DB
-    Worker -->|poll pending judgments| DB
-    Worker -->|mark complete| DB
+    API --> DB
+    Worker --> DB
     Worker -->|call for verdict| LLM
 ```
 
@@ -113,7 +111,6 @@ Frontend part is PURELY for interacting with the human for judging and displayin
 ## Implementation plan
 
 - create judge worker and parallelize
-- create basic api
-- human judge api 
-- deploy
+- create basic api for creating evals & human judge api 
 - basic FE for human judging
+- deploy
