@@ -20,7 +20,7 @@ class Client:
         self.model_name = model_name
         self.pricing_service = PricingService()
 
-    def structured_response[T: BaseModel](
+    async def structured_response[T: BaseModel](
         self,
         response_type: type[T],
         messages: list[dict[str, str]],
@@ -31,7 +31,7 @@ class Client:
 
         Uses provided log strategies to log all the LLM messages
         """
-        parsed, response = self.instructor_client.responses.create_with_completion(
+        parsed, response = await self.instructor_client.responses.create_with_completion(
             model=self.model_name,
             response_model=response_type,
             max_retries=3,

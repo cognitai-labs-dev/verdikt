@@ -17,7 +17,7 @@ from llm.tools.schemas import (
 )
 
 # Common schemas
-from llm.common.schemas import LLMRole, ContextMessage
+from llm.common.schemas import LLMRole, ContextMessage, ResponseStats
 
 __all__ = [
     # Main classes
@@ -36,4 +36,5 @@ __all__ = [
     # Common schemas
     "LLMRole",
     "ContextMessage",
+    "ResponseStats"
 ]

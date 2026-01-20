@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     PG_PASSWORD: str = "alpharius"
 
     WORKER_WAIT_TIME: int = 5
-    WORKER_BATCH_SIZE: int = 2
+    WORKER_BATCH_SIZE: int = 10
 
     @property
     def postgresql(self):
