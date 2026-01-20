@@ -33,7 +33,6 @@ class EvaluationService:
 
     def _create_llm_judging(self, db_evals: list[EvaluationSchema]):
         for provider, model in self.llm_judges:
-            self.logger.info("Using %s | %s judge", provider, model)
             for evaluation in db_evals:
                 judge = JudgeCreateSchema(
                     evaluation_id=evaluation.id,
