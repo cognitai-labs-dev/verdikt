@@ -110,7 +110,6 @@ Frontend part is PURELY for interacting with the human for judging and displayin
 
 ## Implementation plan
 
-- create judge worker and parallelize
 - create basic api for creating evals & human judge api 
 - basic FE for human judging
 - deploy
