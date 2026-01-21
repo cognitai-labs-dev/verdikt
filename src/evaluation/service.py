@@ -29,26 +29,28 @@ class EvaluationService:
 
         # Future improvement create many
         self._create_llm_judging(db_evals)
-        self._create_human_judging(db_evals)
 
     def _create_llm_judging(self, db_evals: list[EvaluationSchema]):
+        llm_judges = []
+        human_judges = []
         for provider, model in self.llm_judges:
             for evaluation in db_evals:
-                judge = JudgeCreateSchema(
-                    evaluation_id=evaluation.id,
-                    judge_model=model,
-                    judge_type=JudgeType.LLM,
-                    status=JudgeStatus.PENDING,
+                llm_judges.append(
+                    JudgeCreateSchema(
+                        evaluation_id=evaluation.id,
+                        judge_model=model,
+                        judge_type=JudgeType.LLM,
+                        status=JudgeStatus.PENDING,
+                    )
                 )
-                judge_crud.create(judge)
+                human_judges.append(
+                    JudgeCreateSchema(
+                        evaluation_id=evaluation.id,
+                        judge_model="human",
+                        judge_type=JudgeType.HUMAN,
+                        status=JudgeStatus.PENDING,
+                    )
+                )
 
-    @staticmethod
-    def _create_human_judging(db_evals: list[EvaluationSchema]):
-        for evaluation in db_evals:
-            judge = JudgeCreateSchema(
-                evaluation_id=evaluation.id,
-                judge_model="human",
-                judge_type=JudgeType.HUMAN,
-                status=JudgeStatus.PENDING,
-            )
-            judge_crud.create(judge)
+        judge_crud.create_many(llm_judges)
+        judge_crud.create_many(human_judges)
