@@ -33,6 +33,9 @@ class PricingService:
         )
 
     def get_response_stats(self, response: Response, model_name: str) -> ResponseStats:
+        if response.usage is None:
+            raise RuntimeError("no usage for llm call")
+
         input_tokens = response.usage.input_tokens
         output_tokens = response.usage.output_tokens
         input_tokens_price = self.get_input_token_cost(model_name, input_tokens)

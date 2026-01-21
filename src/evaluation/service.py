@@ -19,10 +19,10 @@ class EvaluationService:
     def create(self, request: EvaluationRunApiSchema):
         self.logger.info("Creating evaluation for %s", request.app_id)
         run = EvaluationRunCreateSchema(**request.model_dump())
-        run_id = evaluation_runs_crud.create(run)
+        created_run = evaluation_runs_crud.create(run)
 
         evals = [
-            EvaluationCreateSchema(run_id=run_id, **e.model_dump())
+            EvaluationCreateSchema(run_id=created_run.id, **e.model_dump())
             for e in request.evaluations
         ]
         db_evals = evaluations_crud.create_many(evals)

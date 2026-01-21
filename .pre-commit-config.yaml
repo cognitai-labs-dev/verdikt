@@ -17,11 +17,11 @@ repos:
     entry: make ruff-format
     pass_filenames: false
 
-  # - id: mypy
-  #   name: mypy
-  #   language: system
-  #   types:
-  #     - python
-  #   entry: make mypy
-  #   pass_filenames: false
+  - id: mypy
+    name: mypy
+    language: system
+    types:
+      - python
+    entry: make mypy
+    pass_filenames: false
 

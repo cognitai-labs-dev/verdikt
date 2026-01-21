@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from src.constants import JudgeType, JudgeStatus
+from src.schemas.base import UpdateSchema
 
 
 class JudgeCreateSchema(BaseModel):
@@ -39,10 +40,9 @@ class JudgeSchema(JudgeCreateSchema):
     updated_at: datetime = Field(description="Timestamp when the row was updated")
 
 
-class JudgeUpdateSchema(BaseModel):
+class JudgeUpdateSchema(UpdateSchema):
     """Schema for updating a judge."""
 
-    id: int
     updated_at: datetime = Field(
         default=datetime.now(), description="Timestamp when the row was updated"
     )

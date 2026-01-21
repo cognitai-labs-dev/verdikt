@@ -31,11 +31,11 @@ class Client:
 
         Uses provided log strategies to log all the LLM messages
         """
-        parsed, response = await self.instructor_client.responses.create_with_completion(
+        parsed, response = await self.instructor_client.responses.create_with_completion(  # type: ignore
             model=self.model_name,
             response_model=response_type,
             max_retries=3,
-            input=messages,
+            input=messages,  # type: ignore
         )
         self._handle_log_strategies(messages, context, parsed, response)
         return parsed

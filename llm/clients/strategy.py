@@ -5,8 +5,7 @@ from pydantic import BaseModel
 from llm.clients.schemas import ClientCall
 
 
-class ClientLogStrategy(ABC):
+class ClientLogStrategy[T: BaseModel](ABC):
     @abstractmethod
-    def handle(self, call: ClientCall, context: BaseModel | None):
+    def handle(self, call: ClientCall, context: T | None):
         pass
-

@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 import json
 import logging
 from abc import ABC, abstractmethod
@@ -29,12 +30,12 @@ class Tool[T: BaseModel](ABC):
     tool_definition: ToolDefinition
 
     def __init__(
-        self,
-        parameters_model: Type[BaseModel],
-        client: OpenAI,
-        model_name: str,
-        log_strategies: list[ToolLogStrategy],
-        system_prompt: str | None = None,
+            self,
+            parameters_model: Type[BaseModel],
+            client: OpenAI,
+            model_name: str,
+            log_strategies: list[ToolLogStrategy],
+            system_prompt: str | None = None,
     ):
         self.system_prompt = system_prompt or DEFAULT_TOOL_PROMPT
         self.model_name = model_name
@@ -42,10 +43,10 @@ class Tool[T: BaseModel](ABC):
 
         self.pricing_service = PricingService()
         self.parameters_model = parameters_model
-        self.context_messages = []
+        self.context_messages: list[dict] = []
 
         self.logger = logging.getLogger(__name__)
-        self.logging_messages = []
+        self.logging_messages: list[ToolMessage] = []
         self.log_strategies = log_strategies
 
     def execute(self, question: str, context: BaseModel) -> ToolResult:

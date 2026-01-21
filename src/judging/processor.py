@@ -48,6 +48,9 @@ class JudgeProcessor:
         )
 
         evaluation = evaluations_crud.get(judge.evaluation_id)
+        if evaluation is None:
+            raise RuntimeError("Evaluation not found for judge")
+
         messages = [
             {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
             {"role": "user", "content": evaluation.question},
