@@ -16,6 +16,6 @@ stages:
 include:
   - local: .gitlab/ci/lint.yaml
   - local: .gitlab/ci/build.yaml
-  - local: .gitlab/ci/terraform.yaml
+#  - local: .gitlab/ci/terraform.yaml
   - local: .gitlab/ci/deploy.yaml
   - local: .gitlab/ci/test.yaml
