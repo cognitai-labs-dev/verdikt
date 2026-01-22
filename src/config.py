@@ -28,5 +28,9 @@ class Settings(BaseSettings):
     def postgresql(self):
         return f"postgresql+psycopg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}"
 
+    @property
+    def is_dev(self) -> bool:
+        return self.APP_ENV.lower() == "dev"
+
 
 settings = Settings()

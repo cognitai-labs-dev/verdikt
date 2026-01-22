@@ -3,14 +3,13 @@ import logging
 
 from llm import Client
 from src.config import settings
-from src.constants import JudgeStatus
 from src.crud.evaluation import evaluations_crud
 from src.crud.judge import judge_crud
 from src.depedencies import async_instructor_client
-from src.judging.logging import JudgeClientLoggingStrategy
 from src.judging.prompts import JUDGE_SYSTEM_PROMPT, JUDGE_EVAL_PROMPT
-from src.judging.schemas import JudgeResult
-from src.schemas.judge import JudgeSchema, JudgeUpdateSchema
+from src.judging.schemas import JudgeResult, PricingSchema
+from src.judging.services import JudgeService
+from src.schemas.judge import JudgeSchema
 
 
 class JudgeProcessor:
@@ -21,10 +20,11 @@ class JudgeProcessor:
         self.wait_time = settings.WORKER_WAIT_TIME
         # Temporarily just used openai
         self.client = Client(
-            [JudgeClientLoggingStrategy()],
+            [],
             async_instructor_client,
             settings.JUDGING_LLM_MODELS[0].model,
         )
+        self.judging_service = JudgeService()
 
     async def run(self):
         while self.running:
@@ -58,12 +58,9 @@ class JudgeProcessor:
             {"role": "user", "content": JUDGE_EVAL_PROMPT},
         ]
 
-        update_schema = JudgeUpdateSchema(id=judge.id, status=JudgeStatus.COMPLETED)
-        result = await self.client.structured_response(
-            JudgeResult, messages, update_schema
+        result, metadata = await self.client.structured_response(
+            JudgeResult, messages, None
         )
-        update_schema.score = result.score
-        update_schema.reasoning = result.reasoning
-        update_schema.passed = result.passed
-
-        judge_crud.update(update_schema)
+        self.judging_service.save_judge(
+            judge.id, result, PricingSchema(**metadata.model_dump())
+        )

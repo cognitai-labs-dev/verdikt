@@ -2,19 +2,14 @@ import asyncio
 
 from src.api.schemas import EvaluationRunApiSchema, EvaluationApiSchema
 from src.evaluation.service import EvaluationService
-from src.judging.processor import JudgeProcessor
+from src.processors.judge_processor import JudgeProcessor
 from src.logging import setup_logging
 
 setup_logging()
 
-import datetime as dt
 import logging
-from pathlib import Path
 
 import typer
-from typing_extensions import Annotated
-
-from src.config import settings
 
 logger = logging.getLogger(__name__)
 app = typer.Typer(pretty_exceptions_enable=False)

@@ -1,11 +1,11 @@
 from llm import ClientLogStrategy, ClientCall
-from src.schemas.judge import JudgeUpdateSchema
+from src.judging.schemas import PricingSchema
 
 
 class JudgeClientLoggingStrategy(ClientLogStrategy):
-    def handle(self, call: ClientCall, context: JudgeUpdateSchema | None):
+    def handle(self, call: ClientCall, context: PricingSchema | None):
         if context is None:
-            raise Exception("No context provided in logging strategy")
+            raise RuntimeError("No context provided in logging strategy")
 
         context.input_tokens = call.input_tokens
         context.output_tokens = call.output_tokens

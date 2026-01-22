@@ -25,20 +25,23 @@ class Client:
         response_type: type[T],
         messages: list[dict[str, str]],
         context: BaseModel | None,
-    ) -> T:
+    ) -> tuple[T, ClientCall]:
         """
         Provides a structured response via an LLM call
 
         Uses provided log strategies to log all the LLM messages
         """
-        parsed, response = await self.instructor_client.responses.create_with_completion(  # type: ignore
+        (
+            parsed,
+            response,
+        ) = await self.instructor_client.responses.create_with_completion(  # type: ignore
             model=self.model_name,
             response_model=response_type,
             max_retries=3,
             input=messages,  # type: ignore
         )
-        self._handle_log_strategies(messages, context, parsed, response)
-        return parsed
+        llm_call = self._handle_log_strategies(messages, context, parsed, response)
+        return parsed, llm_call
 
     def _handle_log_strategies(
         self,
@@ -46,7 +49,7 @@ class Client:
         context: BaseModel | None,
         parsed: BaseModel,
         response: Response,
-    ):
+    ) -> ClientCall:
         context_messages = self._parse_context_messages(messages)
         client_message = self._parse_client_message(parsed)
 
@@ -60,6 +63,7 @@ class Client:
         )
         for strategy in self.log_strategies:
             strategy.handle(llm_call, context)
+        return llm_call
 
     @staticmethod
     def _parse_client_message(parsed: BaseModel) -> ClientMessage:
