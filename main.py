@@ -1,6 +1,9 @@
 import asyncio
 
+import uvicorn
+
 from src.api.schemas import EvaluationRunApiSchema, EvaluationApiSchema
+from src.api_app import api_factory
 from src.evaluation.service import EvaluationService
 from src.processors.judge_processor import JudgeProcessor
 from src.logging import setup_logging
@@ -68,6 +71,11 @@ def run_judging():
         await processor.run()
 
     asyncio.run(run())
+
+@app.command()
+def api():
+    fastapi_app = api_factory()
+    uvicorn.run(fastapi_app, host="0.0.0.0", port=8000)
 
 
 if __name__ == "__main__":
