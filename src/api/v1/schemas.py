@@ -6,4 +6,3 @@ class HumanJudgeRequest(BaseModel):
     reasoning: str
     passed: bool
     score: int
-

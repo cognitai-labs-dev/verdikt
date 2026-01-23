@@ -58,9 +58,7 @@ class JudgeProcessor:
             {"role": "user", "content": JUDGE_EVAL_PROMPT},
         ]
 
-        result, metadata = await self.client.structured_response(
-            JudgeResult, messages, None
-        )
+        result, metadata = await self.client.structured_response(JudgeResult, messages)
         self.judging_service.save_judge(
             judge.id, result, PricingSchema(**metadata.model_dump())
         )
