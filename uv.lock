@@ -7,7 +7,7 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "ai-eval"
+name = "evaluation-app"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
