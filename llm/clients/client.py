@@ -5,9 +5,10 @@ from openai.types.responses import Response
 from pydantic import BaseModel
 
 from llm.common.pricing import PricingService
-from llm.common.schemas import LLMRole, ContextMessage
+from llm.common.schemas import LLMRole
 from llm.clients.schemas import ClientMessage, ClientCall
 from llm.clients.strategy import ClientLogStrategy
+from llm.common.utils import to_context_messages
 
 
 class Client:
@@ -82,7 +83,7 @@ class Client:
     def _create_llm_call(
         self, messages: list[dict[str, str]], parsed: BaseModel, response: Response
     ) -> ClientCall:
-        context_messages = self._parse_context_messages(messages)
+        context_messages = to_context_messages(messages)
         client_message = self._parse_client_message(parsed)
 
         return ClientCall(
@@ -97,12 +98,3 @@ class Client:
     @staticmethod
     def _parse_client_message(parsed: BaseModel) -> ClientMessage:
         return ClientMessage(response=parsed, role=LLMRole.ASSISTANT)
-
-    @staticmethod
-    def _parse_context_messages(
-        messages: list[dict[str, str]],
-    ) -> list[ContextMessage]:
-        return [
-            ContextMessage(message=message["content"], role=LLMRole(message["role"]))
-            for message in messages
-        ]
