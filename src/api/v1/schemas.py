@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class HumanJudgeRequest(BaseModel):
+class EvaluationRequest(BaseModel):
     reasoning: str
     passed: bool
     score: int

@@ -1,15 +1,24 @@
 from src.constants import JudgeStatus, JudgeType
+from src.crud.evaluation import evaluations_crud
 from src.crud.judge import judge_crud
 from src.judging.schemas import JudgeResult, PricingSchema
-from src.schemas.judge import JudgeUpdateSchema
+from src.schemas.judge import JudgeUpdateSchema, JudgeSchema
 
 
 class JudgeService:
     def __init__(self):
-        self.crud = judge_crud
+        self.judge = judge_crud
+        self.evaluation = evaluations_crud
 
-    def get_judge_type(self, judge_id: int) -> JudgeType:
-        return self.crud.get(judge_id).judge_type
+    def get_human_judges_by_run_id(self, eval_run_id: int) -> list[JudgeSchema]:
+        return self.judge.get_many_by_eval_run(eval_run_id, JudgeType.HUMAN)
+
+    def get_human_judge_by_eval(self, eval_id: int) -> int | None:
+        res = self.judge.get_many_by_eval_id(eval_id, JudgeType.HUMAN)
+        if res is None:
+            return None
+
+        return res.id
 
     @staticmethod
     def save_judge(

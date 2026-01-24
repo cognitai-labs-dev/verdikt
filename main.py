@@ -74,8 +74,7 @@ def run_judging():
 
 @app.command()
 def api():
-    fastapi_app = api_factory()
-    uvicorn.run(fastapi_app, host="0.0.0.0", port=8000)
+    uvicorn.run("src.api_app:api_factory", host="0.0.0.0", port=8000, reload=True)
 
 
 if __name__ == "__main__":
