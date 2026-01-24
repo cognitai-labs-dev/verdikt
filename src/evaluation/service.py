@@ -27,10 +27,9 @@ class EvaluationService:
         ]
         db_samples = samples_crud.create_many(samples)
 
-        # Future improvement create many
-        self._create_llm_judging(db_samples)
+        self._create_judgments(db_samples)
 
-    def _create_llm_judging(self, db_samples: list[SampleSchema]):
+    def _create_judgments(self, db_samples: list[SampleSchema]):
         llm_judgments = []
         human_judgments = []
         for provider, model in self.llm_judges:

@@ -2,7 +2,7 @@ from src.constants import JudgmentStatus, JudgmentType
 from src.crud.sample import samples_crud
 from src.crud.judgment import judgment_crud
 from src.judging.schemas import JudgmentResult, PricingSchema
-from src.schemas.judgment import JudgmentUpdateSchema
+from src.schemas.judgment import JudgmentUpdateSchema, JudgmentSchema
 
 
 class JudgmentService:
@@ -10,14 +10,14 @@ class JudgmentService:
         self.judgment = judgment_crud
         self.sample = samples_crud
 
-    def get_human_judgment_by_sample(self, sample_id: int) -> int | None:
+    def get_human_judgment_by_sample(self, sample_id: int) -> JudgmentSchema | None:
         results = self.judgment.get_many_by_sample_id(sample_id, JudgmentType.HUMAN)
         if len(results) == 0:
             return None
         if len(results) > 1:
             raise RuntimeError("More than 1 human judgment for a sample")
 
-        return results[0].id
+        return results[0]
 
     @staticmethod
     def save_judgment(
