@@ -1,5 +1,5 @@
 [project]
-name = "ai-eval"
+name = "evaluation-app"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -8,13 +8,16 @@ dependencies = [
     "alembic>=1.18.1",
     "cachetools>=6.2.4",
     "dotenv>=0.9.9",
+    "fastapi>=0.128.0",
     "instructor>=1.14.4",
     "litellm>=1.81.0",
     "openai>=2.15.0",
+    "orjson>=3.11.5",
     "psycopg>=3.3.2",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
     "sqlalchemy>=2.0.45",
+    "uvicorn>=0.40.0",
 ]
 
 [dependency-groups]

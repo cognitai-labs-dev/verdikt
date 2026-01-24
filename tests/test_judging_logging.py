@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from llm.clients.schemas import ClientCall, ClientMessage
 from llm.common.schemas import LLMRole, ContextMessage
 from src.judging.logging import JudgeClientLoggingStrategy
-from src.schemas.judge import JudgeUpdateSchema
+from src.schemas.judgment import JudgmentUpdateSchema
 
 
 class DummyResponse(BaseModel):
@@ -36,7 +36,7 @@ def test_handle_updates_context_with_token_info():
         input_tokens_cost=0.01,
         output_tokens_cost=0.02,
     )
-    context = JudgeUpdateSchema(id=1)
+    context = JudgmentUpdateSchema(id=1)
 
     strategy.handle(call, context)
 

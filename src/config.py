@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from src.judging.schemas import LLMJudgeConfig
+from src.judging.schemas import LLMJudgmentConfig
 
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -14,7 +14,9 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str
 
-    JUDGING_LLM_MODELS: list[LLMJudgeConfig] = [LLMJudgeConfig("OpenAI", "gpt-4o-mini")]
+    JUDGING_LLM_MODELS: list[LLMJudgmentConfig] = [
+        LLMJudgmentConfig("OpenAI", "gpt-4o-mini")
+    ]
 
     PG_HOST: str = "localhost"
     PG_PORT: str = "5433"
@@ -27,6 +29,10 @@ class Settings(BaseSettings):
     @property
     def postgresql(self):
         return f"postgresql+psycopg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}"
+
+    @property
+    def is_dev(self) -> bool:
+        return self.APP_ENV.lower() == "dev"
 
 
 settings = Settings()

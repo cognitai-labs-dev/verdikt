@@ -1,11 +1,11 @@
 from enum import StrEnum
 
 
-class JudgeType(StrEnum):
+class JudgmentType(StrEnum):
     HUMAN = "HUMAN"
     LLM = "LLM"
 
 
-class JudgeStatus(StrEnum):
+class JudgmentStatus(StrEnum):
     PENDING = "PENDING"
     COMPLETED = "COMPLETED"

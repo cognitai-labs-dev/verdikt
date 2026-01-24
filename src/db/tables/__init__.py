@@ -1,14 +1,14 @@
 from sqlalchemy.schema import MetaData
 
 from .evaluations import evaluations_table as evaluations
-from .evaluation_runs import evaluation_runs_table as evaluations_runs
-from .judges import judges_table as judges
+from .samples import samples_table as samples
+from .judgments import judgments_table as judgments
 
 sa_metadata = MetaData()
 
 __all__ = [
     "sa_metadata",
     "evaluations",
-    "evaluations_runs",
-    "judges",
+    "samples",
+    "judgments",
 ]

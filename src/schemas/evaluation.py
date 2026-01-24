@@ -7,12 +7,8 @@ from pydantic import BaseModel, Field
 class EvaluationCreateSchema(BaseModel):
     """DB schema for creating evaluations in postgres."""
 
-    run_id: int = Field(description="Foreign key to evaluation_runs table")
-    question: str = Field(description="The question asked")
-    answer: str = Field(description="The answer provided")
-    app_cost: float | None = Field(
-        default=None, description="Cost of the application call"
-    )
+    app_id: str = Field(max_length=100, description="Application identifier")
+    app_version: str = Field(max_length=50, description="Application version")
     metadata: dict[str, Any] | None = Field(
         default=None, description="Additional metadata"
     )

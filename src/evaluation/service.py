@@ -1,14 +1,14 @@
 import logging
 
-from src.api.schemas import EvaluationRunApiSchema
+from src.api.schemas import EvaluationApiSchema
 from src.config import settings
-from src.constants import JudgeType, JudgeStatus
+from src.constants import JudgmentType, JudgmentStatus
+from src.crud.sample import samples_crud
 from src.crud.evaluation import evaluations_crud
-from src.crud.evaluation_run import evaluation_runs_crud
-from src.crud.judge import judge_crud
-from src.schemas.evaluation import EvaluationCreateSchema, EvaluationSchema
-from src.schemas.evaluation_run import EvaluationRunCreateSchema
-from src.schemas.judge import JudgeCreateSchema
+from src.crud.judgment import judgment_crud
+from src.schemas.sample import SampleCreateSchema, SampleSchema
+from src.schemas.evaluation import EvaluationCreateSchema
+from src.schemas.judgment import JudgmentCreateSchema
 
 
 class EvaluationService:
@@ -16,41 +16,40 @@ class EvaluationService:
         self.llm_judges = settings.JUDGING_LLM_MODELS
         self.logger = logging.getLogger(__name__)
 
-    def create(self, request: EvaluationRunApiSchema):
+    def create(self, request: EvaluationApiSchema):
         self.logger.info("Creating evaluation for %s", request.app_id)
-        run = EvaluationRunCreateSchema(**request.model_dump())
-        created_run = evaluation_runs_crud.create(run)
+        evaluation = EvaluationCreateSchema(**request.model_dump())
+        created_evaluation = evaluations_crud.create(evaluation)
 
-        evals = [
-            EvaluationCreateSchema(run_id=created_run.id, **e.model_dump())
-            for e in request.evaluations
+        samples = [
+            SampleCreateSchema(evaluation_id=created_evaluation.id, **s.model_dump())
+            for s in request.samples
         ]
-        db_evals = evaluations_crud.create_many(evals)
+        db_samples = samples_crud.create_many(samples)
 
-        # Future improvement create many
-        self._create_llm_judging(db_evals)
+        self._create_judgments(db_samples)
 
-    def _create_llm_judging(self, db_evals: list[EvaluationSchema]):
-        llm_judges = []
-        human_judges = []
+    def _create_judgments(self, db_samples: list[SampleSchema]):
+        llm_judgments = []
+        human_judgments = []
         for provider, model in self.llm_judges:
-            for evaluation in db_evals:
-                llm_judges.append(
-                    JudgeCreateSchema(
-                        evaluation_id=evaluation.id,
-                        judge_model=model,
-                        judge_type=JudgeType.LLM,
-                        status=JudgeStatus.PENDING,
+            for sample in db_samples:
+                llm_judgments.append(
+                    JudgmentCreateSchema(
+                        sample_id=sample.id,
+                        judgment_model=model,
+                        judgment_type=JudgmentType.LLM,
+                        status=JudgmentStatus.PENDING,
                     )
                 )
-                human_judges.append(
-                    JudgeCreateSchema(
-                        evaluation_id=evaluation.id,
-                        judge_model="human",
-                        judge_type=JudgeType.HUMAN,
-                        status=JudgeStatus.PENDING,
+                human_judgments.append(
+                    JudgmentCreateSchema(
+                        sample_id=sample.id,
+                        judgment_model="human",
+                        judgment_type=JudgmentType.HUMAN,
+                        status=JudgmentStatus.PENDING,
                     )
                 )
 
-        judge_crud.create_many(llm_judges)
-        judge_crud.create_many(human_judges)
+        judgment_crud.create_many(llm_judgments)
+        judgment_crud.create_many(human_judgments)

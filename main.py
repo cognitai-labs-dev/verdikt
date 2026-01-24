@@ -1,48 +1,46 @@
 import asyncio
 
-from src.api.schemas import EvaluationRunApiSchema, EvaluationApiSchema
+import uvicorn
+
+from src.api.schemas import EvaluationApiSchema, SampleApiSchema
+from src.api_app import api_factory
 from src.evaluation.service import EvaluationService
-from src.judging.processor import JudgeProcessor
+from src.processors.judgment_processor import JudgmentProcessor
 from src.logging import setup_logging
 
 setup_logging()
 
-import datetime as dt
 import logging
-from pathlib import Path
 
 import typer
-from typing_extensions import Annotated
-
-from src.config import settings
 
 logger = logging.getLogger(__name__)
 app = typer.Typer(pretty_exceptions_enable=False)
 
 
-def create_example_request() -> EvaluationRunApiSchema:
-    return EvaluationRunApiSchema(
+def create_example_request() -> EvaluationApiSchema:
+    return EvaluationApiSchema(
         app_id="ai-oncall-assistant",
         app_version="1.0.0",
         metadata={},
-        evaluations=[
-            EvaluationApiSchema(
+        samples=[
+            SampleApiSchema(
                 question="how do I remove a forgotten card",
                 answer="""
                     1. Check card status: `[SQL: payments_recurrent] SELECT shop_id, status FROM payments_recurrent WHERE shop_id = {local_shop_id}`
                     2. Evaluate status of the card: If the status is `active`, investigate if there is another underlying issue; if `inactive`, prepare to update it to `token_deleted`.
-                    3. Determine reason for inactivity if status is `inactive`: Verify if the shop turned it off, check for insufficient credit/card limits, or confirm if the card has expired - ⚠️ MISSING INFO: Documentation does not specify exact command or procedure to update status to `token_deleted`. 
+                    3. Determine reason for inactivity if status is `inactive`: Verify if the shop turned it off, check for insufficient credit/card limits, or confirm if the card has expired - ⚠️ MISSING INFO: Documentation does not specify exact command or procedure to update status to `token_deleted`.
                 """,
                 app_cost=0.05,
                 metadata={},
             ),
-            EvaluationApiSchema(
+            SampleApiSchema(
                 question="what does the exit click service do",
                 answer="""Routed to *one_exit* service but theres no agent for it. Please refer to the help of a human.""",
                 app_cost=0.05,
                 metadata={},
             ),
-            EvaluationApiSchema(
+            SampleApiSchema(
                 question="how is sameprice offer rank calculated",
                 answer="""
                     The sameprice offer rank is calculated based on the formula: RankScore = (1 + A + B
@@ -67,12 +65,16 @@ def evaluate():
 
 @app.command()
 def run_judging():
-    processor = JudgeProcessor()
+    processor = JudgmentProcessor()
 
     async def run():
         await processor.run()
 
     asyncio.run(run())
+
+@app.command()
+def api():
+    uvicorn.run("src.api_app:api_factory", host="0.0.0.0", port=8000, reload=True)
 
 
 if __name__ == "__main__":

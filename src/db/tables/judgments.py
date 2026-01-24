@@ -3,8 +3,8 @@ import sqlalchemy as sa
 from src.db.pg import sa_metadata
 
 
-judges_table = sa.Table(
-    "judges",
+judgments_table = sa.Table(
+    "judgments",
     sa_metadata,
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
     sa.Column("created_at", sa.DateTime, server_default=sa.func.now(), nullable=False),
@@ -15,12 +15,10 @@ judges_table = sa.Table(
         onupdate=sa.func.now(),
         nullable=False,
     ),
-    sa.Column(
-        "evaluation_id", sa.Integer, sa.ForeignKey("evaluations.id"), nullable=False
-    ),
+    sa.Column("sample_id", sa.Integer, sa.ForeignKey("samples.id"), nullable=False),
     sa.Column("status", sa.String(50), nullable=False),
-    sa.Column("judge_type", sa.String(50), nullable=False),
-    sa.Column("judge_model", sa.String(50), nullable=False),
+    sa.Column("judgment_type", sa.String(50), nullable=False),
+    sa.Column("judgment_model", sa.String(50), nullable=False),
     sa.Column("reasoning", sa.Text, nullable=True),
     sa.Column("passed", sa.Boolean, nullable=True),
     sa.Column("score", sa.Integer, nullable=True),

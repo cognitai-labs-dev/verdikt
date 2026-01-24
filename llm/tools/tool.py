@@ -11,6 +11,7 @@ from openai.types.responses import (
 from pydantic import BaseModel
 
 from llm.common.pricing import PricingService
+from llm.common.utils import to_context_messages
 from llm.tools.prompts import DEFAULT_TOOL_PROMPT
 from llm.tools.schemas import (
     ToolDefinition,
@@ -27,15 +28,16 @@ class Tool[T: BaseModel](ABC):
     """
     TODO: This class needs improvement for clarification purposes
     """
+
     tool_definition: ToolDefinition
 
     def __init__(
-            self,
-            parameters_model: Type[BaseModel],
-            client: OpenAI,
-            model_name: str,
-            log_strategies: list[ToolLogStrategy],
-            system_prompt: str | None = None,
+        self,
+        parameters_model: Type[BaseModel],
+        client: OpenAI,
+        model_name: str,
+        log_strategies: list[ToolLogStrategy],
+        system_prompt: str | None = None,
     ):
         self.system_prompt = system_prompt or DEFAULT_TOOL_PROMPT
         self.model_name = model_name
@@ -46,7 +48,7 @@ class Tool[T: BaseModel](ABC):
         self.context_messages: list[dict] = []
 
         self.logger = logging.getLogger(__name__)
-        self.logging_messages: list[ToolMessage] = []
+        self.logging_messages: list[ToolMessage | ContextMessage] = []
         self.log_strategies = log_strategies
 
     def execute(self, question: str, context: BaseModel) -> ToolResult:
@@ -87,7 +89,7 @@ class Tool[T: BaseModel](ABC):
             {"role": "user", "content": question},
         ]
         self.context_messages.extend(messages)
-        self.logging_messages.extend(self._to_context_messages(messages))
+        self.logging_messages.extend(to_context_messages(messages))
 
         response: Response = self.client.responses.create(
             model=self.model_name,
@@ -181,13 +183,6 @@ class Tool[T: BaseModel](ABC):
                 "parameters": parameters,
                 "strict": True,
             }
-        ]
-
-    @staticmethod
-    def _to_context_messages(messages: list[dict]) -> list[ContextMessage]:
-        return [
-            ContextMessage(message=m["content"], role=LLMRole(m["role"]))
-            for m in messages
         ]
 
     @abstractmethod
