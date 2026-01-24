@@ -1,30 +1,31 @@
-from src.constants import JudgeStatus, JudgeType
-from src.crud.evaluation import evaluations_crud
-from src.crud.judge import judge_crud
-from src.judging.schemas import JudgeResult, PricingSchema
-from src.schemas.judge import JudgeUpdateSchema, JudgeSchema
+from src.constants import JudgmentStatus, JudgmentType
+from src.crud.sample import samples_crud
+from src.crud.judgment import judgment_crud
+from src.judging.schemas import JudgmentResult, PricingSchema
+from src.schemas.judgment import JudgmentUpdateSchema
 
 
-class JudgeService:
+class JudgmentService:
     def __init__(self):
-        self.judge = judge_crud
-        self.evaluation = evaluations_crud
+        self.judgment = judgment_crud
+        self.sample = samples_crud
 
-    def get_human_judges_by_run_id(self, eval_run_id: int) -> list[JudgeSchema]:
-        return self.judge.get_many_by_eval_run(eval_run_id, JudgeType.HUMAN)
-
-    def get_human_judge_by_eval(self, eval_id: int) -> int | None:
-        res = self.judge.get_many_by_eval_id(eval_id, JudgeType.HUMAN)
-        if res is None:
+    def get_human_judgment_by_sample(self, sample_id: int) -> int | None:
+        results = self.judgment.get_many_by_sample_id(sample_id, JudgmentType.HUMAN)
+        if len(results) == 0:
             return None
+        if len(results) > 1:
+            raise RuntimeError("More than 1 human judgment for a sample")
 
-        return res.id
+        return results[0].id
 
     @staticmethod
-    def save_judge(
-        judge_id: int, result: JudgeResult, pricing: PricingSchema | None = None
+    def save_judgment(
+        judgment_id: int, result: JudgmentResult, pricing: PricingSchema | None = None
     ):
-        update_schema = JudgeUpdateSchema(id=judge_id, status=JudgeStatus.COMPLETED)
+        update_schema = JudgmentUpdateSchema(
+            id=judgment_id, status=JudgmentStatus.COMPLETED
+        )
 
         update_schema.score = result.score
         update_schema.reasoning = result.reasoning
@@ -36,4 +37,4 @@ class JudgeService:
             update_schema.input_tokens_cost = pricing.output_tokens_cost
             update_schema.output_tokens_cost = pricing.output_tokens_cost
 
-        judge_crud.update(update_schema)
+        judgment_crud.update(update_schema)

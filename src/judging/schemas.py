@@ -3,12 +3,12 @@ from typing import NamedTuple
 from pydantic import BaseModel
 
 
-class LLMJudgeConfig(NamedTuple):
+class LLMJudgmentConfig(NamedTuple):
     provider: str
     model: str
 
 
-class JudgeResult(BaseModel):
+class JudgmentResult(BaseModel):
     reasoning: str
     passed: bool
     score: int

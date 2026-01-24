@@ -113,3 +113,7 @@ Frontend part is PURELY for interacting with the human for judging and displayin
 - create basic api for creating evals & human judge api
 - basic FE for human judging
 - deploy
+
+
+## Components
+services -- business logic and validation
