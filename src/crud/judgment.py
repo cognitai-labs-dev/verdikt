@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from sqlalchemy import select, and_
 
 from src.constants import JudgmentStatus, JudgmentType
@@ -59,6 +61,34 @@ class JudgmentCRUD(
         if len(rows) == 0:
             return []
         return [JudgmentSchema.model_validate(row._mapping) for row in rows]
+
+    def get_many_by_sample_ids(
+        self, sample_ids: list[int], judgment_type: JudgmentType
+    ) -> dict[int, list[JudgmentSchema]]:
+        """Get all judgments for a list of sample IDs, grouped by sample ID."""
+        if not sample_ids:
+            return {}
+
+        stmt = (
+            select(self.table)
+            .where(
+                and_(
+                    self.table.c.sample_id.in_(sample_ids),
+                    self.table.c.judgment_type == judgment_type,
+                )
+            )
+            .order_by(self.table.c.sample_id, self.table.c.created_at.desc())
+        )
+
+        with self.engine.connect() as conn:
+            rows = conn.execute(stmt).fetchall()
+
+        grouped: dict[int, list[JudgmentSchema]] = defaultdict(list)
+        for row in rows:
+            judgment = JudgmentSchema.model_validate(row._mapping)
+            grouped[judgment.sample_id].append(judgment)
+
+        return dict(grouped)
 
 
 judgment_crud = JudgmentCRUD()

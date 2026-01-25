@@ -1,14 +1,45 @@
 from src.constants import JudgmentStatus, JudgmentType
 from src.crud.sample import samples_crud
 from src.crud.judgment import judgment_crud
-from src.judging.schemas import JudgmentResult, PricingSchema
+from src.judging.schemas import JudgmentResult, PricingSchema, SampleSummary
 from src.schemas.judgment import JudgmentUpdateSchema, JudgmentSchema
 
 
 class JudgmentService:
     def __init__(self):
         self.judgment = judgment_crud
+
         self.sample = samples_crud
+
+    def sample_judgments_summary(self, evaluation_id: int) -> list[SampleSummary]:
+        samples = self.sample.get_many_by_evaluation(evaluation_id)
+        sample_ids = {s.id: s for s in samples}
+        human_judgments = self.judgment.get_many_by_sample_ids(
+            list(sample_ids.keys()), JudgmentType.HUMAN
+        )
+        llm_judgments_map = self.judgment.get_many_by_sample_ids(
+            list(sample_ids.keys()), JudgmentType.LLM
+        )
+
+        sample_responses = []
+        for sample_id, sample in sample_ids.items():
+            human_judgment = human_judgments.get(sample_id)
+            llm_judgments = llm_judgments_map.get(sample_id)
+
+            sample_responses.append(
+                SampleSummary(
+                    **sample.model_dump(),
+                    human_judgment_passed=human_judgment[0].passed
+                    if len(human_judgment) == 1
+                    else None,
+                    llm_judgments_count=len(llm_judgments),
+                    llm_judgments_count_passed=len(
+                        [judgement for judgement in llm_judgments if judgement.passed]
+                    ),
+                ),
+            )
+
+        return sample_responses
 
     def get_human_judgment_by_sample(self, sample_id: int) -> JudgmentSchema | None:
         results = self.judgment.get_many_by_sample_id(sample_id, JudgmentType.HUMAN)
