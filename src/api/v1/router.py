@@ -1,13 +1,10 @@
 from fastapi import APIRouter, HTTPException
 
 from src.api.v1.response import ORJsonResponse
-from src.api.v1.schemas import (
-    JudgmentRequest,
-    EvaluationSummaryResponse,
-    GoldenComparisonResponse,
-)
+from src.api.v1.schemas import JudgmentRequest
 from src.crud.evaluation import evaluations_crud
-from src.judging.schemas import JudgmentResult, SampleSummary, SampleDetail
+from src.judging.schemas import JudgmentResult
+from src.api.v1.schemas import SampleSummary, SampleDetail
 from src.judging.services import JudgmentService
 from src.schemas.evaluation import EvaluationSchema
 
@@ -26,9 +23,9 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
     judgment_service.save_judgment(judgment.id, JudgmentResult(**request.model_dump()))
 
 
-@router.get("/sample/{sample_id}", operation_id="getSample")
+@router.get("/sample/{sample_id}", operation_id="getSampleDetail")
 async def get_sample(sample_id: int) -> SampleDetail:
-    pass
+    return judgment_service.sample_judgment_detail(sample_id)
 
 
 @router.get("/evaluations", operation_id="getEvaluations")
@@ -36,16 +33,11 @@ async def get_evaluations(app_id: str) -> list[EvaluationSchema]:
     return evaluations_crud.get_many_by_app_id(app_id)
 
 
-@router.get("/evaluation/{evaluation_id}/samples", operation_id="getSamples")
+@router.get("/evaluation/{evaluation_id}/samples", operation_id="getSampleSummaries")
 async def get_evaluation_samples(evaluation_id: int) -> list[SampleSummary]:
     return judgment_service.sample_judgments_summary(evaluation_id)
 
 
-@router.get("/evaluation/{evaluation_id}/summary")
-async def get_evaluation_summary(evaluation_id: int) -> EvaluationSummaryResponse:
-    pass
-
-
-@router.get("/evaluation/{evaluation_id}/golden-comparison")
-async def get_golden_comparison(evaluation_id: int) -> GoldenComparisonResponse:
-    pass
+# @router.get("/evaluation/{evaluation_id}/summary")
+# async def get_evaluation_summary(evaluation_id: int) -> EvaluationSummaryResponse:
+#     return
