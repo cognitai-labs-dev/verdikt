@@ -85,22 +85,14 @@ POST /human-judgment
 - Human judgments completed via API
 - Evaluation complete when all judgments complete
 
-### API
+### API TODO
 
-Basic endpoints
+When summary data is returned from `summary` endpoint, need to implement 2 additional endpoints
 
-```
-POST evaluation
-- contains questions/answers and metadata to evaluate
-- called from the app that wants to evaluate its performance
+1. GET for all samples for an evaluation which returns the sample results like score and passing
+2. GET for judgments to get all sample judgments to look at reasonings
 
-GET evaluations
-- returns history of evaluations
-- called by FE
-
-POST human-judgment
-- called by FE, completes pending human judgments 
-```
+Something similiar for the `golden-comparison` which returns all samples (same GET) but then for each sample make 2 calls to get Human and LLM details
 
 
 ## Frontend
@@ -117,3 +109,4 @@ Frontend part is PURELY for interacting with the human for judging and displayin
 
 ## Components
 services -- business logic and validation
+schemas -- always have up to 2 api schemas 1 for list returns and 1 for detail return
