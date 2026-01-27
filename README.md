@@ -1,3 +1,23 @@
+# How to run
+
+To create a mock evaluation (simulate app call)
+
+```shell
+make eval
+```
+
+To run the judging of samples
+
+```shell
+make judge
+```
+
+To run API required for FE
+
+```shell
+make api
+```
+
 # Evaluation Framework Architecture
 
 ## Overview
@@ -14,11 +34,18 @@ App                          Evaluator Service
 └── reports to evaluator     └── provides verdicts
 ```
 
+## Entities
+
+- App -- created for each application (not implemented yet)
+- Evaluation -- created only for 1 app, contains metadata, app version etc, should created after every change in the app
+- Sample -- tied to only 1 evaluation, contains the question, human & app anwers and some more metadata
+- Judgment -- a sample can have many llm judgments and ONLY 1 human judgment, contains the verdict
+
 ## Data Flow (Single-turn Q&A)
 
-1. App sends `{question, answer, app_cost, metadata}` to evaluator
+1. App sends `{question, human_answer, app_answer, app_cost, metadata}` to evaluator
 2. Evaluator runs N judges (human and/or LLM)
-3. Results stored with verdicts, scores, explanations
+3. Results stored with verdicts, explanations
 4. App queries results to track improvement
 
 ## Judge Calibration
@@ -28,19 +55,15 @@ App                          Evaluator Service
 - Track agreement rate until LLM judges can run solo
 - Periodic human spot-checks after graduation
 
-## Judge Prompts
-
-- **Generic** (shared): coherence, hallucination, relevance
-- **App-specific** (configured per app): domain rules, tone, safety
-
 ## Deployment
 
 Evaluator deployed as standalone service. Callable from:
+
 - Local development
 - Staging
 - Production
 
-# Evaluation app architecture
+## Architecture
 
 ```mermaid
 flowchart TB
@@ -76,7 +99,7 @@ EvaluationService              LLMJudgeWorker
 ├── creates pending judgments  ├── executes in parallel
 └── returns immediately        └── marks complete
 
-POST /human-judgment
+POST /sample/{sample_id}/judgment
 └── completes human judgments (manual consumer)
 ```
 
@@ -85,28 +108,12 @@ POST /human-judgment
 - Human judgments completed via API
 - Evaluation complete when all judgments complete
 
-### API TODO
-
-When summary data is returned from `summary` endpoint, need to implement 2 additional endpoints
-
-1. GET for all samples for an evaluation which returns the sample results like score and passing
-2. GET for judgments to get all sample judgments to look at reasonings
-
-Something similiar for the `golden-comparison` which returns all samples (same GET) but then for each sample make 2 calls to get Human and LLM details
-
-
 ## Frontend
 
 Frontend part is PURELY for interacting with the human for judging and displaying result information.
 
-
-## Implementation plan
-
-- create basic api for creating evals & human judge api
-- basic FE for human judging
-- deploy
-
-
 ## Components
+
 services -- business logic and validation
 schemas -- always have up to 2 api schemas 1 for list returns and 1 for detail return
+
