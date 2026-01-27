@@ -7,7 +7,6 @@ from src.schemas.sample import SampleSchema
 class JudgmentRequest(BaseModel):
     reasoning: str
     passed: bool
-    score: int
 
 
 class EvaluationSummaryResponse(BaseModel):

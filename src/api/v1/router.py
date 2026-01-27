@@ -17,7 +17,7 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
     judgment = judgment_service.get_human_judgment_by_sample(sample_id)
     if judgment is None:
         raise HTTPException(status_code=400, detail="Judgment not found")
-    if judgment.score is not None:
+    if judgment.passed is not None:
         raise HTTPException(status_code=400, detail="Judgment already judged")
 
     judgment_service.save_judgment(judgment.id, JudgmentResult(**request.model_dump()))

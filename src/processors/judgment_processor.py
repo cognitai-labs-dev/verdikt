@@ -56,7 +56,8 @@ class JudgmentProcessor:
         messages = [
             {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
             {"role": "user", "content": sample.question},
-            {"role": "assistant", "content": sample.human_answer},
+            {"role": "user", "content": sample.human_answer},
+            {"role": "assistant", "content": sample.app_answer},
             {"role": "user", "content": JUDGE_EVAL_PROMPT},
         ]
 

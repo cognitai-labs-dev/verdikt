@@ -21,7 +21,6 @@ judgments_table = sa.Table(
     sa.Column("judgment_model", sa.String(50), nullable=False),
     sa.Column("reasoning", sa.Text, nullable=True),
     sa.Column("passed", sa.Boolean, nullable=True),
-    sa.Column("score", sa.Integer, nullable=True),
     sa.Column("input_tokens", sa.Integer, nullable=True),
     sa.Column("output_tokens", sa.Integer, nullable=True),
     sa.Column("input_tokens_cost", sa.Float, nullable=True),

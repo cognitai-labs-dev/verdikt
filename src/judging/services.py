@@ -75,7 +75,6 @@ class JudgmentService:
             id=judgment_id, status=JudgmentStatus.COMPLETED
         )
 
-        update_schema.score = result.score
         update_schema.reasoning = result.reasoning
         update_schema.passed = result.passed
 

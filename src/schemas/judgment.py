@@ -19,7 +19,6 @@ class JudgmentCreateSchema(BaseModel):
     passed: bool | None = Field(
         default=None, description="Whether the evaluation passed"
     )
-    score: int | None = Field(default=None, description="Score given by judge")
     input_tokens: int | None = Field(default=None, description="Number of input tokens")
     output_tokens: int | None = Field(
         default=None, description="Number of output tokens"

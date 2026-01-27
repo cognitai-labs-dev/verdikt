@@ -11,7 +11,6 @@ class LLMJudgmentConfig(NamedTuple):
 class JudgmentResult(BaseModel):
     reasoning: str
     passed: bool
-    score: int
 
 
 class PricingSchema(BaseModel):
