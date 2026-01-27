@@ -19,8 +19,14 @@ mypy: # Run mypy type checker
 lint: # Run pre-commit
 	pre-commit run --all-files
 
-venv: # Create venv
-	uv venv --allow-existing .venv
+api: # Run api
+	uv run main.py api
+
+eval: # Run api
+	uv run main.py evaluate
+
+judge: # Run api
+	uv run main.py run-judging
 
 up-d: # Run database in the background
 	docker compose up -d
@@ -28,20 +34,8 @@ up-d: # Run database in the background
 down:
 	docker compose down 
 
-cli: # Run cli application
-	uv run main.py cli
-
-web: up-d # Run web application
-	uv run main.py web
-
-slack: up-d # Run slack application
-	uv run main.py slack
-
 db: # enter db prompt
 	psql postgresql://postgresql:alpharius@localhost:5432
-
-pdb: # enter db prompt
-	pgcli postgresql://postgresql:alpharius@localhost:5432
 
 test: # Run tests
 	uv run pytest $(TA)

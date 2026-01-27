@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 
 class SampleApiSchema(BaseModel):
     question: str = Field(description="The question asked")
-    answer: str = Field(description="The answer provided")
+    human_answer: str = Field(description="The answer provided by the human")
+    app_answer: str = Field(description="The answer provided by the app")
     app_cost: float | None = Field(
         default=None, description="Cost of the application call"
     )

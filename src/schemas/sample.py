@@ -9,7 +9,10 @@ class SampleCreateSchema(BaseModel):
 
     evaluation_id: int = Field(description="Foreign key to evaluations table")
     question: str = Field(description="The question asked")
-    answer: str = Field(description="The answer provided")
+    human_answer: str = Field(
+        description="The answer provided by the human (golden standard)"
+    )
+    app_answer: str = Field(description="The answer provided by the app")
     app_cost: float | None = Field(
         default=None, description="Cost of the application call"
     )

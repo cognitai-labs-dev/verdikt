@@ -12,7 +12,8 @@ samples_table = sa.Table(
     ),
     sa.Column("created_at", sa.DateTime, server_default=sa.func.now(), nullable=False),
     sa.Column("question", sa.Text, nullable=False),
-    sa.Column("answer", sa.Text, nullable=False),
+    sa.Column("human_answer", sa.Text, nullable=False),
+    sa.Column("app_answer", sa.Text, nullable=False),
     sa.Column("app_cost", sa.Float, nullable=True),
     sa.Column("metadata", sa.JSON, nullable=True),
 )
