@@ -4,6 +4,7 @@ import uvicorn
 
 from src.api.schemas import EvaluationApiSchema, SampleApiSchema
 from src.api_app import api_factory
+from src.constants import EvaluationType
 from src.evaluation.service import EvaluationService
 from src.processors.judgment_processor import JudgmentProcessor
 from src.logging import setup_logging
@@ -18,11 +19,12 @@ logger = logging.getLogger(__name__)
 app = typer.Typer(pretty_exceptions_enable=False)
 
 
-def create_example_request() -> EvaluationApiSchema:
+def create_example_request(eval_type: EvaluationType) -> EvaluationApiSchema:
     return EvaluationApiSchema(
         app_id="ai-oncall-assistant",
         app_version="1.0.0",
         metadata={},
+        type=eval_type,
         samples=[
             SampleApiSchema(
                 question="how do I remove a forgotten card",
@@ -88,7 +90,14 @@ def create_example_request() -> EvaluationApiSchema:
 
 @app.command()
 def evaluate():
-    request = create_example_request()
+    request = create_example_request(EvaluationType.HUMAN_AND_LLM)
+    runner = EvaluationService()
+    runner.create(request)
+
+
+@app.command()
+def evaluate_llm():
+    request = create_example_request(EvaluationType.LLM_ONLY)
     runner = EvaluationService()
     runner.create(request)
 

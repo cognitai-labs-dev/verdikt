@@ -2,6 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from src.constants import EvaluationType
+
 
 class SampleApiSchema(BaseModel):
     question: str = Field(description="The question asked")
@@ -21,4 +23,5 @@ class EvaluationApiSchema(BaseModel):
     metadata: dict[str, Any] | None = Field(
         default=None, description="Additional metadata"
     )
+    type: EvaluationType
     samples: list[SampleApiSchema] = Field(description="List of samples")

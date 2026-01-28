@@ -2,7 +2,7 @@ import logging
 
 from src.api.schemas import EvaluationApiSchema
 from src.config import settings
-from src.constants import JudgmentType, JudgmentStatus
+from src.constants import JudgmentType, JudgmentStatus, EvaluationType
 from src.crud.sample import samples_crud
 from src.crud.evaluation import evaluations_crud
 from src.crud.judgment import judgment_crud
@@ -27,9 +27,11 @@ class EvaluationService:
         ]
         db_samples = samples_crud.create_many(samples)
 
-        self._create_judgments(db_samples)
+        self._create_judgments(db_samples, request.type)
 
-    def _create_judgments(self, db_samples: list[SampleSchema]):
+    def _create_judgments(
+        self, db_samples: list[SampleSchema], eval_type: EvaluationType
+    ):
         llm_judgments = []
         human_judgments = []
         for provider, model in self.llm_judges:
@@ -42,14 +44,15 @@ class EvaluationService:
                         status=JudgmentStatus.PENDING,
                     )
                 )
-                human_judgments.append(
-                    JudgmentCreateSchema(
-                        sample_id=sample.id,
-                        judgment_model="human",
-                        judgment_type=JudgmentType.HUMAN,
-                        status=JudgmentStatus.PENDING,
+                if eval_type == eval_type.HUMAN_AND_LLM:
+                    human_judgments.append(
+                        JudgmentCreateSchema(
+                            sample_id=sample.id,
+                            judgment_model="human",
+                            judgment_type=JudgmentType.HUMAN,
+                            status=JudgmentStatus.PENDING,
+                        )
                     )
-                )
 
         judgment_crud.create_many(llm_judgments)
         judgment_crud.create_many(human_judgments)

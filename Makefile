@@ -25,6 +25,9 @@ api: # Run api
 eval: # Run api
 	uv run main.py evaluate
 
+eval-llm: # Run api
+	uv run main.py evaluate
+
 judge: # Run api
 	uv run main.py run-judging
 
