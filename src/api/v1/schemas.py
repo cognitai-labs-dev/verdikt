@@ -27,8 +27,12 @@ class EvaluationSummaryResponse(BaseModel):
     agreement_ratio: float
 
 
-class SampleSummary(SampleSchema):
+class HumanSampleSummary(SampleSchema):
     human_judgment_passed: bool | None
+    llm_judgments_count_matching: int
+    llm_judgments_count: int
+
+class LLMSampleSummary(SampleSchema):
     llm_judgments_count_passed: int
     llm_judgments_count: int
 

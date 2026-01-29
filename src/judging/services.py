@@ -2,8 +2,9 @@ from src.constants import JudgmentStatus, JudgmentType
 from src.crud.sample import samples_crud
 from src.crud.judgment import judgment_crud
 from src.judging.schemas import JudgmentResult, PricingSchema
-from src.api.v1.schemas import SampleSummary, SampleDetail
+from src.api.v1.schemas import HumanSampleSummary, SampleDetail
 from src.schemas.judgment import JudgmentUpdateSchema, JudgmentSchema
+from src.schemas.sample import SampleSchema
 
 
 class JudgmentService:
@@ -26,7 +27,7 @@ class JudgmentService:
             llm_judgements=llm_judgments,
         )
 
-    def sample_judgments_summary(self, evaluation_id: int) -> list[SampleSummary]:
+    def sample_judgments_summary_human(self, evaluation_id: int) -> list[HumanSampleSummary]:
         samples = self.sample.get_many_by_evaluation(evaluation_id)
         sample_ids = {s.id: s for s in samples}
         human_judgments_map = self.judgment.get_many_by_sample_ids(
@@ -43,20 +44,28 @@ class JudgmentService:
             )
             llm_judgments = llm_judgments_map.get(sample_id)
 
-            sample_responses.append(
-                SampleSummary(
-                    **sample.model_dump(),
-                    human_judgment_passed=human_judgment.passed
-                    if human_judgment
-                    else None,
-                    llm_judgments_count=len(llm_judgments),
-                    llm_judgments_count_passed=len(
-                        [judgement for judgement in llm_judgments if judgement.passed]
-                    ),
-                ),
-            )
+            self.create_human_sample_summary(human_judgment, llm_judgments, sample)
 
         return sample_responses
+
+    @staticmethod
+    def create_human_sample_summary(
+        human_judgment: JudgmentSchema | None,
+        llm_judgments: list[JudgmentSchema],
+        sample: SampleSchema,
+    ) -> HumanSampleSummary:
+        return HumanSampleSummary(
+            **sample.model_dump(),
+            human_judgment_passed=human_judgment.passed if human_judgment else None,
+            llm_judgments_count=len(llm_judgments),
+            llm_judgments_count_matching=len(
+                [
+                    judgement
+                    for judgement in llm_judgments
+                    if judgement.passed == human_judgment.passed
+                ]
+            ),
+        )
 
     def get_human_judgment_by_sample(self, sample_id: int) -> JudgmentSchema | None:
         results = self.judgment.get_many_by_sample_id(sample_id, JudgmentType.HUMAN)

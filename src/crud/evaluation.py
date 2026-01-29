@@ -1,5 +1,6 @@
-from sqlalchemy import select
+from sqlalchemy import select, and_
 
+from src.constants import EvaluationType
 from src.crud.base import BaseCRUD
 from src.db.tables.evaluations import evaluations_table
 from src.schemas.base import UpdateSchema
@@ -12,11 +13,11 @@ class EvaluationsCRUD(BaseCRUD[EvaluationCreateSchema, EvaluationSchema, UpdateS
     def __init__(self):
         super().__init__(evaluations_table, EvaluationSchema)
 
-    def get_many_by_app_id(self, app_id: str) -> list[EvaluationSchema]:
+    def get_many_by_app_id(self, app_id: str, eval_type: EvaluationType) -> list[EvaluationSchema]:
         """Get all evaluations for a given app_id."""
         stmt = (
             select(self.table)
-            .where(self.table.c.app_id == app_id)
+            .where(and_(self.table.c.app_id == app_id, self.table.c.type == eval_type))
             .order_by(self.table.c.created_at.desc())
         )
         with self.engine.connect() as conn:
