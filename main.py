@@ -89,15 +89,8 @@ def create_example_request(eval_type: EvaluationType) -> EvaluationApiSchema:
 
 
 @app.command()
-def evaluate():
-    request = create_example_request(EvaluationType.HUMAN_AND_LLM)
-    runner = EvaluationService()
-    runner.create(request)
-
-
-@app.command()
-def evaluate_llm():
-    request = create_example_request(EvaluationType.LLM_ONLY)
+def evaluate(eval_type: EvaluationType):
+    request = create_example_request(eval_type)
     runner = EvaluationService()
     runner.create(request)
 

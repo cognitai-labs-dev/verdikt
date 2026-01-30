@@ -19,16 +19,16 @@ mypy: # Run mypy type checker
 lint: # Run pre-commit
 	pre-commit run --all-files
 
-api: # Run api
+api: up-d upgrade-db # Run api
 	uv run main.py api
 
-eval: # Run api
-	uv run main.py evaluate
+eval: # create human and llm evals
+	uv run main.py evaluate HUMAN_AND_LLM
 
-eval-llm: # Run api
-	uv run main.py evaluate
+eval-llm: # Create evals for llm only
+	uv run main.py evaluate LLM_ONLY
 
-judge: # Run api
+judge: # Judge evals
 	uv run main.py run-judging
 
 up-d: # Run database in the background

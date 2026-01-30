@@ -13,7 +13,9 @@ class EvaluationsCRUD(BaseCRUD[EvaluationCreateSchema, EvaluationSchema, UpdateS
     def __init__(self):
         super().__init__(evaluations_table, EvaluationSchema)
 
-    def get_many_by_app_id(self, app_id: str, eval_type: EvaluationType) -> list[EvaluationSchema]:
+    def get_many_by_app_id(
+        self, app_id: str, eval_type: EvaluationType
+    ) -> list[EvaluationSchema]:
         """Get all evaluations for a given app_id."""
         stmt = (
             select(self.table)
