@@ -21,7 +21,7 @@ class JudgementStatisticsService:
         eval_type: EvaluationType,
     ) -> list[SampleSummary]:
         samples = self.sample.get_many_by_evaluation(evaluation_ids)
-        return self._samples_ummary(samples, eval_type)
+        return self._samples_summary(samples, eval_type)
 
     def samples_summary_by_sample_ids(
         self,
@@ -29,9 +29,9 @@ class JudgementStatisticsService:
         eval_type: EvaluationType,
     ) -> list[SampleSummary]:
         samples = self.sample.get_by_many_ids(sample_ids)
-        return self._samples_ummary(samples, eval_type)
+        return self._samples_summary(samples, eval_type)
 
-    def _samples_ummary(
+    def _samples_summary(
         self,
         samples: list[SampleSchema],
         eval_type: EvaluationType,
@@ -90,7 +90,8 @@ class JudgementStatisticsService:
                 evaluation_type, llm_judgments, human_judgment
             ),
             llm_judgments_count_completed=completed_count,
-            total_cost=self._get_total_cost(llm_judgments),
+            total_cost=self._get_total_cost(llm_judgments)
+            + (sample.app_cost or 0),
         )
 
     @staticmethod
