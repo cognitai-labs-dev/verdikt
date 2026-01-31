@@ -7,7 +7,12 @@ judgments_table = sa.Table(
     "judgments",
     sa_metadata,
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
-    sa.Column("created_at", sa.DateTime, server_default=sa.func.now(), nullable=False),
+    sa.Column(
+        "created_at",
+        sa.DateTime,
+        server_default=sa.func.now(),
+        nullable=False,
+    ),
     sa.Column(
         "updated_at",
         sa.DateTime,
@@ -15,7 +20,12 @@ judgments_table = sa.Table(
         onupdate=sa.func.now(),
         nullable=False,
     ),
-    sa.Column("sample_id", sa.Integer, sa.ForeignKey("samples.id"), nullable=False),
+    sa.Column(
+        "sample_id",
+        sa.Integer,
+        sa.ForeignKey("samples.id"),
+        nullable=False,
+    ),
     sa.Column("status", sa.String(50), nullable=False),
     sa.Column("judgment_type", sa.String(50), nullable=False),
     sa.Column("judgment_model", sa.String(50), nullable=False),

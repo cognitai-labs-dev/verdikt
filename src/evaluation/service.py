@@ -2,13 +2,22 @@ import logging
 
 from src.api.schemas import EvaluationApiSchema
 from src.config import settings
-from src.constants import JudgmentType, JudgmentStatus, EvaluationType
-from src.repositories.sample import samples_repository
-from src.repositories.evaluation import evaluations_repository
+from src.constants import (
+    EvaluationType,
+    JudgmentStatus,
+    JudgmentType,
+)
+from src.repositories.evaluation import (
+    evaluations_repository,
+)
 from src.repositories.judgment import judgment_repository
-from src.schemas.sample import SampleCreateSchema, SampleSchema
+from src.repositories.sample import samples_repository
 from src.schemas.evaluation import EvaluationCreateSchema
 from src.schemas.judgment import JudgmentCreateSchema
+from src.schemas.sample import (
+    SampleCreateSchema,
+    SampleSchema,
+)
 
 
 class EvaluationService:
@@ -22,7 +31,10 @@ class EvaluationService:
         created_evaluation = evaluations_repository.create(evaluation)
 
         samples = [
-            SampleCreateSchema(evaluation_id=created_evaluation.id, **s.model_dump())
+            SampleCreateSchema(
+                evaluation_id=created_evaluation.id,
+                **s.model_dump(),
+            )
             for s in request.samples
         ]
         db_samples = samples_repository.create_many(samples)
@@ -30,7 +42,9 @@ class EvaluationService:
         self._create_judgments(db_samples, request.type)
 
     def _create_judgments(
-        self, db_samples: list[SampleSchema], eval_type: EvaluationType
+        self,
+        db_samples: list[SampleSchema],
+        eval_type: EvaluationType,
     ):
         llm_judgments = []
         human_judgments = []

@@ -28,7 +28,9 @@ class JudgmentProcessor:
 
     async def run(self):
         while self.running:
-            pending_judgments = judgment_repository.get_many_pending(self.batch_size)
+            pending_judgments = judgment_repository.get_many_pending(
+                self.batch_size
+            )
             if len(pending_judgments) == 0:
                 self.logger.info("No pending judgments, waiting...")
                 await asyncio.sleep(self.wait_time)
@@ -36,11 +38,20 @@ class JudgmentProcessor:
 
             await self._process_judgments(pending_judgments)
 
-    async def _process_judgments(self, judgments: list[JudgmentSchema]):
-        self.logger.info("Processing pending judgments (%d)", len(judgments))
-        tasks = [self._process_one_judgment(judgment) for judgment in judgments]
+    async def _process_judgments(
+        self, judgments: list[JudgmentSchema]
+    ):
+        self.logger.info(
+            "Processing pending judgments (%d)", len(judgments)
+        )
+        tasks = [
+            self._process_one_judgment(judgment)
+            for judgment in judgments
+        ]
         await asyncio.gather(*tasks)
-        self.logger.info("Done processing pending judgments in a batch")
+        self.logger.info(
+            "Done processing pending judgments in a batch"
+        )
 
     async def _process_one_judgment(self, judgment: JudgmentSchema):
         self.logger.info(
@@ -65,5 +76,7 @@ class JudgmentProcessor:
             JudgmentResult, messages
         )
         self.judging_service.save_judgment(
-            judgment.id, result, PricingSchema(**metadata.model_dump())
+            judgment.id,
+            result,
+            PricingSchema(**metadata.model_dump()),
         )

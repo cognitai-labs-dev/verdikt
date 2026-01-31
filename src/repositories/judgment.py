@@ -13,7 +13,9 @@ from src.schemas.judgment import (
 
 
 class JudgmentRepository(
-    BaseRepository[JudgmentCreateSchema, JudgmentSchema, JudgmentUpdateSchema]
+    BaseRepository[
+        JudgmentCreateSchema, JudgmentSchema, JudgmentUpdateSchema
+    ]
 ):
     """Data access layer for judgment operations."""
 
@@ -38,7 +40,10 @@ class JudgmentRepository(
 
         if len(rows) == 0:
             return []
-        return [JudgmentSchema.model_validate(row._mapping) for row in rows]
+        return [
+            JudgmentSchema.model_validate(row._mapping)
+            for row in rows
+        ]
 
     def get_many_by_sample_ids(
         self, sample_ids: list[int], judgment_type: JudgmentType
@@ -54,7 +59,9 @@ class JudgmentRepository(
                     self.table.c.judgment_type == judgment_type,
                 )
             )
-            .order_by(self.table.c.sample_id, self.table.c.created_at.desc())
+            .order_by(
+                self.table.c.sample_id, self.table.c.created_at.desc()
+            )
         )
 
         with self.engine.connect() as conn:
@@ -70,19 +77,29 @@ class JudgmentRepository(
     def get_human_judgments_by_sample_ids(
         self, sample_ids: list[int]
     ) -> dict[int, JudgmentSchema | None]:
-        grouped = self.get_many_by_sample_ids(sample_ids, JudgmentType.HUMAN)
+        grouped = self.get_many_by_sample_ids(
+            sample_ids, JudgmentType.HUMAN
+        )
         return {
-            sample_id: self._extract_human_judgment(grouped.get(sample_id, []))
+            sample_id: self._extract_human_judgment(
+                grouped.get(sample_id, [])
+            )
             for sample_id in sample_ids
         }
 
-    def get_llm_judgmenets_by_sample_id(self, sample_id: int) -> list[JudgmentSchema]:
-        return self.get_many_by_sample_ids([sample_id], JudgmentType.LLM).get(
-            sample_id, []
-        )
+    def get_llm_judgmenets_by_sample_id(
+        self, sample_id: int
+    ) -> list[JudgmentSchema]:
+        return self.get_many_by_sample_ids(
+            [sample_id], JudgmentType.LLM
+        ).get(sample_id, [])
 
-    def get_human_judgement_by_sample_id(self, sample_id: int) -> JudgmentSchema | None:
-        return self.get_human_judgments_by_sample_ids([sample_id]).get(sample_id)
+    def get_human_judgement_by_sample_id(
+        self, sample_id: int
+    ) -> JudgmentSchema | None:
+        return self.get_human_judgments_by_sample_ids(
+            [sample_id]
+        ).get(sample_id)
 
     @staticmethod
     def _extract_human_judgment(
