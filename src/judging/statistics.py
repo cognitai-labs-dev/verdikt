@@ -1,9 +1,10 @@
-from src.api.v1.schemas import SampleSummary
+from src.api.v1.schemas import SampleJudgements, SampleSummary
 from src.constants import (
     EvaluationType,
     JudgmentStatus,
     JudgmentType,
 )
+from src.repositories.evaluation import evaluations_repository
 from src.repositories.judgment import judgment_repository
 from src.repositories.sample import samples_repository
 from src.schemas.judgment import JudgmentSchema
@@ -14,6 +15,7 @@ class JudgementStatisticsService:
     def __init__(self):
         self.judgment = judgment_repository
         self.sample = samples_repository
+        self.evaluation = evaluations_repository
 
     def samples_summary_by_eval_ids(
         self,
@@ -30,6 +32,34 @@ class JudgementStatisticsService:
     ) -> list[SampleSummary]:
         samples = self.sample.get_by_many_ids(sample_ids)
         return self._samples_summary(samples, eval_type)
+
+    def sample_judgements_with_summary(
+        self, sample_id: int
+    ) -> SampleJudgements | None:
+        sample = self.sample.get(sample_id)
+        if sample is None:
+            return None
+
+        evaluation = self.evaluation.get(sample.evaluation_id)
+        if evaluation is None:
+            return None
+
+        summary = self._samples_summary([sample], evaluation.type)
+        if len(summary) == 0:
+            return None
+
+        human_judgment = (
+            self.judgment.get_human_judgement_by_sample_id(sample_id)
+        )
+        llm_judgments = self.judgment.get_llm_judgmenets_by_sample_id(
+            sample_id
+        )
+
+        return SampleJudgements(
+            **summary[0].model_dump(),
+            human_judgment=human_judgment,
+            llm_judgements=llm_judgments,
+        )
 
     def _samples_summary(
         self,
@@ -82,11 +112,12 @@ class JudgementStatisticsService:
 
         return SampleSummary(
             **sample.model_dump(),
+            evaluation_type=evaluation_type,
             human_judgment_passed=human_judgment.passed
             if human_judgment
             else None,
             llm_judgments_count=len(llm_judgments),
-            llm_judgments_count_passed=self._human_judgement_passed(
+            llm_judgments_count_passed=self._judgement_passed(
                 evaluation_type, llm_judgments, human_judgment
             ),
             llm_judgments_count_completed=completed_count,
@@ -95,13 +126,13 @@ class JudgementStatisticsService:
         )
 
     @staticmethod
-    def _human_judgement_passed(
+    def _judgement_passed(
         evaluation_type: EvaluationType,
         llm_judgements: list[JudgmentSchema],
         human: JudgmentSchema | None,
     ) -> int:
         if evaluation_type == EvaluationType.HUMAN_AND_LLM:
-            if human is None:
+            if human is None or human.passed is None:
                 return 0
 
             return sum(

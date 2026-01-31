@@ -56,7 +56,11 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
 
 @router.get("/sample/{sample_id}", operation_id="getSampleDetail")
 async def get_sample(sample_id: int) -> SampleJudgements:
-    sample_judgements = judgment_service.sample_judgements(sample_id)
+    sample_judgements = (
+        judgment_stats_service.sample_judgements_with_summary(
+            sample_id
+        )
+    )
     if sample_judgements is None:
         raise HTTPException(
             status_code=404, detail="Sample not found"
@@ -64,7 +68,9 @@ async def get_sample(sample_id: int) -> SampleJudgements:
     return sample_judgements
 
 
-@router.get("/evaluations", operation_id="getEvaluations")
+@router.get(
+    "/evaluation/summary", operation_id="getEvaluationsSummaries"
+)
 async def get_evaluations(
     app_id: str, eval_type: EvaluationType
 ) -> list[EvaluationSummary]:
@@ -80,8 +86,8 @@ async def get_evaluations(
 
 
 @router.get(
-    "/evaluation/{evaluation_id}/samples",
-    operation_id="getSampleSummaries",
+    "/evaluation/{evaluation_id}/samples/summary",
+    operation_id="getSamplesSummaries",
 )
 async def get_evaluation_samples(
     evaluation_id: int,

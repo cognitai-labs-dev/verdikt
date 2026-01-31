@@ -32,6 +32,7 @@ class EvaluationSummary(SummarySchema, EvaluationSchema):
 
 
 class SampleSummary(SummarySchema, SampleSchema):
+    evaluation_type: EvaluationType
     human_judgment_passed: bool | None = Field(
         ...,
         description=(
@@ -46,6 +47,6 @@ class SampleSummaryResponse(BaseModel):
     samples: list[SampleSummary]
 
 
-class SampleJudgements(SampleSchema):
+class SampleJudgements(SampleSummary):
     human_judgment: JudgmentSchema | None
     llm_judgements: list[JudgmentSchema]
