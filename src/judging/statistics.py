@@ -55,6 +55,7 @@ class JudgementStatisticsService:
             ),
             llm_judgments_completed=completed,
             llm_judgments_count_completed=completed_count,
+            total_cost=self._get_total_cost(llm_judgments),
         )
 
     @staticmethod
@@ -75,3 +76,11 @@ class JudgementStatisticsService:
         )
         all_completed = completed_count == len(llm_judgments)
         return all_completed, completed_count
+
+    @staticmethod
+    def _get_total_cost(llm_judgements: list[JudgmentSchema]) -> float:
+        total = 0.0
+        for judgement in llm_judgements:
+            total += judgement.input_tokens_cost or 0
+            total += judgement.output_tokens_cost or 0
+        return total

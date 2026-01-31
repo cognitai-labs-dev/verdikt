@@ -10,24 +10,6 @@ class JudgmentRequest(BaseModel):
     passed: bool
 
 
-class EvaluationSummaryResponse(BaseModel):
-    """
-    TODO: for only for 1 LLM type, later expand to a map of llm statistics
-    TODO: Adjust for FE needs
-    """
-
-    id: int
-    samples_count: int
-
-    llm_judgments_count: int
-    llm_judgments_count_passed: int
-
-    average_llm_score: float
-
-    average_human_score: float
-    agreement_ratio: float
-
-
 class SampleSummary(SampleSchema):
     human_judgment_passed: bool | None = Field(
         ...,
@@ -50,6 +32,7 @@ class SampleSummary(SampleSchema):
     llm_judgments_completed: bool = Field(
         ..., description="Whether all LLM judgments are done"
     )
+    total_cost: float = Field(..., description="Total cost for the sample")
 
 
 class SampleSummaryResponse(BaseModel):
