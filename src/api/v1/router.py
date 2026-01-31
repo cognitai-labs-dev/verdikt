@@ -3,12 +3,13 @@ from fastapi import APIRouter, HTTPException
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
     JudgmentRequest,
+    SampleJudgements,
     SampleSummaryResponse,
 )
 from src.constants import EvaluationType
 from src.crud.evaluation import evaluations_crud
+from src.crud.judgment import judgment_crud
 from src.judging.schemas import JudgmentResult
-from src.api.v1.schemas import SampleDetail
 from src.judging.services import JudgmentService
 from src.schemas.evaluation import EvaluationSchema
 
@@ -18,9 +19,9 @@ judgment_service = JudgmentService()
 
 @router.post("/sample/{sample_id}/judgment", operation_id="postJudgment")
 async def post_sample(sample_id: int, request: JudgmentRequest):
-    judgment = judgment_service.get_human_judgment_by_sample(sample_id)
+    judgment = judgment_crud.get_human_judgement_by_sample_id(sample_id)
     if judgment is None:
-        raise HTTPException(status_code=400, detail="Judgment not found")
+        raise HTTPException(status_code=404, detail="Judgment not found")
     if judgment.passed is not None:
         raise HTTPException(status_code=400, detail="Judgment already judged")
 
@@ -28,8 +29,11 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
 
 
 @router.get("/sample/{sample_id}", operation_id="getSampleDetail")
-async def get_sample(sample_id: int) -> SampleDetail:
-    return judgment_service.sample_judgment_detail(sample_id)
+async def get_sample(sample_id: int) -> SampleJudgements:
+    sample_judgements = judgment_service.sample_judgements(sample_id)
+    if sample_judgements is None:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    return sample_judgements
 
 
 @router.get("/evaluations", operation_id="getEvaluations")

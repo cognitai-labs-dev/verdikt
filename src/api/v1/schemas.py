@@ -57,6 +57,6 @@ class SampleSummaryResponse(BaseModel):
     samples: list[SampleSummary]
 
 
-class SampleDetail(SampleSchema):
+class SampleJudgements(SampleSchema):
     human_judgment: JudgmentSchema | None
     llm_judgements: list[JudgmentSchema]
