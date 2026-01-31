@@ -18,7 +18,11 @@ class BaseRepository[
         self.engine = create_engine(settings.postgresql)
 
     def create(self, data: CreateSchemaT) -> SchemaT:
-        stmt = insert(self.table).values(**data.model_dump()).returning(self.table)
+        stmt = (
+            insert(self.table)
+            .values(**data.model_dump())
+            .returning(self.table)
+        )
 
         with self.engine.connect() as conn:
             row = conn.execute(stmt).fetchone()
@@ -28,7 +32,9 @@ class BaseRepository[
 
         return self.schema.model_validate(row._mapping)
 
-    def create_many(self, items: list[CreateSchemaT]) -> list[SchemaT]:
+    def create_many(
+        self, items: list[CreateSchemaT]
+    ) -> list[SchemaT]:
         if not items:
             return []
 
@@ -41,7 +47,8 @@ class BaseRepository[
         with self.engine.connect() as conn:
             result = conn.execute(stmt)
             rows = [
-                self.schema.model_validate(row._mapping) for row in result.fetchall()
+                self.schema.model_validate(row._mapping)
+                for row in result.fetchall()
             ]
             conn.commit()
         return rows
@@ -53,6 +60,17 @@ class BaseRepository[
         if row is None:
             return None
         return self.schema.model_validate(row._mapping)
+
+    def get_by_many_ids(self, ids: list[int]) -> list[SchemaT]:
+        if not ids:
+            return []
+
+        stmt = select(self.table).where(self.table.c.id.in_(ids))
+        with self.engine.connect() as conn:
+            rows = conn.execute(stmt).fetchall()
+        return [
+            self.schema.model_validate(row._mapping) for row in rows
+        ]
 
     def update(self, data: UpdateSchemaT) -> SchemaT | None:
         values = data.model_dump(exclude_none=True, exclude={"id"})

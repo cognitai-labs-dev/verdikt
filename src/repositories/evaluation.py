@@ -4,11 +4,16 @@ from src.constants import EvaluationType
 from src.repositories.base import BaseRepository
 from src.db.tables.evaluations import evaluations_table
 from src.schemas.base import UpdateSchema
-from src.schemas.evaluation import EvaluationCreateSchema, EvaluationSchema
+from src.schemas.evaluation import (
+    EvaluationCreateSchema,
+    EvaluationSchema,
+)
 
 
 class EvaluationsRepository(
-    BaseRepository[EvaluationCreateSchema, EvaluationSchema, UpdateSchema]
+    BaseRepository[
+        EvaluationCreateSchema, EvaluationSchema, UpdateSchema
+    ]
 ):
     """Data access layer for evaluations operations."""
 
@@ -21,14 +26,22 @@ class EvaluationsRepository(
         """Get all evaluations for a given app_id."""
         stmt = (
             select(self.table)
-            .where(and_(self.table.c.app_id == app_id, self.table.c.type == eval_type))
+            .where(
+                and_(
+                    self.table.c.app_id == app_id,
+                    self.table.c.type == eval_type,
+                )
+            )
             .order_by(self.table.c.created_at.desc())
         )
         with self.engine.connect() as conn:
             rows = conn.execute(stmt).fetchall()
         if len(rows) == 0:
             return []
-        return [EvaluationSchema.model_validate(row._mapping) for row in rows]
+        return [
+            EvaluationSchema.model_validate(row._mapping)
+            for row in rows
+        ]
 
 
 evaluations_repository = EvaluationsRepository()

@@ -1,22 +1,26 @@
 from sqlalchemy import select
 
-from src.repositories.base import BaseRepository
 from src.db.tables.samples import samples_table
+from src.repositories.base import BaseRepository
 from src.schemas.base import UpdateSchema
 from src.schemas.sample import SampleCreateSchema, SampleSchema
 
 
-class SamplesRepository(BaseRepository[SampleCreateSchema, SampleSchema, UpdateSchema]):
+class SamplesRepository(
+    BaseRepository[SampleCreateSchema, SampleSchema, UpdateSchema]
+):
     """Data access layer for samples operations."""
 
     def __init__(self):
         super().__init__(samples_table, SampleSchema)
 
-    def get_many_by_evaluation(self, evaluation_id: int) -> list[SampleSchema]:
+    def get_many_by_evaluation(
+        self, evaluation_ids: list[int]
+    ) -> list[SampleSchema]:
         """Get all samples for a given evaluation ID."""
         stmt = (
             select(samples_table)
-            .where(samples_table.c.evaluation_id == evaluation_id)
+            .where(samples_table.c.evaluation_id.in_(evaluation_ids))
             .order_by(samples_table.c.created_at.desc())
         )
 
@@ -25,7 +29,9 @@ class SamplesRepository(BaseRepository[SampleCreateSchema, SampleSchema, UpdateS
 
         if len(rows) == 0:
             return []
-        return [SampleSchema.model_validate(row._mapping) for row in rows]
+        return [
+            SampleSchema.model_validate(row._mapping) for row in rows
+        ]
 
 
 samples_repository = SamplesRepository()
