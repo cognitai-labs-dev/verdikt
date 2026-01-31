@@ -65,7 +65,7 @@ class JudgementStatisticsService:
 
             sample_responses.append(
                 self._create_sample_summary(
-                    sample, human_judgment, llm_judgments
+                    eval_type, sample, human_judgment, llm_judgments
                 )
             )
 
@@ -73,13 +73,12 @@ class JudgementStatisticsService:
 
     def _create_sample_summary(
         self,
+        evaluation_type: EvaluationType,
         sample: SampleSchema,
         human_judgment: JudgmentSchema | None,
         llm_judgments: list[JudgmentSchema],
     ) -> SampleSummary:
-        completed, completed_count = self._llm_completion_stats(
-            llm_judgments
-        )
+        completed_count = self._llm_completion_stats(llm_judgments)
 
         return SampleSummary(
             **sample.model_dump(),
@@ -88,7 +87,7 @@ class JudgementStatisticsService:
             else None,
             llm_judgments_count=len(llm_judgments),
             llm_judgments_count_passed=self._human_judgement_passed(
-                llm_judgments, human_judgment
+                evaluation_type, llm_judgments, human_judgment
             ),
             llm_judgments_count_completed=completed_count,
             total_cost=self._get_total_cost(llm_judgments),
@@ -96,10 +95,14 @@ class JudgementStatisticsService:
 
     @staticmethod
     def _human_judgement_passed(
+        evaluation_type: EvaluationType,
         llm_judgements: list[JudgmentSchema],
         human: JudgmentSchema | None,
     ) -> int:
-        if human is not None and human.passed is not None:
+        if evaluation_type == EvaluationType.HUMAN_AND_LLM:
+            if human is None:
+                return 0
+
             return sum(
                 1
                 for llm in llm_judgements
@@ -111,14 +114,13 @@ class JudgementStatisticsService:
     @staticmethod
     def _llm_completion_stats(
         llm_judgments: list[JudgmentSchema],
-    ) -> tuple[bool, int]:
+    ) -> int:
         completed_count = sum(
             1
             for j in llm_judgments
             if j.status == JudgmentStatus.COMPLETED
         )
-        all_completed = completed_count == len(llm_judgments)
-        return all_completed, completed_count
+        return completed_count
 
     @staticmethod
     def _get_total_cost(
