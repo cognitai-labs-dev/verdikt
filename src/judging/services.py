@@ -1,7 +1,7 @@
 from src.api.v1.schemas import SampleJudgements, SampleSummary
 from src.constants import JudgmentStatus, JudgmentType
-from src.crud.judgment import judgment_crud
-from src.crud.sample import samples_crud
+from src.repositories.judgment import judgment_repository
+from src.repositories.sample import samples_repository
 from src.judging.schemas import JudgmentResult, PricingSchema
 from src.schemas.judgment import JudgmentSchema, JudgmentUpdateSchema
 from src.schemas.sample import SampleSchema
@@ -9,8 +9,8 @@ from src.schemas.sample import SampleSchema
 
 class JudgmentService:
     def __init__(self):
-        self.judgment = judgment_crud
-        self.sample = samples_crud
+        self.judgment = judgment_repository
+        self.sample = samples_repository
 
     def sample_judgements(self, sample_id: int) -> SampleJudgements | None:
         sample = self.sample.get(sample_id)
@@ -139,4 +139,4 @@ class JudgmentService:
             update_schema.input_tokens_cost = pricing.output_tokens_cost
             update_schema.output_tokens_cost = pricing.output_tokens_cost
 
-        judgment_crud.update(update_schema)
+        judgment_repository.update(update_schema)

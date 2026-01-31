@@ -1,8 +1,8 @@
-from src.crud.judgment import judgment_crud
-from src.crud.sample import samples_crud
+from src.repositories.judgment import judgment_repository
+from src.repositories.sample import samples_repository
 
 
 class JudgementStatistics:
     def __init__(self):
-        self.judgment = judgment_crud
-        self.sample = samples_crud
+        self.judgment = judgment_repository
+        self.sample = samples_repository

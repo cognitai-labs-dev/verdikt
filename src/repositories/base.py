@@ -5,12 +5,12 @@ from src.config import settings
 from src.schemas.base import UpdateSchema
 
 
-class BaseCRUD[
+class BaseRepository[
     CreateSchemaT: BaseModel,
     SchemaT: BaseModel,
     UpdateSchemaT: UpdateSchema,
 ]:
-    """Generic base class for CRUD operations using SQLAlchemy Core."""
+    """Generic base class for data access operations using SQLAlchemy Core."""
 
     def __init__(self, table: Table, schema: type[SchemaT]):
         self.table = table

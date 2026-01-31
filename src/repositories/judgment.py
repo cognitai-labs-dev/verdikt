@@ -3,7 +3,7 @@ from collections import defaultdict
 from sqlalchemy import and_, select
 
 from src.constants import JudgmentStatus, JudgmentType
-from src.crud.base import BaseCRUD
+from src.repositories.base import BaseRepository
 from src.db.tables.judgments import judgments_table
 from src.schemas.judgment import (
     JudgmentCreateSchema,
@@ -12,8 +12,8 @@ from src.schemas.judgment import (
 )
 
 
-class JudgmentCRUD(
-    BaseCRUD[JudgmentCreateSchema, JudgmentSchema, JudgmentUpdateSchema]
+class JudgmentRepository(
+    BaseRepository[JudgmentCreateSchema, JudgmentSchema, JudgmentUpdateSchema]
 ):
     """Data access layer for judgment operations."""
 
@@ -95,4 +95,4 @@ class JudgmentCRUD(
         raise RuntimeError("More than 1 human judgment for a sample")
 
 
-judgment_crud = JudgmentCRUD()
+judgment_repository = JudgmentRepository()

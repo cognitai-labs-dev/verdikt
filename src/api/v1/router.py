@@ -7,8 +7,8 @@ from src.api.v1.schemas import (
     SampleSummaryResponse,
 )
 from src.constants import EvaluationType
-from src.crud.evaluation import evaluations_crud
-from src.crud.judgment import judgment_crud
+from src.repositories.evaluation import evaluations_repository
+from src.repositories.judgment import judgment_repository
 from src.judging.schemas import JudgmentResult
 from src.judging.services import JudgmentService
 from src.schemas.evaluation import EvaluationSchema
@@ -19,7 +19,7 @@ judgment_service = JudgmentService()
 
 @router.post("/sample/{sample_id}/judgment", operation_id="postJudgment")
 async def post_sample(sample_id: int, request: JudgmentRequest):
-    judgment = judgment_crud.get_human_judgement_by_sample_id(sample_id)
+    judgment = judgment_repository.get_human_judgement_by_sample_id(sample_id)
     if judgment is None:
         raise HTTPException(status_code=404, detail="Judgment not found")
     if judgment.passed is not None:
@@ -40,14 +40,14 @@ async def get_sample(sample_id: int) -> SampleJudgements:
 async def get_evaluations(
     app_id: str, eval_type: EvaluationType
 ) -> list[EvaluationSchema]:
-    return evaluations_crud.get_many_by_app_id(app_id, eval_type)
+    return evaluations_repository.get_many_by_app_id(app_id, eval_type)
 
 
 @router.get("/evaluation/{evaluation_id}/samples", operation_id="getSampleSummaries")
 async def get_evaluation_samples(
     evaluation_id: int,
 ) -> SampleSummaryResponse:
-    evaluation = evaluations_crud.get(evaluation_id)
+    evaluation = evaluations_repository.get(evaluation_id)
     if evaluation is None:
         raise HTTPException(status_code=404, detail="Evaluation not found")
 
