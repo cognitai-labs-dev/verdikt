@@ -3,9 +3,9 @@ import logging
 from src.api.schemas import EvaluationApiSchema
 from src.config import settings
 from src.constants import JudgmentType, JudgmentStatus, EvaluationType
-from src.crud.sample import samples_crud
-from src.crud.evaluation import evaluations_crud
-from src.crud.judgment import judgment_crud
+from src.repositories.sample import samples_repository
+from src.repositories.evaluation import evaluations_repository
+from src.repositories.judgment import judgment_repository
 from src.schemas.sample import SampleCreateSchema, SampleSchema
 from src.schemas.evaluation import EvaluationCreateSchema
 from src.schemas.judgment import JudgmentCreateSchema
@@ -19,13 +19,13 @@ class EvaluationService:
     def create(self, request: EvaluationApiSchema):
         self.logger.info("Creating evaluation for %s", request.app_id)
         evaluation = EvaluationCreateSchema(**request.model_dump())
-        created_evaluation = evaluations_crud.create(evaluation)
+        created_evaluation = evaluations_repository.create(evaluation)
 
         samples = [
             SampleCreateSchema(evaluation_id=created_evaluation.id, **s.model_dump())
             for s in request.samples
         ]
-        db_samples = samples_crud.create_many(samples)
+        db_samples = samples_repository.create_many(samples)
 
         self._create_judgments(db_samples, request.type)
 
@@ -54,5 +54,5 @@ class EvaluationService:
                         )
                     )
 
-        judgment_crud.create_many(llm_judgments)
-        judgment_crud.create_many(human_judgments)
+        judgment_repository.create_many(llm_judgments)
+        judgment_repository.create_many(human_judgments)

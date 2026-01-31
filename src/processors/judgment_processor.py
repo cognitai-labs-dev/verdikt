@@ -3,8 +3,8 @@ import logging
 
 from llm import Client
 from src.config import settings
-from src.crud.sample import samples_crud
-from src.crud.judgment import judgment_crud
+from src.repositories.sample import samples_repository
+from src.repositories.judgment import judgment_repository
 from src.depedencies import async_instructor_client
 from src.judging.prompts import JUDGE_SYSTEM_PROMPT, JUDGE_EVAL_PROMPT
 from src.judging.schemas import JudgmentResult, PricingSchema
@@ -28,7 +28,7 @@ class JudgmentProcessor:
 
     async def run(self):
         while self.running:
-            pending_judgments = judgment_crud.get_many_pending(self.batch_size)
+            pending_judgments = judgment_repository.get_many_pending(self.batch_size)
             if len(pending_judgments) == 0:
                 self.logger.info("No pending judgments, waiting...")
                 await asyncio.sleep(self.wait_time)
@@ -49,7 +49,7 @@ class JudgmentProcessor:
             judgment.id,
         )
 
-        sample = samples_crud.get(judgment.sample_id)
+        sample = samples_repository.get(judgment.sample_id)
         if sample is None:
             raise RuntimeError("Sample not found for judgment")
 

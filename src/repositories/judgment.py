@@ -1,10 +1,10 @@
 from collections import defaultdict
 
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 
 from src.constants import JudgmentStatus, JudgmentType
-from src.crud.base import BaseCRUD
 from src.db.tables.judgments import judgments_table
+from src.repositories.base import BaseRepository
 from src.schemas.judgment import (
     JudgmentCreateSchema,
     JudgmentSchema,
@@ -12,8 +12,8 @@ from src.schemas.judgment import (
 )
 
 
-class JudgmentCRUD(
-    BaseCRUD[JudgmentCreateSchema, JudgmentSchema, JudgmentUpdateSchema]
+class JudgmentRepository(
+    BaseRepository[JudgmentCreateSchema, JudgmentSchema, JudgmentUpdateSchema]
 ):
     """Data access layer for judgment operations."""
 
@@ -40,32 +40,9 @@ class JudgmentCRUD(
             return []
         return [JudgmentSchema.model_validate(row._mapping) for row in rows]
 
-    def get_many_by_sample_id(
-        self, sample_id: int, judgment_type: JudgmentType
-    ) -> list[JudgmentSchema]:
-        """Get all judgments for a given sample ID filtered by judgment type."""
-        stmt = (
-            select(self.table)
-            .where(
-                and_(
-                    self.table.c.sample_id == sample_id,
-                    self.table.c.judgment_type == judgment_type,
-                )
-            )
-            .order_by(self.table.c.created_at.desc())
-        )
-
-        with self.engine.connect() as conn:
-            rows = conn.execute(stmt).fetchall()
-
-        if len(rows) == 0:
-            return []
-        return [JudgmentSchema.model_validate(row._mapping) for row in rows]
-
     def get_many_by_sample_ids(
         self, sample_ids: list[int], judgment_type: JudgmentType
     ) -> dict[int, list[JudgmentSchema]]:
-        """Get all judgments for a list of sample IDs, grouped by sample ID."""
         if not sample_ids:
             return {}
 
@@ -90,5 +67,32 @@ class JudgmentCRUD(
 
         return dict(grouped)
 
+    def get_human_judgments_by_sample_ids(
+        self, sample_ids: list[int]
+    ) -> dict[int, JudgmentSchema | None]:
+        grouped = self.get_many_by_sample_ids(sample_ids, JudgmentType.HUMAN)
+        return {
+            sample_id: self._extract_human_judgment(grouped.get(sample_id, []))
+            for sample_id in sample_ids
+        }
 
-judgment_crud = JudgmentCRUD()
+    def get_llm_judgmenets_by_sample_id(self, sample_id: int) -> list[JudgmentSchema]:
+        return self.get_many_by_sample_ids([sample_id], JudgmentType.LLM).get(
+            sample_id, []
+        )
+
+    def get_human_judgement_by_sample_id(self, sample_id: int) -> JudgmentSchema | None:
+        return self.get_human_judgments_by_sample_ids([sample_id]).get(sample_id)
+
+    @staticmethod
+    def _extract_human_judgment(
+        judgments: list[JudgmentSchema],
+    ) -> JudgmentSchema | None:
+        if len(judgments) == 0:
+            return None
+        if len(judgments) == 1:
+            return judgments[0]
+        raise RuntimeError("More than 1 human judgment for a sample")
+
+
+judgment_repository = JudgmentRepository()

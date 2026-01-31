@@ -1,13 +1,15 @@
 from sqlalchemy import select, and_
 
 from src.constants import EvaluationType
-from src.crud.base import BaseCRUD
+from src.repositories.base import BaseRepository
 from src.db.tables.evaluations import evaluations_table
 from src.schemas.base import UpdateSchema
 from src.schemas.evaluation import EvaluationCreateSchema, EvaluationSchema
 
 
-class EvaluationsCRUD(BaseCRUD[EvaluationCreateSchema, EvaluationSchema, UpdateSchema]):
+class EvaluationsRepository(
+    BaseRepository[EvaluationCreateSchema, EvaluationSchema, UpdateSchema]
+):
     """Data access layer for evaluations operations."""
 
     def __init__(self):
@@ -29,4 +31,4 @@ class EvaluationsCRUD(BaseCRUD[EvaluationCreateSchema, EvaluationSchema, UpdateS
         return [EvaluationSchema.model_validate(row._mapping) for row in rows]
 
 
-evaluations_crud = EvaluationsCRUD()
+evaluations_repository = EvaluationsRepository()

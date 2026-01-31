@@ -1,12 +1,12 @@
 from sqlalchemy import select
 
-from src.crud.base import BaseCRUD
+from src.repositories.base import BaseRepository
 from src.db.tables.samples import samples_table
 from src.schemas.base import UpdateSchema
 from src.schemas.sample import SampleCreateSchema, SampleSchema
 
 
-class SamplesCRUD(BaseCRUD[SampleCreateSchema, SampleSchema, UpdateSchema]):
+class SamplesRepository(BaseRepository[SampleCreateSchema, SampleSchema, UpdateSchema]):
     """Data access layer for samples operations."""
 
     def __init__(self):
@@ -28,4 +28,4 @@ class SamplesCRUD(BaseCRUD[SampleCreateSchema, SampleSchema, UpdateSchema]):
         return [SampleSchema.model_validate(row._mapping) for row in rows]
 
 
-samples_crud = SamplesCRUD()
+samples_repository = SamplesRepository()
