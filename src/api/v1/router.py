@@ -53,20 +53,12 @@ async def get_evaluation_samples(
     if evaluation is None:
         raise HTTPException(status_code=404, detail="Evaluation not found")
 
-    if evaluation.type == EvaluationType.HUMAN_AND_LLM:
-        return SampleSummaryResponse(
-            evaluation_type=EvaluationType.HUMAN_AND_LLM,
-            samples=judgment_statistics_service.sample_judgments_summary_human(
-                evaluation_id
-            ),
-        )
-    else:
-        return SampleSummaryResponse(
-            evaluation_type=EvaluationType.LLM_ONLY,
-            samples=judgment_statistics_service.sample_judgments_summary_llm_only(
-                evaluation_id
-            ),
-        )
+    return SampleSummaryResponse(
+        evaluation_type=evaluation.type,
+        samples=judgment_statistics_service.sample_judgments_summary(
+            evaluation_id, evaluation.type
+        ),
+    )
 
 
 # @router.get("/evaluation/{evaluation_id}/summary")
