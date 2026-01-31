@@ -3,8 +3,8 @@ from collections import defaultdict
 from sqlalchemy import and_, select
 
 from src.constants import JudgmentStatus, JudgmentType
-from src.repositories.base import BaseRepository
 from src.db.tables.judgments import judgments_table
+from src.repositories.base import BaseRepository
 from src.schemas.judgment import (
     JudgmentCreateSchema,
     JudgmentSchema,
@@ -82,7 +82,7 @@ class JudgmentRepository(
         )
 
     def get_human_judgement_by_sample_id(self, sample_id: int) -> JudgmentSchema | None:
-        return self.get_human_judgments_by_sample_ids([sample_id]).get(sample_id, None)
+        return self.get_human_judgments_by_sample_ids([sample_id]).get(sample_id)
 
     @staticmethod
     def _extract_human_judgment(

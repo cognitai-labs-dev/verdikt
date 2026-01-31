@@ -1,10 +1,9 @@
-from src.api.v1.schemas import SampleJudgements, SampleSummary
-from src.constants import JudgmentStatus, JudgmentType
+from src.api.v1.schemas import SampleJudgements
+from src.constants import JudgmentStatus
+from src.judging.schemas import JudgmentResult, PricingSchema
 from src.repositories.judgment import judgment_repository
 from src.repositories.sample import samples_repository
-from src.judging.schemas import JudgmentResult, PricingSchema
-from src.schemas.judgment import JudgmentSchema, JudgmentUpdateSchema
-from src.schemas.sample import SampleSchema
+from src.schemas.judgment import JudgmentUpdateSchema
 
 
 class JudgmentService:
@@ -24,102 +23,6 @@ class JudgmentService:
             **sample.model_dump(),
             human_judgment=human_judgment,
             llm_judgements=llm_judgments,
-        )
-
-    def sample_judgments_summary_llm_only(
-        self, evaluation_id: int
-    ) -> list[SampleSummary]:
-        samples = self.sample.get_many_by_evaluation(evaluation_id)
-        sample_ids = {s.id: s for s in samples}
-        llm_judgments_map = self.judgment.get_many_by_sample_ids(
-            list(sample_ids.keys()), JudgmentType.LLM
-        )
-
-        sample_responses = []
-        for sample_id, sample in sample_ids.items():
-            llm_judgments = llm_judgments_map.get(sample_id, [])
-
-            sample_responses.append(
-                self.create_llm_only_sample_summary(llm_judgments, sample)
-            )
-
-        return sample_responses
-
-    def sample_judgments_summary_human(self, evaluation_id: int) -> list[SampleSummary]:
-        samples = self.sample.get_many_by_evaluation(evaluation_id)
-        sample_ids = {s.id: s for s in samples}
-        human_judgments_map = self.judgment.get_human_judgments_by_sample_ids(
-            list(sample_ids.keys())
-        )
-        llm_judgments_map = self.judgment.get_many_by_sample_ids(
-            list(sample_ids.keys()), JudgmentType.LLM
-        )
-
-        sample_responses = []
-        for sample_id, sample in sample_ids.items():
-            human_judgment = human_judgments_map.get(sample_id)
-            llm_judgments = llm_judgments_map.get(sample_id, [])
-
-            sample_responses.append(
-                self.create_human_sample_summary(human_judgment, llm_judgments, sample)
-            )
-
-        return sample_responses
-
-    @staticmethod
-    def create_llm_only_sample_summary(
-        llm_judgments: list[JudgmentSchema],
-        sample: SampleSchema,
-    ) -> SampleSummary:
-        completed_judgments = [
-            judgement
-            for judgement in llm_judgments
-            if judgement.status == JudgmentStatus.COMPLETED
-        ]
-
-        count_all = len(llm_judgments)
-
-        return SampleSummary(
-            **sample.model_dump(),
-            human_judgment_passed=None,
-            llm_judgments_count=count_all,
-            llm_judgments_count_passed=len(
-                [judgement for judgement in llm_judgments if judgement.passed]
-            ),
-            llm_judgments_completed=len(completed_judgments) == count_all,
-            llm_judgments_count_completed=len(completed_judgments),
-        )
-
-    @staticmethod
-    def create_human_sample_summary(
-        human_judgment: JudgmentSchema | None,
-        llm_judgments: list[JudgmentSchema],
-        sample: SampleSchema,
-    ) -> SampleSummary:
-        completed_judgments = [
-            judgement
-            for judgement in llm_judgments
-            if judgement.status == JudgmentStatus.COMPLETED
-        ]
-
-        count_passed = 0
-        if human_judgment is not None and human_judgment.passed is not None:
-            count_passed = len(
-                [
-                    judgement
-                    for judgement in llm_judgments
-                    if judgement.passed == human_judgment.passed
-                ]
-            )
-        count_all = len(llm_judgments)
-
-        return SampleSummary(
-            **sample.model_dump(),
-            human_judgment_passed=human_judgment.passed if human_judgment else None,
-            llm_judgments_count=count_all,
-            llm_judgments_count_passed=count_passed,
-            llm_judgments_completed=len(completed_judgments) == count_all,
-            llm_judgments_count_completed=len(completed_judgments),
         )
 
     @staticmethod

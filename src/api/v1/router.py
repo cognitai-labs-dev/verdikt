@@ -7,14 +7,16 @@ from src.api.v1.schemas import (
     SampleSummaryResponse,
 )
 from src.constants import EvaluationType
-from src.repositories.evaluation import evaluations_repository
-from src.repositories.judgment import judgment_repository
 from src.judging.schemas import JudgmentResult
 from src.judging.services import JudgmentService
+from src.judging.statistics import JudgementStatisticsService
+from src.repositories.evaluation import evaluations_repository
+from src.repositories.judgment import judgment_repository
 from src.schemas.evaluation import EvaluationSchema
 
 router = APIRouter(prefix="/v1", default_response_class=ORJsonResponse)
 judgment_service = JudgmentService()
+judgment_statistics_service = JudgementStatisticsService()
 
 
 @router.post("/sample/{sample_id}/judgment", operation_id="postJudgment")
@@ -54,12 +56,16 @@ async def get_evaluation_samples(
     if evaluation.type == EvaluationType.HUMAN_AND_LLM:
         return SampleSummaryResponse(
             evaluation_type=EvaluationType.HUMAN_AND_LLM,
-            samples=judgment_service.sample_judgments_summary_human(evaluation_id),
+            samples=judgment_statistics_service.sample_judgments_summary_human(
+                evaluation_id
+            ),
         )
     else:
         return SampleSummaryResponse(
             evaluation_type=EvaluationType.LLM_ONLY,
-            samples=judgment_service.sample_judgments_summary_llm_only(evaluation_id),
+            samples=judgment_statistics_service.sample_judgments_summary_llm_only(
+                evaluation_id
+            ),
         )
 
 
