@@ -1,8 +1,7 @@
 import asyncio
 import logging
 
-from llm import Client
-from llm.common.schemas import LLMModel
+from llm import LLMModel, create_client
 from src.config import settings
 from src.judging.prompts import JUDGE_EVAL_PROMPT, JUDGE_SYSTEM_PROMPT
 from src.judging.schemas import JudgmentResult, PricingSchema
@@ -19,7 +18,7 @@ class JudgmentProcessor:
         self.batch_size = settings.WORKER_BATCH_SIZE
         self.wait_time = settings.WORKER_WAIT_TIME
         self.clients = {
-            model: Client(model)
+            model: create_client(model)
             for model in settings.JUDGING_LLM_MODELS
         }
         self.judging_service = JudgmentService()
