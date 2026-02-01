@@ -1,11 +1,4 @@
-from typing import NamedTuple
-
 from pydantic import BaseModel
-
-
-class LLMJudgmentConfig(NamedTuple):
-    provider: str
-    model: str
 
 
 class JudgmentResult(BaseModel):

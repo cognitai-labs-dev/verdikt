@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from src.judging.schemas import LLMJudgmentConfig
+from llm.common.schemas import LLMModel
 
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -13,9 +13,12 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     OPENAI_API_KEY: str
+    ANTHROPIC_API_KEY: str
 
-    JUDGING_LLM_MODELS: list[LLMJudgmentConfig] = [
-        LLMJudgmentConfig("OpenAI", "gpt-4o-mini")
+    JUDGING_LLM_MODELS: list[LLMModel] = [
+        LLMModel.gpt_4o_mini,
+        LLMModel.gpt_5_mini,
+        LLMModel.claude_sonnet_4_5,
     ]
 
     PG_HOST: str = "localhost"
