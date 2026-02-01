@@ -76,18 +76,6 @@ class Client(ABC):
         llm_call = self._create_llm_call(messages, parsed, response)
         return parsed, llm_call
 
-    @abstractmethod
-    async def _response[T: BaseModel](
-        self,
-        response_type: type[T],
-        messages: list[dict[str, str]],
-    ) -> tuple[T, Any]:
-        pass
-
-    @abstractmethod
-    def _get_response_stats(self, response: Any) -> ResponseStats:
-        pass
-
     def _create_llm_call(
         self,
         messages: list[dict[str, str]],
@@ -107,3 +95,15 @@ class Client(ABC):
     @staticmethod
     def _parse_client_message(parsed: BaseModel) -> ClientMessage:
         return ClientMessage(response=parsed, role=LLMRole.ASSISTANT)
+
+    @abstractmethod
+    async def _response[T: BaseModel](
+        self,
+        response_type: type[T],
+        messages: list[dict[str, str]],
+    ) -> tuple[T, Any]:
+        pass
+
+    @abstractmethod
+    def _get_response_stats(self, response: Any) -> ResponseStats:
+        pass
