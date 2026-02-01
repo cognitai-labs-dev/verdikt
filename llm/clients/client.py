@@ -1,27 +1,31 @@
-from typing import overload
+from abc import ABC, abstractmethod
+from typing import Any, overload
 
-from instructor import Instructor
-from openai.types.responses import Response
+import instructor
 from pydantic import BaseModel
 
-from llm.common.pricing import PricingService
-from llm.common.schemas import LLMRole
-from llm.clients.schemas import ClientMessage, ClientCall
+from llm.clients.schemas import ClientCall, ClientMessage
 from llm.clients.strategy import ClientLogStrategy
+from llm.common.pricing import PricingService
+from llm.common.schemas import LLMModel, LLMRole, ResponseStats
 from llm.common.utils import to_context_messages
 
 
-class Client:
+class Client(ABC):
     def __init__(
         self,
-        log_strategies: list[ClientLogStrategy],
-        instructor_client: Instructor,
-        model_name: str,
+        model: LLMModel,
+        log_strategies: list[ClientLogStrategy] = [],
     ):
         self.log_strategies = log_strategies
-        self.instructor_client = instructor_client
-        self.model_name = model_name
         self.pricing_service = PricingService()
+
+        self.instructor_client = instructor.from_provider(
+            model.provider_string,
+            async_client=True,
+            mode=model.mode,
+        )
+        self.model = model
 
     @overload
     async def structured_response[T: BaseModel](
@@ -49,7 +53,9 @@ class Client:
 
         Uses provided log strategies to log all the LLM messages
         """
-        response, llm_call = await self._structured_response(response_type, messages)
+        response, llm_call = await self._structured_response(
+            response_type, messages
+        )
 
         if context is not None:
             for strategy in self.log_strategies:
@@ -63,25 +69,18 @@ class Client:
         response_type: type[T],
         messages: list[dict[str, str]],
     ) -> tuple[T, ClientCall]:
-        """
-        Provides a structured response via an LLM call
-
-        Uses provided log strategies to log all the LLM messages
-        """
-        (
-            parsed,
-            response,
-        ) = await self.instructor_client.responses.create_with_completion(  # type: ignore
-            model=self.model_name,
-            response_model=response_type,
-            max_retries=3,
-            input=messages,  # type: ignore
+        parsed, response = await self._response(
+            response_type, messages
         )
+
         llm_call = self._create_llm_call(messages, parsed, response)
         return parsed, llm_call
 
     def _create_llm_call(
-        self, messages: list[dict[str, str]], parsed: BaseModel, response: Response
+        self,
+        messages: list[dict[str, str]],
+        parsed: BaseModel,
+        response: Any,
     ) -> ClientCall:
         context_messages = to_context_messages(messages)
         client_message = self._parse_client_message(parsed)
@@ -89,12 +88,22 @@ class Client:
         return ClientCall(
             context_messages=context_messages,
             client_message=client_message,
-            model_name=self.model_name,
-            **self.pricing_service.get_response_stats(
-                response, self.model_name
-            ).model_dump(),
+            model_name=self.model,
+            **self._get_response_stats(response).model_dump(),
         )
 
     @staticmethod
     def _parse_client_message(parsed: BaseModel) -> ClientMessage:
         return ClientMessage(response=parsed, role=LLMRole.ASSISTANT)
+
+    @abstractmethod
+    async def _response[T: BaseModel](
+        self,
+        response_type: type[T],
+        messages: list[dict[str, str]],
+    ) -> tuple[T, Any]:
+        pass
+
+    @abstractmethod
+    def _get_response_stats(self, response: Any) -> ResponseStats:
+        pass

@@ -1,14 +1,13 @@
 import asyncio
 import logging
 
-from llm import Client
+from llm import LLMModel, create_client
 from src.config import settings
-from src.repositories.sample import samples_repository
-from src.repositories.judgment import judgment_repository
-from src.depedencies import async_instructor_client
-from src.judging.prompts import JUDGE_SYSTEM_PROMPT, JUDGE_EVAL_PROMPT
+from src.judging.prompts import JUDGE_EVAL_PROMPT, JUDGE_SYSTEM_PROMPT
 from src.judging.schemas import JudgmentResult, PricingSchema
 from src.judging.services import JudgmentService
+from src.repositories.judgment import judgment_repository
+from src.repositories.sample import samples_repository
 from src.schemas.judgment import JudgmentSchema
 
 
@@ -18,12 +17,10 @@ class JudgmentProcessor:
         self.running = True
         self.batch_size = settings.WORKER_BATCH_SIZE
         self.wait_time = settings.WORKER_WAIT_TIME
-        # Temporarily just used openai
-        self.client = Client(
-            [],
-            async_instructor_client,
-            settings.JUDGING_LLM_MODELS[0].model,
-        )
+        self.clients = {
+            model: create_client(model)
+            for model in settings.JUDGING_LLM_MODELS
+        }
         self.judging_service = JudgmentService()
 
     async def run(self):
@@ -55,11 +52,12 @@ class JudgmentProcessor:
 
     async def _process_one_judgment(self, judgment: JudgmentSchema):
         self.logger.info(
-            "Processing one judgment %s with id: %d",
+            "Processing judgment (%s) with id: %d",
             judgment.judgment_model,
             judgment.id,
         )
 
+        client = self.clients[LLMModel(judgment.judgment_model)]
         sample = samples_repository.get(judgment.sample_id)
         if sample is None:
             raise RuntimeError("Sample not found for judgment")
@@ -72,11 +70,17 @@ class JudgmentProcessor:
             {"role": "user", "content": JUDGE_EVAL_PROMPT},
         ]
 
-        result, metadata = await self.client.structured_response(
+        result, metadata = await client.structured_response(
             JudgmentResult, messages
         )
         self.judging_service.save_judgment(
             judgment.id,
             result,
             PricingSchema(**metadata.model_dump()),
+        )
+
+        self.logger.info(
+            "Done judgement (%s) with id: %d",
+            judgment.judgment_model,
+            judgment.id,
         )

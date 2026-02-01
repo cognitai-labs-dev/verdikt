@@ -109,6 +109,7 @@ class JudgmentRepository(
             return None
         if len(judgments) == 1:
             return judgments[0]
+
         raise RuntimeError("More than 1 human judgment for a sample")
 
 
