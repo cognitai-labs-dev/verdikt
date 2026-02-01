@@ -1,13 +1,12 @@
-from typing import overload
+from typing import Any, overload
 
 import instructor
-from openai.types.responses import Response
 from pydantic import BaseModel
 
 from llm.clients.schemas import ClientCall, ClientMessage
 from llm.clients.strategy import ClientLogStrategy
 from llm.common.pricing import PricingService
-from llm.common.schemas import LLMModel, LLMRole
+from llm.common.schemas import LLMModel, LLMProvider, LLMRole
 from llm.common.utils import to_context_messages
 
 
@@ -69,28 +68,51 @@ class Client:
         response_type: type[T],
         messages: list[dict[str, str]],
     ) -> tuple[T, ClientCall]:
-        """
-        Provides a structured response via an LLM call
+        if self.model.provider == LLMProvider.OPENAI:
+            parsed, response = await self._openai_response(
+                response_type, messages
+            )
+        elif self.model.provider == LLMProvider.ANTHROPIC:
+            parsed, response = await self._anthropic_response(
+                response_type, messages
+            )
+        else:
+            raise ValueError(
+                f"Unsupported provider: {self.model.provider}"
+            )
 
-        Uses provided log strategies to log all the LLM messages
-        """
-        (
-            parsed,
-            response,
-        ) = await self.instructor_client.chat.create_with_completion(  # type: ignore
+        llm_call = self._create_llm_call(messages, parsed, response)
+        return parsed, llm_call
+
+    async def _openai_response[T: BaseModel](
+        self,
+        response_type: type[T],
+        messages: list[dict[str, str]],
+    ) -> tuple[T, Any]:
+        return await self.instructor_client.responses.create_with_completion(  # type: ignore
+            model=self.model.value,
+            response_model=response_type,
+            max_retries=3,
+            input=messages,  # type: ignore
+        )
+
+    async def _anthropic_response[T: BaseModel](
+        self,
+        response_type: type[T],
+        messages: list[dict[str, str]],
+    ) -> tuple[T, Any]:
+        return await self.instructor_client.messages.create_with_completion(  # type: ignore
             model=self.model.value,
             response_model=response_type,
             max_retries=3,
             messages=messages,  # type: ignore
         )
-        llm_call = self._create_llm_call(messages, parsed, response)
-        return parsed, llm_call
 
     def _create_llm_call(
         self,
         messages: list[dict[str, str]],
         parsed: BaseModel,
-        response: Response,
+        response: Any,
     ) -> ClientCall:
         context_messages = to_context_messages(messages)
         client_message = self._parse_client_message(parsed)

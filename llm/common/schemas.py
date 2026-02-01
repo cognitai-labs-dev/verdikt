@@ -59,6 +59,6 @@ model_to_provider_map = {
 }
 
 provider_to_mode_map = {
-    LLMProvider.OPENAI: instructor.Mode.TOOLS,
+    LLMProvider.OPENAI: instructor.Mode.RESPONSES_TOOLS,
     LLMProvider.ANTHROPIC: instructor.Mode.ANTHROPIC_TOOLS,
 }

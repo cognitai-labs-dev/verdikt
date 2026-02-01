@@ -1,3 +1,4 @@
+from anthropic.types import Message
 from cachetools import TTLCache, cached
 from litellm import model_cost_map_url
 from litellm.litellm_core_utils.get_model_cost_map import (
@@ -45,6 +46,20 @@ class PricingService:
         )
 
     def get_response_stats(
+        self, response: Response | Message, model_name: str
+    ) -> ResponseStats:
+        if isinstance(response, Response):
+            return self._openai_response_stats(response, model_name)
+        elif isinstance(response, Message):
+            return self._anthropic_response_stats(
+                response, model_name
+            )
+        else:
+            raise ValueError(
+                f"Unsupported response type: {type(response)}"
+            )
+
+    def _openai_response_stats(
         self, response: Response, model_name: str
     ) -> ResponseStats:
         if response.usage is None:
@@ -52,15 +67,32 @@ class PricingService:
 
         input_tokens = response.usage.input_tokens
         output_tokens = response.usage.output_tokens
-        input_tokens_price = self.get_input_token_cost(
-            model_name, input_tokens
+        return self._build_response_stats(
+            input_tokens, output_tokens, model_name
         )
-        output_tokens_price = self.get_output_token_cost(
-            model_name, output_tokens
+
+    def _anthropic_response_stats(
+        self, response: Message, model_name: str
+    ) -> ResponseStats:
+        input_tokens = response.usage.input_tokens
+        output_tokens = response.usage.output_tokens
+        return self._build_response_stats(
+            input_tokens, output_tokens, model_name
         )
+
+    def _build_response_stats(
+        self,
+        input_tokens: int,
+        output_tokens: int,
+        model_name: str,
+    ) -> ResponseStats:
         return ResponseStats(
             input_tokens=input_tokens,
             output_tokens=output_tokens,
-            input_tokens_cost=input_tokens_price,
-            output_tokens_cost=output_tokens_price,
+            input_tokens_cost=self.get_input_token_cost(
+                model_name, input_tokens
+            ),
+            output_tokens_cost=self.get_output_token_cost(
+                model_name, output_tokens
+            ),
         )

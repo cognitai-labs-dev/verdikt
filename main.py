@@ -3,11 +3,10 @@ import asyncio
 import uvicorn
 
 from src.api.schemas import EvaluationApiSchema, SampleApiSchema
-from src.api_app import api_factory
 from src.constants import EvaluationType
 from src.evaluation.service import EvaluationService
-from src.processors.judgment_processor import JudgmentProcessor
 from src.logging import setup_logging
+from src.processors.judgment_processor import JudgmentProcessor
 
 setup_logging()
 
@@ -19,7 +18,9 @@ logger = logging.getLogger(__name__)
 app = typer.Typer(pretty_exceptions_enable=False)
 
 
-def create_example_request(eval_type: EvaluationType) -> EvaluationApiSchema:
+def create_example_request(
+    eval_type: EvaluationType,
+) -> EvaluationApiSchema:
     return EvaluationApiSchema(
         app_id="ai-oncall-assistant",
         app_version="1.0.0",
@@ -52,7 +53,7 @@ def create_example_request(eval_type: EvaluationType) -> EvaluationApiSchema:
                     5. Check the card status by running SELECT * FROM cards where shop_id={
                     local_shop_id}
                 """,
-                app_cost=0.05,
+                app_cost=0.0,
                 metadata={},
             ),
             SampleApiSchema(
@@ -81,7 +82,7 @@ def create_example_request(eval_type: EvaluationType) -> EvaluationApiSchema:
                     delivery times), C is the shop rating, D is buyability (10 if buyable at Heureka
                     Marketplace), and E is the shop certificate level.
                 """,
-                app_cost=0.15,
+                app_cost=0.0,
                 metadata={},
             ),
         ],
@@ -107,7 +108,12 @@ def run_judging():
 
 @app.command()
 def api():
-    uvicorn.run("src.api_app:api_factory", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "src.api_app:api_factory",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
 
 
 if __name__ == "__main__":
