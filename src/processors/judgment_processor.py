@@ -3,9 +3,12 @@ import logging
 
 from llm import LLMModel, create_client
 from src.config import settings
-from src.judging.prompts import JUDGE_EVAL_PROMPT, JUDGE_SYSTEM_PROMPT
-from src.judging.schemas import JudgmentResult, PricingSchema
-from src.judging.services import JudgmentService
+from src.judgement.prompts import (
+    JUDGE_EVAL_PROMPT,
+    JUDGE_SYSTEM_PROMPT,
+)
+from src.judgement.schemas import JudgmentResult, PricingSchema
+from src.judgement.services import JudgmentService
 from src.repositories.judgment import judgment_repository
 from src.repositories.sample import samples_repository
 from src.schemas.judgment import JudgmentSchema

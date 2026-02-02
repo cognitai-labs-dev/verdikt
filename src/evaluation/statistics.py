@@ -3,10 +3,10 @@ from collections import defaultdict
 from src.api.v1.schemas import (
     EvaluationSummary,
     SampleSummary,
-    SummarySchema,
+    SummaryResponse,
 )
 from src.constants import EvaluationType
-from src.judging.statistics import (
+from src.judgement.statistics import (
     JudgementStatisticsService,
 )
 from src.repositories.judgment import judgment_repository
@@ -17,6 +17,9 @@ from src.schemas.evaluation import EvaluationSchema
 class EvaluationStatisticsService:
     """
     Possible can be reafctored to have 1 base stats class isntead of DI
+    Rename services to writers
+    Statitics to queries
+
     """
 
     def __init__(self, service: JudgementStatisticsService):
@@ -42,12 +45,13 @@ class EvaluationStatisticsService:
         )
 
         evaluation_summaries = []
+
         for (
             eval_id,
             summaries,
         ) in sample_summaries_mapped.items():
             evaluation = evaluations_mapped[eval_id]
-            aggregated = self._aggregate_summaries(summaries)
+            aggregated = SummaryResponse.from_summaries(summaries)
 
             humans = 0
             humans_completed = 0
@@ -81,25 +85,3 @@ class EvaluationStatisticsService:
         for summary in summaries:
             result[summary.evaluation_id].append(summary)
         return dict(result)
-
-    @staticmethod
-    def _aggregate_summaries(
-        summaries: list[SampleSummary],
-    ) -> SummarySchema:
-        res = SummarySchema(
-            llm_judgments_count=0,
-            llm_judgments_count_completed=0,
-            llm_judgments_count_passed=0,
-            total_cost=0.0,
-        )
-        for summary in summaries:
-            res.llm_judgments_count += summary.llm_judgments_count
-            res.llm_judgments_count_passed += (
-                summary.llm_judgments_count_passed
-            )
-            res.llm_judgments_count_completed += (
-                summary.llm_judgments_count_completed
-            )
-            res.total_cost += summary.total_cost
-
-        return res

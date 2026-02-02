@@ -5,15 +5,15 @@ from src.api.v1.schemas import (
     EvaluationSummary,
     JudgmentRequest,
     SampleJudgements,
-    SampleSummaryResponse,
+    SampleSummary,
 )
 from src.constants import EvaluationType
 from src.evaluation.statistics import (
     EvaluationStatisticsService,
 )
-from src.judging.schemas import JudgmentResult
-from src.judging.services import JudgmentService
-from src.judging.statistics import (
+from src.judgement.schemas import JudgmentResult
+from src.judgement.services import JudgmentService
+from src.judgement.statistics import (
     JudgementStatisticsService,
 )
 from src.repositories.evaluation import (
@@ -91,16 +91,13 @@ async def get_evaluations(
 )
 async def get_evaluation_samples(
     evaluation_id: int,
-) -> SampleSummaryResponse:
+) -> list[SampleSummary]:
     evaluation = evaluations_repository.get(evaluation_id)
     if evaluation is None:
         raise HTTPException(
             status_code=404, detail="Evaluation not found"
         )
 
-    return SampleSummaryResponse(
-        evaluation_type=evaluation.type,
-        samples=judgment_stats_service.samples_summary_by_eval_ids(
-            [evaluation_id], evaluation.type
-        ),
+    return judgment_stats_service.samples_summary_by_eval_ids(
+        [evaluation_id], evaluation.type
     )

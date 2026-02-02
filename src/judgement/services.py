@@ -1,5 +1,5 @@
 from src.constants import JudgmentStatus
-from src.judging.schemas import JudgmentResult, PricingSchema
+from src.judgement.schemas import JudgmentResult, PricingSchema
 from src.repositories.judgment import judgment_repository
 from src.repositories.sample import samples_repository
 from src.schemas.judgment import JudgmentUpdateSchema
