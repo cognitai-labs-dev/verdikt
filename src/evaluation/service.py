@@ -48,8 +48,8 @@ class EvaluationService:
     ):
         llm_judgments = []
         human_judgments = []
-        for model in self.llm_judges:
-            for sample in db_samples:
+        for sample in db_samples:
+            for model in self.llm_judges:
                 llm_judgments.append(
                     JudgmentCreateSchema(
                         sample_id=sample.id,
@@ -58,16 +58,15 @@ class EvaluationService:
                         status=JudgmentStatus.PENDING,
                     )
                 )
-
-        if eval_type == eval_type.HUMAN_AND_LLM:
-            human_judgments.append(
-                JudgmentCreateSchema(
-                    sample_id=sample.id,
-                    judgment_model="human",
-                    judgment_type=JudgmentType.HUMAN,
-                    status=JudgmentStatus.PENDING,
+            if eval_type == eval_type.HUMAN_AND_LLM:
+                human_judgments.append(
+                    JudgmentCreateSchema(
+                        sample_id=sample.id,
+                        judgment_model="human",
+                        judgment_type=JudgmentType.HUMAN,
+                        status=JudgmentStatus.PENDING,
+                    )
                 )
-            )
 
         judgment_repository.create_many(llm_judgments)
         judgment_repository.create_many(human_judgments)
