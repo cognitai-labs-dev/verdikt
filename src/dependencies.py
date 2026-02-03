@@ -8,6 +8,17 @@ from src.repositories.judgment import JudgmentRepository
 from src.repositories.sample import SamplesRepository
 from src.sample.queries import SampleQueries
 
+"""
+Notes todo
+- make a db adapter like in oor
+- create it as a singleton
+- init it in api lifecycle
+- creat e container to hold DI tree
+- for processor init in main() entrypoint
+- settings can be cached with property
+- fast api will only have depends(container.command) ideally
+"""
+
 # Repositories
 
 
