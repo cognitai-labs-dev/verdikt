@@ -4,7 +4,7 @@ import uvicorn
 
 from src.api.schemas import EvaluationApiSchema, SampleApiSchema
 from src.constants import EvaluationType
-from src.evaluation.service import EvaluationService
+from src.evaluation.commands import EvaluationCommands
 from src.logging import setup_logging
 from src.processors.judgment_processor import JudgmentProcessor
 
@@ -92,7 +92,7 @@ def create_example_request(
 @app.command()
 def evaluate(eval_type: EvaluationType):
     request = create_example_request(eval_type)
-    runner = EvaluationService()
+    runner = EvaluationCommands()
     runner.create(request)
 
 

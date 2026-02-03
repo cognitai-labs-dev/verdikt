@@ -6,16 +6,16 @@ from src.constants import (
 from src.repositories.evaluation import evaluations_repository
 from src.repositories.judgment import judgment_repository
 from src.repositories.sample import samples_repository
-from src.sample.service import SampleService
+from src.sample.queries import SampleQueries
 from src.schemas.sample import SampleSchema
 
 
-class JudgementStatisticsService:
+class JudgementQueries:
     def __init__(self):
         self.judgment = judgment_repository
         self.sample = samples_repository
         self.evaluation = evaluations_repository
-        self.sample_service = SampleService()
+        self.sample_queries = SampleQueries()
 
     def samples_summary_by_eval_ids(
         self,
@@ -94,7 +94,7 @@ class JudgementStatisticsService:
             human_judgment = human_judgments_map.get(sample_id)
 
             sample_responses.append(
-                self.sample_service.sample_summary(
+                self.sample_queries.sample_summary(
                     eval_type, sample, human_judgment, llm_judgments
                 )
             )

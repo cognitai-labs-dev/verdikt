@@ -3,12 +3,12 @@ import logging
 
 from llm import LLMModel, create_client
 from src.config import settings
+from src.judgement.commands import JudgementCommands
 from src.judgement.prompts import (
     JUDGE_EVAL_PROMPT,
     JUDGE_SYSTEM_PROMPT,
 )
 from src.judgement.schemas import JudgmentResult, PricingSchema
-from src.judgement.services import JudgmentService
 from src.repositories.judgment import judgment_repository
 from src.repositories.sample import samples_repository
 from src.schemas.judgment import JudgmentSchema
@@ -24,7 +24,7 @@ class JudgmentProcessor:
             model: create_client(model)
             for model in settings.JUDGING_LLM_MODELS
         }
-        self.judging_service = JudgmentService()
+        self.judgement_commands = JudgementCommands()
 
     async def run(self):
         while self.running:
@@ -76,7 +76,7 @@ class JudgmentProcessor:
         result, metadata = await client.structured_response(
             JudgmentResult, messages
         )
-        self.judging_service.save_judgment(
+        self.judgement_commands.save_judgment(
             judgment.id,
             result,
             PricingSchema(**metadata.model_dump()),

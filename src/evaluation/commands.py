@@ -20,7 +20,7 @@ from src.schemas.sample import (
 )
 
 
-class EvaluationService:
+class EvaluationCommands:
     def __init__(self):
         self.llm_judges = settings.JUDGING_LLM_MODELS
         self.logger = logging.getLogger(__name__)

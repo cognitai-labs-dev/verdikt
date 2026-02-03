@@ -6,26 +6,26 @@ from src.api.v1.schemas import (
     SummaryResponse,
 )
 from src.constants import EvaluationType
-from src.judgement.statistics import (
-    JudgementStatisticsService,
-)
+from src.judgement.queries import JudgementQueries
 from src.repositories.judgment import judgment_repository
 from src.repositories.sample import samples_repository
 from src.schemas.evaluation import EvaluationSchema
 
 
-class EvaluationStatisticsService:
+class EvaluationQueries:
     """
     Possible can be reafctored to have 1 base stats class isntead of DI
-    Rename services to writers
+    Rename services to command
     Statitics to queries
+
+    Use  Composition Root pattern
 
     """
 
-    def __init__(self, service: JudgementStatisticsService):
+    def __init__(self):
         self.judgment = judgment_repository
         self.sample = samples_repository
-        self.judge_stats_service = service
+        self.judgemnt_queries = JudgementQueries()
 
     def evaluation_summaries_by_eval_ids(
         self,
@@ -36,7 +36,7 @@ class EvaluationStatisticsService:
             evaluation.id: evaluation for evaluation in evaluations
         }
         samples_summaries = (
-            self.judge_stats_service.samples_summary_by_eval_ids(
+            self.judgemnt_queries.samples_summary_by_eval_ids(
                 list(evaluations_mapped.keys()), evaluation_type
             )
         )

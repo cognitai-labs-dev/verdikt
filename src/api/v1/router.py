@@ -8,14 +8,10 @@ from src.api.v1.schemas import (
     SampleSummary,
 )
 from src.constants import EvaluationType
-from src.evaluation.statistics import (
-    EvaluationStatisticsService,
-)
+from src.evaluation.queries import EvaluationQueries
+from src.judgement.commands import JudgementCommands
+from src.judgement.queries import JudgementQueries
 from src.judgement.schemas import JudgmentResult
-from src.judgement.services import JudgmentService
-from src.judgement.statistics import (
-    JudgementStatisticsService,
-)
 from src.repositories.evaluation import (
     evaluations_repository,
 )
@@ -24,11 +20,9 @@ from src.repositories.judgment import judgment_repository
 router = APIRouter(
     prefix="/v1", default_response_class=ORJsonResponse
 )
-judgment_service = JudgmentService()
-judgment_stats_service = JudgementStatisticsService()
-eval_stats_service = EvaluationStatisticsService(
-    judgment_stats_service
-)
+judgment_commands = JudgementCommands()
+judgement_queries = JudgementQueries()
+evaluation_queries = EvaluationQueries()
 
 
 @router.post(
@@ -49,7 +43,7 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
             detail="Judgment already judged",
         )
 
-    judgment_service.save_judgment(
+    judgment_commands.save_judgment(
         judgment.id, JudgmentResult(**request.model_dump())
     )
 
@@ -57,9 +51,7 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
 @router.get("/sample/{sample_id}", operation_id="getSampleDetail")
 async def get_sample(sample_id: int) -> SampleJudgements:
     sample_judgements = (
-        judgment_stats_service.sample_judgements_with_summary(
-            sample_id
-        )
+        judgement_queries.sample_judgements_with_summary(sample_id)
     )
     if sample_judgements is None:
         raise HTTPException(
@@ -80,7 +72,7 @@ async def get_evaluations(
     if len(evaluations) == 0:
         return []
 
-    return eval_stats_service.evaluation_summaries_by_eval_ids(
+    return evaluation_queries.evaluation_summaries_by_eval_ids(
         evaluations, eval_type
     )
 
@@ -98,6 +90,6 @@ async def get_evaluation_samples(
             status_code=404, detail="Evaluation not found"
         )
 
-    return judgment_stats_service.samples_summary_by_eval_ids(
+    return judgement_queries.samples_summary_by_eval_ids(
         [evaluation_id], evaluation.type
     )

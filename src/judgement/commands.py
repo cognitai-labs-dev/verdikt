@@ -5,7 +5,7 @@ from src.repositories.sample import samples_repository
 from src.schemas.judgment import JudgmentUpdateSchema
 
 
-class JudgmentService:
+class JudgementCommands:
     def __init__(self):
         self.judgment = judgment_repository
         self.sample = samples_repository

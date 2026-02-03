@@ -7,7 +7,7 @@ from src.schemas.judgment import JudgmentSchema
 from src.schemas.sample import SampleSchema
 
 
-class SampleService:
+class SampleQueries:
     def sample_summary(
         self,
         evaluation_type: EvaluationType,
