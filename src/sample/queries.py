@@ -4,19 +4,25 @@ from src.constants import (
     JudgmentType,
 )
 from src.judgement.queries import JudgementQueries
-from src.repositories.evaluation import evaluations_repository
-from src.repositories.judgment import judgment_repository
-from src.repositories.sample import samples_repository
+from src.repositories.evaluation import EvaluationsRepository
+from src.repositories.judgment import JudgmentRepository
+from src.repositories.sample import SamplesRepository
 from src.schemas.judgment import JudgmentSchema
 from src.schemas.sample import SampleSchema
 
 
 class SampleQueries:
-    def __init__(self):
-        self.judgment = judgment_repository
-        self.sample = samples_repository
-        self.evaluation = evaluations_repository
-        self.judgement_queries = JudgementQueries()
+    def __init__(
+        self,
+        judgment_repo: JudgmentRepository,
+        sample_repo: SamplesRepository,
+        evaluation_repo: EvaluationsRepository,
+        judgement_queries: JudgementQueries,
+    ):
+        self.judgment = judgment_repo
+        self.sample = sample_repo
+        self.evaluation = evaluation_repo
+        self.judgement_queries = judgement_queries
 
     def summary(
         self,

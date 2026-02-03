@@ -76,7 +76,7 @@ class JudgmentProcessor:
         result, metadata = await client.structured_response(
             JudgmentResult, messages
         )
-        self.judgement_commands.save_judgment(
+        self.judgement_commands.create(
             judgment.id,
             result,
             PricingSchema(**metadata.model_dump()),

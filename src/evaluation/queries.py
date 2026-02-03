@@ -6,26 +6,13 @@ from src.api.v1.schemas import (
     SummaryResponse,
 )
 from src.constants import EvaluationType
-from src.repositories.judgment import judgment_repository
-from src.repositories.sample import samples_repository
 from src.sample.queries import SampleQueries
 from src.schemas.evaluation import EvaluationSchema
 
 
 class EvaluationQueries:
-    """
-    Possible can be reafctored to have 1 base stats class isntead of DI
-    Rename services to command
-    Statitics to queries
-
-    Use  Composition Root pattern
-
-    """
-
-    def __init__(self):
-        self.judgment = judgment_repository
-        self.sample = samples_repository
-        self.sample_queries = SampleQueries()
+    def __init__(self, sample_queries: SampleQueries):
+        self.sample_queries = sample_queries
 
     def evaluation_summaries_by_eval_ids(
         self,
@@ -44,10 +31,7 @@ class EvaluationQueries:
 
         evaluation_summaries = []
 
-        for (
-            eval_id,
-            summaries,
-        ) in sample_summaries_mapped.items():
+        for eval_id, summaries in sample_summaries_mapped.items():
             evaluation = evaluations_mapped[eval_id]
             aggregated = SummaryResponse.from_summaries(summaries)
             humans_count, humans_completed = (

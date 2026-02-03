@@ -1,17 +1,15 @@
 from src.constants import JudgmentStatus
 from src.judgement.schemas import JudgmentResult, PricingSchema
-from src.repositories.judgment import judgment_repository
-from src.repositories.sample import samples_repository
+from src.repositories.judgment import JudgmentRepository
 from src.schemas.judgment import JudgmentUpdateSchema
 
 
 class JudgementCommands:
-    def __init__(self):
-        self.judgment = judgment_repository
-        self.sample = samples_repository
+    def __init__(self, judgment_repo: JudgmentRepository):
+        self.judgment = judgment_repo
 
-    @staticmethod
-    def save_judgment(
+    def create(
+        self,
         judgment_id: int,
         result: JudgmentResult,
         pricing: PricingSchema | None = None,
@@ -33,4 +31,4 @@ class JudgementCommands:
                 pricing.output_tokens_cost
             )
 
-        judgment_repository.update(update_schema)
+        self.judgment.update(update_schema)

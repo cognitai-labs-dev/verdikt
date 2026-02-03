@@ -1,17 +1,15 @@
 import logging
 
 from src.api.schemas import EvaluationApiSchema
-from src.config import settings
+from src.config import Settings
 from src.constants import (
     EvaluationType,
     JudgmentStatus,
     JudgmentType,
 )
-from src.repositories.evaluation import (
-    evaluations_repository,
-)
-from src.repositories.judgment import judgment_repository
-from src.repositories.sample import samples_repository
+from src.repositories.evaluation import EvaluationsRepository
+from src.repositories.judgment import JudgmentRepository
+from src.repositories.sample import SamplesRepository
 from src.schemas.evaluation import EvaluationCreateSchema
 from src.schemas.judgment import JudgmentCreateSchema
 from src.schemas.sample import (
@@ -21,14 +19,24 @@ from src.schemas.sample import (
 
 
 class EvaluationCommands:
-    def __init__(self):
+    def __init__(
+        self,
+        settings: Settings,
+        evaluation_repo: EvaluationsRepository,
+        sample_repo: SamplesRepository,
+        judgment_repo: JudgmentRepository,
+    ):
         self.llm_judges = settings.JUDGING_LLM_MODELS
+        self.evaluation = evaluation_repo
+        self.sample = sample_repo
+        self.judgment = judgment_repo
+
         self.logger = logging.getLogger(__name__)
 
     def create(self, request: EvaluationApiSchema):
         self.logger.info("Creating evaluation for %s", request.app_id)
         evaluation = EvaluationCreateSchema(**request.model_dump())
-        created_evaluation = evaluations_repository.create(evaluation)
+        created_evaluation = self.evaluation.create(evaluation)
 
         samples = [
             SampleCreateSchema(
@@ -37,7 +45,7 @@ class EvaluationCommands:
             )
             for s in request.samples
         ]
-        db_samples = samples_repository.create_many(samples)
+        db_samples = self.sample.create_many(samples)
 
         self._create_judgments(db_samples, request.type)
 
@@ -68,5 +76,5 @@ class EvaluationCommands:
                     )
                 )
 
-        judgment_repository.create_many(llm_judgments)
-        judgment_repository.create_many(human_judgments)
+        self.judgment.create_many(llm_judgments)
+        self.judgment.create_many(human_judgments)

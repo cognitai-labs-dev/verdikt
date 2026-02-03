@@ -43,7 +43,7 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
             detail="Judgment already judged",
         )
 
-    judgment_commands.save_judgment(
+    judgment_commands.create(
         judgment.id, JudgmentResult(**request.model_dump())
     )
 
