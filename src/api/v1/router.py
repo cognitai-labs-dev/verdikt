@@ -10,18 +10,18 @@ from src.api.v1.schemas import (
 from src.constants import EvaluationType
 from src.evaluation.queries import EvaluationQueries
 from src.judgement.commands import JudgementCommands
-from src.judgement.queries import JudgementQueries
 from src.judgement.schemas import JudgmentResult
 from src.repositories.evaluation import (
     evaluations_repository,
 )
 from src.repositories.judgment import judgment_repository
+from src.sample.queries import SampleQueries
 
 router = APIRouter(
     prefix="/v1", default_response_class=ORJsonResponse
 )
 judgment_commands = JudgementCommands()
-judgement_queries = JudgementQueries()
+sample_queries = SampleQueries()
 evaluation_queries = EvaluationQueries()
 
 
@@ -50,8 +50,8 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
 
 @router.get("/sample/{sample_id}", operation_id="getSampleDetail")
 async def get_sample(sample_id: int) -> SampleJudgements:
-    sample_judgements = (
-        judgement_queries.sample_judgements_with_summary(sample_id)
+    sample_judgements = sample_queries.judgements_with_summary(
+        sample_id
     )
     if sample_judgements is None:
         raise HTTPException(
@@ -90,6 +90,6 @@ async def get_evaluation_samples(
             status_code=404, detail="Evaluation not found"
         )
 
-    return judgement_queries.samples_summary_by_eval_ids(
+    return sample_queries.summary_by_eval_ids(
         [evaluation_id], evaluation.type
     )

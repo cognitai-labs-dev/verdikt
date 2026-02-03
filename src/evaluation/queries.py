@@ -6,9 +6,9 @@ from src.api.v1.schemas import (
     SummaryResponse,
 )
 from src.constants import EvaluationType
-from src.judgement.queries import JudgementQueries
 from src.repositories.judgment import judgment_repository
 from src.repositories.sample import samples_repository
+from src.sample.queries import SampleQueries
 from src.schemas.evaluation import EvaluationSchema
 
 
@@ -25,7 +25,7 @@ class EvaluationQueries:
     def __init__(self):
         self.judgment = judgment_repository
         self.sample = samples_repository
-        self.judgemnt_queries = JudgementQueries()
+        self.sample_queries = SampleQueries()
 
     def evaluation_summaries_by_eval_ids(
         self,
@@ -35,10 +35,8 @@ class EvaluationQueries:
         evaluations_mapped = {
             evaluation.id: evaluation for evaluation in evaluations
         }
-        samples_summaries = (
-            self.judgemnt_queries.samples_summary_by_eval_ids(
-                list(evaluations_mapped.keys()), evaluation_type
-            )
+        samples_summaries = self.sample_queries.summary_by_eval_ids(
+            list(evaluations_mapped.keys()), evaluation_type
         )
         sample_summaries_mapped = self._group_sample_summaries(
             samples_summaries
@@ -52,24 +50,17 @@ class EvaluationQueries:
         ) in sample_summaries_mapped.items():
             evaluation = evaluations_mapped[eval_id]
             aggregated = SummaryResponse.from_summaries(summaries)
-
-            humans = 0
-            humans_completed = 0
-            if evaluation_type == EvaluationType.HUMAN_AND_LLM:
-                humans = len(summaries)
-                humans_completed = sum(
-                    [
-                        1
-                        for summary in summaries
-                        if summary.human_judgment_passed is not None
-                    ]
+            humans_count, humans_completed = (
+                self.sample_queries.human_passed_count(
+                    evaluation_type, summaries
                 )
+            )
 
             evaluation_summaries.append(
                 EvaluationSummary(
                     **evaluation.model_dump(),
                     **aggregated.model_dump(),
-                    human_judgement_count=humans,
+                    human_judgement_count=humans_count,
                     human_judgement_count_completed=humans_completed,
                 ),
             )
