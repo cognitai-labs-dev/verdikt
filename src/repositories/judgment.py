@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.constants import JudgmentStatus, JudgmentType
 from src.db.tables.judgments import judgments_table
@@ -22,7 +23,9 @@ class JudgmentRepository(
     def __init__(self):
         super().__init__(judgments_table, JudgmentSchema)
 
-    def get_many_pending(self, limit: int) -> list[JudgmentSchema]:
+    async def get_many_pending(
+        self, conn: AsyncConnection, limit: int
+    ) -> list[JudgmentSchema]:
         stmt = (
             select(self.table)
             .where(
@@ -35,8 +38,8 @@ class JudgmentRepository(
             .limit(limit)
         )
 
-        with self.engine.connect() as conn:
-            rows = conn.execute(stmt).fetchall()
+        result = await conn.execute(stmt)
+        rows = result.fetchall()
 
         if len(rows) == 0:
             return []
@@ -45,8 +48,11 @@ class JudgmentRepository(
             for row in rows
         ]
 
-    def get_many_by_sample_ids(
-        self, sample_ids: list[int], judgment_type: JudgmentType
+    async def get_many_by_sample_ids(
+        self,
+        conn: AsyncConnection,
+        sample_ids: list[int],
+        judgment_type: JudgmentType,
     ) -> dict[int, list[JudgmentSchema]]:
         if not sample_ids:
             return {}
@@ -64,8 +70,8 @@ class JudgmentRepository(
             )
         )
 
-        with self.engine.connect() as conn:
-            rows = conn.execute(stmt).fetchall()
+        result = await conn.execute(stmt)
+        rows = result.fetchall()
 
         grouped: dict[int, list[JudgmentSchema]] = defaultdict(list)
         for row in rows:
@@ -74,11 +80,11 @@ class JudgmentRepository(
 
         return dict(grouped)
 
-    def get_human_judgments_by_sample_ids(
-        self, sample_ids: list[int]
+    async def get_human_judgments_by_sample_ids(
+        self, conn: AsyncConnection, sample_ids: list[int]
     ) -> dict[int, JudgmentSchema | None]:
-        grouped = self.get_many_by_sample_ids(
-            sample_ids, JudgmentType.HUMAN
+        grouped = await self.get_many_by_sample_ids(
+            conn, sample_ids, JudgmentType.HUMAN
         )
         return {
             sample_id: self._extract_human_judgment(
@@ -87,19 +93,21 @@ class JudgmentRepository(
             for sample_id in sample_ids
         }
 
-    def get_llm_judgmenets_by_sample_id(
-        self, sample_id: int
+    async def get_llm_judgmenets_by_sample_id(
+        self, conn: AsyncConnection, sample_id: int
     ) -> list[JudgmentSchema]:
-        return self.get_many_by_sample_ids(
-            [sample_id], JudgmentType.LLM
-        ).get(sample_id, [])
+        result = await self.get_many_by_sample_ids(
+            conn, [sample_id], JudgmentType.LLM
+        )
+        return result.get(sample_id, [])
 
-    def get_human_judgement_by_sample_id(
-        self, sample_id: int
+    async def get_human_judgement_by_sample_id(
+        self, conn: AsyncConnection, sample_id: int
     ) -> JudgmentSchema | None:
-        return self.get_human_judgments_by_sample_ids(
-            [sample_id]
-        ).get(sample_id)
+        result = await self.get_human_judgments_by_sample_ids(
+            conn, [sample_id]
+        )
+        return result.get(sample_id)
 
     @staticmethod
     def _extract_human_judgment(
@@ -111,6 +119,3 @@ class JudgmentRepository(
             return judgments[0]
 
         raise RuntimeError("More than 1 human judgment for a sample")
-
-
-judgment_repository = JudgmentRepository()

@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     APP_ENV: str = "dev"
     LOG_LEVEL: str = "INFO"
 
-    OPENAI_API_KEY: str
-    ANTHROPIC_API_KEY: str
+    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
 
     JUDGING_LLM_MODELS: list[LLMModel] = [
         LLMModel.gpt_4o_mini,

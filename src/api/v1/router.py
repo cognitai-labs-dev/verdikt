@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
@@ -8,30 +9,32 @@ from src.api.v1.schemas import (
     SampleSummary,
 )
 from src.constants import EvaluationType
-from src.evaluation.queries import EvaluationQueries
-from src.judgement.commands import JudgementCommands
-from src.judgement.schemas import JudgmentResult
-from src.repositories.evaluation import (
-    evaluations_repository,
+from src.dependencies import (
+    evaluation_queries,
+    evaluation_repo,
+    get_connection,
+    judgement_commands,
+    judgment_repo,
+    sample_queries,
 )
-from src.repositories.judgment import judgment_repository
-from src.sample.queries import SampleQueries
+from src.judgement.schemas import JudgmentResult
 
 router = APIRouter(
     prefix="/v1", default_response_class=ORJsonResponse
 )
-judgment_commands = JudgementCommands()
-sample_queries = SampleQueries()
-evaluation_queries = EvaluationQueries()
 
 
 @router.post(
     "/sample/{sample_id}/judgment",
     operation_id="postJudgment",
 )
-async def post_sample(sample_id: int, request: JudgmentRequest):
-    judgment = judgment_repository.get_human_judgement_by_sample_id(
-        sample_id
+async def post_sample(
+    sample_id: int,
+    request: JudgmentRequest,
+    conn: AsyncConnection = Depends(get_connection),
+):
+    judgment = await judgment_repo.get_human_judgement_by_sample_id(
+        conn, sample_id
     )
     if judgment is None:
         raise HTTPException(
@@ -43,15 +46,20 @@ async def post_sample(sample_id: int, request: JudgmentRequest):
             detail="Judgment already judged",
         )
 
-    judgment_commands.create(
-        judgment.id, JudgmentResult(**request.model_dump())
+    await judgement_commands.create(
+        conn,
+        judgment.id,
+        JudgmentResult(**request.model_dump()),
     )
 
 
 @router.get("/sample/{sample_id}", operation_id="getSampleDetail")
-async def get_sample(sample_id: int) -> SampleJudgements:
-    sample_judgements = sample_queries.judgements_with_summary(
-        sample_id
+async def get_sample(
+    sample_id: int,
+    conn: AsyncConnection = Depends(get_connection),
+) -> SampleJudgements:
+    sample_judgements = await sample_queries.judgements_with_summary(
+        conn, sample_id
     )
     if sample_judgements is None:
         raise HTTPException(
@@ -64,16 +72,18 @@ async def get_sample(sample_id: int) -> SampleJudgements:
     "/evaluation/summary", operation_id="getEvaluationsSummaries"
 )
 async def get_evaluations(
-    app_id: str, eval_type: EvaluationType
+    app_id: str,
+    eval_type: EvaluationType,
+    conn: AsyncConnection = Depends(get_connection),
 ) -> list[EvaluationSummary]:
-    evaluations = evaluations_repository.get_many_by_app_id(
-        app_id, eval_type
+    evaluations = await evaluation_repo.get_many_by_app_id(
+        conn, app_id, eval_type
     )
     if len(evaluations) == 0:
         return []
 
-    return evaluation_queries.evaluation_summaries_by_eval_ids(
-        evaluations, eval_type
+    return await evaluation_queries.evaluation_summaries_by_eval_ids(
+        conn, evaluations, eval_type
     )
 
 
@@ -83,13 +93,18 @@ async def get_evaluations(
 )
 async def get_evaluation_samples(
     evaluation_id: int,
+    conn: AsyncConnection = Depends(get_connection),
 ) -> list[SampleSummary]:
-    evaluation = evaluations_repository.get(evaluation_id)
+    evaluation = (
+        await evaluation_queries.sample_queries.evaluation.get(
+            conn, evaluation_id
+        )
+    )
     if evaluation is None:
         raise HTTPException(
             status_code=404, detail="Evaluation not found"
         )
 
-    return sample_queries.summary_by_eval_ids(
-        [evaluation_id], evaluation.type
+    return await sample_queries.summary_by_eval_ids(
+        conn, [evaluation_id], evaluation.type
     )

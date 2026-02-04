@@ -1,36 +1,61 @@
 import asyncio
 import logging
 
+from sqlalchemy.ext.asyncio import AsyncEngine
+
 from llm import LLMModel, create_client
-from src.config import settings
+from src.config import Settings
+from src.db.pg import db
+from src.dependencies import (
+    judgement_commands,
+    judgment_repo,
+    sample_repo,
+)
 from src.judgement.commands import JudgementCommands
 from src.judgement.prompts import (
     JUDGE_EVAL_PROMPT,
     JUDGE_SYSTEM_PROMPT,
 )
 from src.judgement.schemas import JudgmentResult, PricingSchema
-from src.repositories.judgment import judgment_repository
-from src.repositories.sample import samples_repository
+from src.repositories.judgment import JudgmentRepository
+from src.repositories.sample import SamplesRepository
 from src.schemas.judgment import JudgmentSchema
 
 
 class JudgmentProcessor:
-    def __init__(self):
+    def __init__(
+        self,
+        db_engine: AsyncEngine,
+        settings: Settings,
+        judgment_repo: JudgmentRepository,
+        sample_repo: SamplesRepository,
+        judgement_commands: JudgementCommands,
+    ):
         self.logger = logging.getLogger(__name__)
+        self.db_engine = db_engine
+
         self.running = True
+
         self.batch_size = settings.WORKER_BATCH_SIZE
         self.wait_time = settings.WORKER_WAIT_TIME
         self.clients = {
             model: create_client(model)
             for model in settings.JUDGING_LLM_MODELS
         }
-        self.judgement_commands = JudgementCommands()
+
+        self.judgment_repo = judgment_repo
+        self.judgement_commands = judgement_commands
+        self.sample_repo = sample_repo
 
     async def run(self):
         while self.running:
-            pending_judgments = judgment_repository.get_many_pending(
-                self.batch_size
-            )
+            async with self.db_engine.begin() as conn:
+                pending_judgments = (
+                    await self.judgment_repo.get_many_pending(
+                        conn, self.batch_size
+                    )
+                )
+
             if len(pending_judgments) == 0:
                 self.logger.info("No pending judgments, waiting...")
                 await asyncio.sleep(self.wait_time)
@@ -61,7 +86,10 @@ class JudgmentProcessor:
         )
 
         client = self.clients[LLMModel(judgment.judgment_model)]
-        sample = samples_repository.get(judgment.sample_id)
+        async with self.db_engine.begin() as conn:
+            sample = await self.sample_repo.get(
+                conn, judgment.sample_id
+            )
         if sample is None:
             raise RuntimeError("Sample not found for judgment")
 
@@ -76,14 +104,31 @@ class JudgmentProcessor:
         result, metadata = await client.structured_response(
             JudgmentResult, messages
         )
-        self.judgement_commands.create(
-            judgment.id,
-            result,
-            PricingSchema(**metadata.model_dump()),
-        )
+        async with self.db_engine.begin() as conn:
+            await self.judgement_commands.create(
+                conn,
+                judgment.id,
+                result,
+                PricingSchema(**metadata.model_dump()),
+            )
 
         self.logger.info(
             "Done judgement (%s) with id: %d",
             judgment.judgment_model,
             judgment.id,
         )
+
+
+async def main():
+    settings = Settings()
+    await db.connect(settings.postgresql)
+    processor = JudgmentProcessor(
+        db.engine,
+        settings,
+        judgment_repo,
+        sample_repo,
+        judgement_commands,
+    )
+    await processor.run()
+
+    await db.disconnect()

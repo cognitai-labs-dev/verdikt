@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+from sqlalchemy.ext.asyncio import AsyncConnection
+
 from src.api.v1.schemas import (
     EvaluationSummary,
     SampleSummary,
@@ -14,16 +16,19 @@ class EvaluationQueries:
     def __init__(self, sample_queries: SampleQueries):
         self.sample_queries = sample_queries
 
-    def evaluation_summaries_by_eval_ids(
+    async def evaluation_summaries_by_eval_ids(
         self,
+        conn: AsyncConnection,
         evaluations: list[EvaluationSchema],
         evaluation_type: EvaluationType,
     ) -> list[EvaluationSummary]:
         evaluations_mapped = {
             evaluation.id: evaluation for evaluation in evaluations
         }
-        samples_summaries = self.sample_queries.summary_by_eval_ids(
-            list(evaluations_mapped.keys()), evaluation_type
+        samples_summaries = (
+            await self.sample_queries.summary_by_eval_ids(
+                conn, list(evaluations_mapped.keys()), evaluation_type
+            )
         )
         sample_summaries_mapped = self._group_sample_summaries(
             samples_summaries

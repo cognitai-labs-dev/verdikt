@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from sqlalchemy import Table, create_engine, insert, select, update
+from sqlalchemy import Table, insert, select, update
+from sqlalchemy.ext.asyncio import AsyncConnection
 
-from src.config import settings
 from src.schemas.base import UpdateSchema
 
 
@@ -15,25 +15,25 @@ class BaseRepository[
     def __init__(self, table: Table, schema: type[SchemaT]):
         self.table = table
         self.schema = schema
-        self.engine = create_engine(settings.postgresql)
 
-    def create(self, data: CreateSchemaT) -> SchemaT:
+    async def create(
+        self, conn: AsyncConnection, data: CreateSchemaT
+    ) -> SchemaT:
         stmt = (
             insert(self.table)
             .values(**data.model_dump())
             .returning(self.table)
         )
 
-        with self.engine.connect() as conn:
-            row = conn.execute(stmt).fetchone()
-            conn.commit()
+        result = await conn.execute(stmt)
+        row = result.fetchone()
         if row is None:
             raise RuntimeError("create failed")
 
         return self.schema.model_validate(row._mapping)
 
-    def create_many(
-        self, items: list[CreateSchemaT]
+    async def create_many(
+        self, conn: AsyncConnection, items: list[CreateSchemaT]
     ) -> list[SchemaT]:
         if not items:
             return []
@@ -44,38 +44,41 @@ class BaseRepository[
             .returning(self.table)
         )
 
-        with self.engine.connect() as conn:
-            result = conn.execute(stmt)
-            rows = [
-                self.schema.model_validate(row._mapping)
-                for row in result.fetchall()
-            ]
-            conn.commit()
-        return rows
+        result = await conn.execute(stmt)
+        return [
+            self.schema.model_validate(row._mapping)
+            for row in result.fetchall()
+        ]
 
-    def get(self, row_id: int) -> SchemaT | None:
+    async def get(
+        self, conn: AsyncConnection, row_id: int
+    ) -> SchemaT | None:
         stmt = select(self.table).where(self.table.c.id == row_id)
-        with self.engine.connect() as conn:
-            row = conn.execute(stmt).fetchone()
+        result = await conn.execute(stmt)
+        row = result.fetchone()
         if row is None:
             return None
         return self.schema.model_validate(row._mapping)
 
-    def get_by_many_ids(self, ids: list[int]) -> list[SchemaT]:
+    async def get_by_many_ids(
+        self, conn: AsyncConnection, ids: list[int]
+    ) -> list[SchemaT]:
         if not ids:
             return []
 
         stmt = select(self.table).where(self.table.c.id.in_(ids))
-        with self.engine.connect() as conn:
-            rows = conn.execute(stmt).fetchall()
+        result = await conn.execute(stmt)
         return [
-            self.schema.model_validate(row._mapping) for row in rows
+            self.schema.model_validate(row._mapping)
+            for row in result.fetchall()
         ]
 
-    def update(self, data: UpdateSchemaT) -> SchemaT | None:
+    async def update(
+        self, conn: AsyncConnection, data: UpdateSchemaT
+    ) -> SchemaT | None:
         values = data.model_dump(exclude_none=True, exclude={"id"})
         if not values:
-            return self.get(data.id)
+            return await self.get(conn, data.id)
 
         stmt = (
             update(self.table)
@@ -84,9 +87,8 @@ class BaseRepository[
             .returning(self.table)
         )
 
-        with self.engine.connect() as conn:
-            row = conn.execute(stmt).fetchone()
-            conn.commit()
+        result = await conn.execute(stmt)
+        row = result.fetchone()
         if row is None:
             return None
         return self.schema.model_validate(row._mapping)

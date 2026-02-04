@@ -1,3 +1,5 @@
+from sqlalchemy.ext.asyncio import AsyncConnection
+
 from src.api.v1.schemas import SampleJudgements, SampleSummary
 from src.constants import (
     EvaluationType,
@@ -24,8 +26,9 @@ class SampleQueries:
         self.evaluation = evaluation_repo
         self.judgement_queries = judgement_queries
 
-    def summary(
+    async def summary(
         self,
+        conn: AsyncConnection,
         samples: list[SampleSchema],
         evaluation_type: EvaluationType,
     ) -> list[SampleSummary]:
@@ -40,12 +43,14 @@ class SampleQueries:
         samples_mapped = {sample.id: sample for sample in samples}
         sample_ids = list(samples_mapped.keys())
 
-        llm_judgments_map = self.judgment.get_many_by_sample_ids(
-            sample_ids, JudgmentType.LLM
+        llm_judgments_map = (
+            await self.judgment.get_many_by_sample_ids(
+                conn, sample_ids, JudgmentType.LLM
+            )
         )
         human_judgments_map = (
-            self.judgment.get_human_judgments_by_sample_ids(
-                sample_ids
+            await self.judgment.get_human_judgments_by_sample_ids(
+                conn, sample_ids
             )
             if evaluation_type == EvaluationType.HUMAN_AND_LLM
             else {}
@@ -67,42 +72,52 @@ class SampleQueries:
 
         return sample_responses
 
-    def summary_by_eval_ids(
+    async def summary_by_eval_ids(
         self,
+        conn: AsyncConnection,
         evaluation_ids: list[int],
         eval_type: EvaluationType,
     ) -> list[SampleSummary]:
-        samples = self.sample.get_many_by_evaluation(evaluation_ids)
-        return self.summary(samples, eval_type)
+        samples = await self.sample.get_many_by_evaluation(
+            conn, evaluation_ids
+        )
+        return await self.summary(conn, samples, eval_type)
 
-    def summary_by_sample_ids(
+    async def summary_by_sample_ids(
         self,
+        conn: AsyncConnection,
         sample_ids: list[int],
         eval_type: EvaluationType,
     ) -> list[SampleSummary]:
-        samples = self.sample.get_by_many_ids(sample_ids)
-        return self.summary(samples, eval_type)
+        samples = await self.sample.get_by_many_ids(conn, sample_ids)
+        return await self.summary(conn, samples, eval_type)
 
-    def judgements_with_summary(
-        self, sample_id: int
+    async def judgements_with_summary(
+        self, conn: AsyncConnection, sample_id: int
     ) -> SampleJudgements | None:
-        sample = self.sample.get(sample_id)
+        sample = await self.sample.get(conn, sample_id)
         if sample is None:
             return None
 
-        evaluation = self.evaluation.get(sample.evaluation_id)
+        evaluation = await self.evaluation.get(
+            conn, sample.evaluation_id
+        )
         if evaluation is None:
             return None
 
-        summary = self.summary([sample], evaluation.type)
+        summary = await self.summary(conn, [sample], evaluation.type)
         if len(summary) == 0:
             return None
 
         human_judgment = (
-            self.judgment.get_human_judgement_by_sample_id(sample_id)
+            await self.judgment.get_human_judgement_by_sample_id(
+                conn, sample_id
+            )
         )
-        llm_judgments = self.judgment.get_llm_judgmenets_by_sample_id(
-            sample_id
+        llm_judgments = (
+            await self.judgment.get_llm_judgmenets_by_sample_id(
+                conn, sample_id
+            )
         )
 
         return SampleJudgements(

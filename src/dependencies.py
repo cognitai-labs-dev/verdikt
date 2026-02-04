@@ -1,4 +1,8 @@
-from src.config import Settings, settings
+from collections.abc import AsyncIterator
+
+from sqlalchemy.ext.asyncio import AsyncConnection
+
+from src.db.pg import db
 from src.evaluation.commands import EvaluationCommands
 from src.evaluation.queries import EvaluationQueries
 from src.judgement.commands import JudgementCommands
@@ -8,69 +12,44 @@ from src.repositories.judgment import JudgmentRepository
 from src.repositories.sample import SamplesRepository
 from src.sample.queries import SampleQueries
 
-"""
-Notes todo
-- make a db adapter like in oor
-- create it as a singleton
-- init it in api lifecycle
-- creat e container to hold DI tree
-- for processor init in main() entrypoint
-- settings can be cached with property
-- fast api will only have depends(container.command) ideally
-"""
+
+async def get_connection() -> AsyncIterator[AsyncConnection]:
+    async with db.engine.connect() as conn:
+        try:
+            yield conn
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
+
 
 # Repositories
 
-
-def build_evaluation_repo() -> EvaluationsRepository:
-    return EvaluationsRepository()
-
-
-def build_judgment_repo() -> JudgmentRepository:
-    return JudgmentRepository()
-
-
-def build_sample_repo() -> SamplesRepository:
-    return SamplesRepository()
-
+evaluation_repo = EvaluationsRepository()
+judgment_repo = JudgmentRepository()
+sample_repo = SamplesRepository()
 
 # Queries
 
-
-def build_judgement_queries() -> JudgementQueries:
-    return JudgementQueries()
-
-
-def build_sample_queries() -> SampleQueries:
-    return SampleQueries(
-        judgment_repo=build_judgment_repo(),
-        sample_repo=build_sample_repo(),
-        evaluation_repo=build_evaluation_repo(),
-        judgement_queries=build_judgement_queries(),
-    )
-
-
-def build_evaluation_queries() -> EvaluationQueries:
-    return EvaluationQueries(
-        sample_queries=build_sample_queries(),
-    )
-
+judgement_queries = JudgementQueries()
+sample_queries = SampleQueries(
+    judgment_repo=judgment_repo,
+    sample_repo=sample_repo,
+    evaluation_repo=evaluation_repo,
+    judgement_queries=judgement_queries,
+)
+evaluation_queries = EvaluationQueries(
+    sample_queries=sample_queries,
+)
 
 # Commands
 
+judgement_commands = JudgementCommands(
+    judgment_repo=judgment_repo,
+)
 
-def build_judgement_commands() -> JudgementCommands:
-    return JudgementCommands(
-        judgment_repo=build_judgment_repo(),
-    )
-
-
-def build_evaluation_commands(
-    app_settings: Settings = settings,
-) -> EvaluationCommands:
-    return EvaluationCommands(
-        settings=app_settings,
-        evaluation_repo=build_evaluation_repo(),
-        sample_repo=build_sample_repo(),
-        judgment_repo=build_judgment_repo(),
-    )
+evaluation_commands = EvaluationCommands(
+    evaluation_repo=evaluation_repo,
+    sample_repo=sample_repo,
+    judgment_repo=judgment_repo,
+)
