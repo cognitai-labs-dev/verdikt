@@ -344,7 +344,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.12.0" },
     { name = "sqlalchemy", specifier = ">=2.0.45" },
     { name = "uvicorn", specifier = ">=0.40.0" },
-    { name = "yalc", specifier = ">=0.1.1" },
+    { name = "yalc", specifier = ">=0.1.2" },
 ]
 
 [package.metadata.requires-dev]
@@ -1858,16 +1858,16 @@ wheels = [
 
 [[package]]
 name = "yalc"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
     { name = "instructor", extra = ["anthropic"] },
     { name = "litellm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1f/fc/94474f631faa5f5b476ad751dbaf28e1db0c1f436b23491c89759fb5a44e/yalc-0.1.1.tar.gz", hash = "sha256:c25e11b943649fba7b26fe0c456402dcec93f3bf50fff2738d8db603ab49f3d9", size = 4219, upload-time = "2026-02-05T19:34:09.57Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/3d/979b3a0f2ad97854811de5923fa25778d1f1f2b3fd744c773a2db7257c65/yalc-0.1.2.tar.gz", hash = "sha256:6a997c288a13368d22e223111ed9267fdf2ac364bddb391fd9813199599f2d97", size = 4247, upload-time = "2026-02-05T20:54:53.72Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/51/37fd8f4154feff4f3fa1f7c13c42e0f2b6c6a673fb95e9b80b89d4f6861e/yalc-0.1.1-py3-none-any.whl", hash = "sha256:19ab719380d7d22a50e052e6fb726491226464452d254f78f2fa98453fc48185", size = 6860, upload-time = "2026-02-05T19:34:06.767Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/1e/c46815c4cf916feee91f638ae833fc17e2b43ff3e3d421dc8d6d9ba908c1/yalc-0.1.2-py3-none-any.whl", hash = "sha256:673ef3f9fa31f5beba06048e7fda98d0846daf43c0eb6dfe5372ca8e2161f46e", size = 6977, upload-time = "2026-02-05T20:54:52.487Z" },
 ]
 
 [[package]]

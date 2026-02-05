@@ -26,9 +26,11 @@ class EvaluationCommands:
         evaluation_repo: EvaluationsRepository,
         sample_repo: SamplesRepository,
         judgment_repo: JudgmentRepository,
+        settings: Settings | None = None,
     ):
         # TODO: fix later with passing models via request
-        self.llm_judges = Settings().JUDGING_LLM_MODELS
+        settings = settings or Settings()
+        self.llm_judges = settings.JUDGING_LLM_MODELS
         self.evaluation = evaluation_repo
         self.sample = sample_repo
         self.judgment = judgment_repo

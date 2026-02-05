@@ -6,10 +6,15 @@ from yalc import LLMModel
 ROOT_DIR = Path(__file__).parent.parent
 
 
-class Settings(BaseSettings):
+class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     APP_ENV: str = "dev"
     LOG_LEVEL: str = "INFO"
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     OPENAI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
@@ -31,7 +36,3 @@ class Settings(BaseSettings):
     @property
     def postgresql(self):
         return f"postgresql+psycopg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}"
-
-    @property
-    def is_dev(self) -> bool:
-        return self.APP_ENV.lower() == "dev"

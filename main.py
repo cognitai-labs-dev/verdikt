@@ -93,9 +93,11 @@ def create_example_request(
 
 @app.command()
 def evaluate(eval_type: EvaluationType):
+    setting = Settings()
+
     async def run():
         request = create_example_request(eval_type)
-        await db.connect(Settings().postgresql)
+        await db.connect(setting.postgresql)
 
         async with db.engine.begin() as conn:
             await evaluation_commands.create(conn, request)
@@ -118,8 +120,10 @@ def api():
     uvicorn.run(
         "src.api_app:api_factory",
         host="0.0.0.0",
+        factory=True,
         port=8000,
         reload=True,
+        log_config=None,
     )
 
 
