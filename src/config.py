@@ -1,8 +1,7 @@
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from llm import LLMModel
+from yalc import LLMModel
 
 ROOT_DIR = Path(__file__).parent.parent
 

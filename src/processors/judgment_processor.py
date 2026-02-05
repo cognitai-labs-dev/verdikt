@@ -2,8 +2,8 @@ import asyncio
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncEngine
+from yalc import LLMModel, create_client
 
-from llm import LLMModel, create_client
 from src.config import Settings
 from src.db.pg import db
 from src.dependencies import (
