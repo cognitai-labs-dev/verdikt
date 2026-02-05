@@ -1,13 +1,13 @@
 import os
 import sys
-from logging.config import fileConfig
 
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from dotenv import load_dotenv
+from src.config import Settings
 
-from src.config import settings
+settings = Settings()
 
 # Load environment variables from .env file (if using one)
 load_dotenv()
@@ -20,7 +20,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 POSTGRES_URI = settings.postgresql
 
 if not POSTGRES_URI:
-    raise ValueError("POSTGRES_SERVICE_URI or PG_URL environment variable is not set. Cannot connect to DB.")
+    raise ValueError(
+        "POSTGRES_SERVICE_URI or PG_URL environment variable is not set. Cannot connect to DB."
+    )
 
 # --- END: Custom Setup ---
 

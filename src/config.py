@@ -36,6 +36,3 @@ class Settings(BaseSettings):
     @property
     def is_dev(self) -> bool:
         return self.APP_ENV.lower() == "dev"
-
-
-settings = Settings()
