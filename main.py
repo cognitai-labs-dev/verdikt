@@ -3,10 +3,12 @@ import asyncio
 import uvicorn
 
 from src.api.schemas import EvaluationApiSchema, SampleApiSchema
+from src.config import Settings
 from src.constants import EvaluationType
-from src.evaluation.service import EvaluationService
+from src.db.pg import db
+from src.dependencies import evaluation_commands
 from src.logging import setup_logging
-from src.processors.judgment_processor import JudgmentProcessor
+from src.processors.judgment_processor import main as processor_main
 
 setup_logging()
 
@@ -91,17 +93,22 @@ def create_example_request(
 
 @app.command()
 def evaluate(eval_type: EvaluationType):
-    request = create_example_request(eval_type)
-    runner = EvaluationService()
-    runner.create(request)
+    async def run():
+        request = create_example_request(eval_type)
+        await db.connect(Settings().postgresql)
+
+        async with db.engine.begin() as conn:
+            await evaluation_commands.create(conn, request)
+
+        await db.disconnect()
+
+    asyncio.run(run())
 
 
 @app.command()
 def run_judging():
-    processor = JudgmentProcessor()
-
     async def run():
-        await processor.run()
+        await processor_main()
 
     asyncio.run(run())
 

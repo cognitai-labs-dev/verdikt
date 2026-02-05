@@ -1,17 +1,18 @@
+from sqlalchemy.ext.asyncio import AsyncConnection
+
 from src.constants import JudgmentStatus
-from src.judging.schemas import JudgmentResult, PricingSchema
-from src.repositories.judgment import judgment_repository
-from src.repositories.sample import samples_repository
+from src.judgement.schemas import JudgmentResult, PricingSchema
+from src.repositories.judgment import JudgmentRepository
 from src.schemas.judgment import JudgmentUpdateSchema
 
 
-class JudgmentService:
-    def __init__(self):
-        self.judgment = judgment_repository
-        self.sample = samples_repository
+class JudgementCommands:
+    def __init__(self, judgment_repo: JudgmentRepository):
+        self.judgment = judgment_repo
 
-    @staticmethod
-    def save_judgment(
+    async def create(
+        self,
+        conn: AsyncConnection,
         judgment_id: int,
         result: JudgmentResult,
         pricing: PricingSchema | None = None,
@@ -33,4 +34,4 @@ class JudgmentService:
                 pricing.output_tokens_cost
             )
 
-        judgment_repository.update(update_schema)
+        await self.judgment.update(conn, update_schema)

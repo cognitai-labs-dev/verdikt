@@ -1,3 +1,7 @@
+"""
+Schemas for API responses & requests
+"""
+
 from pydantic import BaseModel, Field
 
 from src.constants import EvaluationType
@@ -11,7 +15,7 @@ class JudgmentRequest(BaseModel):
     passed: bool
 
 
-class SummarySchema(BaseModel):
+class SummaryResponse(BaseModel):
     llm_judgments_count: int = Field(
         description="Total number of llm judgments"
     )
@@ -25,13 +29,39 @@ class SummarySchema(BaseModel):
     )
     total_cost: float = Field(description="Total cost for the sample")
 
+    @classmethod
+    def empty(cls) -> "SummaryResponse":
+        return cls(
+            llm_judgments_count=0,
+            llm_judgments_count_completed=0,
+            llm_judgments_count_passed=0,
+            total_cost=0.0,
+        )
 
-class EvaluationSummary(SummarySchema, EvaluationSchema):
+    @classmethod
+    def from_summaries(
+        cls, summaries: list["SampleSummary"]
+    ) -> "SummaryResponse":
+        res = cls.empty()
+        for summary in summaries:
+            res.llm_judgments_count += summary.llm_judgments_count
+            res.llm_judgments_count_passed += (
+                summary.llm_judgments_count_passed
+            )
+            res.llm_judgments_count_completed += (
+                summary.llm_judgments_count_completed
+            )
+            res.total_cost += summary.total_cost
+
+        return res
+
+
+class EvaluationSummary(SummaryResponse, EvaluationSchema):
     human_judgement_count: int
     human_judgement_count_completed: int
 
 
-class SampleSummary(SummarySchema, SampleSchema):
+class SampleSummary(SummaryResponse, SampleSchema):
     evaluation_type: EvaluationType
     human_judgment_passed: bool | None = Field(
         ...,
@@ -40,11 +70,6 @@ class SampleSummary(SummarySchema, SampleSchema):
             " If null it means the judgment was not made yet or its a llm only evaluation."
         ),
     )
-
-
-class SampleSummaryResponse(BaseModel):
-    evaluation_type: EvaluationType
-    samples: list[SampleSummary]
 
 
 class SampleJudgements(SampleSummary):

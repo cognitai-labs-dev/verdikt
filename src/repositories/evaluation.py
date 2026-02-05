@@ -1,4 +1,5 @@
 from sqlalchemy import select, and_
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.constants import EvaluationType
 from src.repositories.base import BaseRepository
@@ -20,8 +21,11 @@ class EvaluationsRepository(
     def __init__(self):
         super().__init__(evaluations_table, EvaluationSchema)
 
-    def get_many_by_app_id(
-        self, app_id: str, eval_type: EvaluationType
+    async def get_many_by_app_id(
+        self,
+        conn: AsyncConnection,
+        app_id: str,
+        eval_type: EvaluationType,
     ) -> list[EvaluationSchema]:
         """Get all evaluations for a given app_id."""
         stmt = (
@@ -34,14 +38,11 @@ class EvaluationsRepository(
             )
             .order_by(self.table.c.created_at.desc())
         )
-        with self.engine.connect() as conn:
-            rows = conn.execute(stmt).fetchall()
+        result = await conn.execute(stmt)
+        rows = result.fetchall()
         if len(rows) == 0:
             return []
         return [
             EvaluationSchema.model_validate(row._mapping)
             for row in rows
         ]
-
-
-evaluations_repository = EvaluationsRepository()

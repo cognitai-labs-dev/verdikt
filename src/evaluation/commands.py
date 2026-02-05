@@ -1,17 +1,17 @@
 import logging
 
+from sqlalchemy.ext.asyncio import AsyncConnection
+
 from src.api.schemas import EvaluationApiSchema
-from src.config import settings
+from src.config import Settings
 from src.constants import (
     EvaluationType,
     JudgmentStatus,
     JudgmentType,
 )
-from src.repositories.evaluation import (
-    evaluations_repository,
-)
-from src.repositories.judgment import judgment_repository
-from src.repositories.sample import samples_repository
+from src.repositories.evaluation import EvaluationsRepository
+from src.repositories.judgment import JudgmentRepository
+from src.repositories.sample import SamplesRepository
 from src.schemas.evaluation import EvaluationCreateSchema
 from src.schemas.judgment import JudgmentCreateSchema
 from src.schemas.sample import (
@@ -20,15 +20,29 @@ from src.schemas.sample import (
 )
 
 
-class EvaluationService:
-    def __init__(self):
-        self.llm_judges = settings.JUDGING_LLM_MODELS
+class EvaluationCommands:
+    def __init__(
+        self,
+        evaluation_repo: EvaluationsRepository,
+        sample_repo: SamplesRepository,
+        judgment_repo: JudgmentRepository,
+    ):
+        # TODO: fix later with passing models via request
+        self.llm_judges = Settings().JUDGING_LLM_MODELS
+        self.evaluation = evaluation_repo
+        self.sample = sample_repo
+        self.judgment = judgment_repo
+
         self.logger = logging.getLogger(__name__)
 
-    def create(self, request: EvaluationApiSchema):
+    async def create(
+        self, conn: AsyncConnection, request: EvaluationApiSchema
+    ):
         self.logger.info("Creating evaluation for %s", request.app_id)
         evaluation = EvaluationCreateSchema(**request.model_dump())
-        created_evaluation = evaluations_repository.create(evaluation)
+        created_evaluation = await self.evaluation.create(
+            conn, evaluation
+        )
 
         samples = [
             SampleCreateSchema(
@@ -37,12 +51,13 @@ class EvaluationService:
             )
             for s in request.samples
         ]
-        db_samples = samples_repository.create_many(samples)
+        db_samples = await self.sample.create_many(conn, samples)
 
-        self._create_judgments(db_samples, request.type)
+        await self._create_judgments(conn, db_samples, request.type)
 
-    def _create_judgments(
+    async def _create_judgments(
         self,
+        conn: AsyncConnection,
         db_samples: list[SampleSchema],
         eval_type: EvaluationType,
     ):
@@ -68,5 +83,5 @@ class EvaluationService:
                     )
                 )
 
-        judgment_repository.create_many(llm_judgments)
-        judgment_repository.create_many(human_judgments)
+        await self.judgment.create_many(conn, llm_judgments)
+        await self.judgment.create_many(conn, human_judgments)

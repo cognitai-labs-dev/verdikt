@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.db.tables.samples import samples_table
 from src.repositories.base import BaseRepository
@@ -14,8 +15,8 @@ class SamplesRepository(
     def __init__(self):
         super().__init__(samples_table, SampleSchema)
 
-    def get_many_by_evaluation(
-        self, evaluation_ids: list[int]
+    async def get_many_by_evaluation(
+        self, conn: AsyncConnection, evaluation_ids: list[int]
     ) -> list[SampleSchema]:
         """Get all samples for a given evaluation ID."""
         stmt = (
@@ -24,14 +25,11 @@ class SamplesRepository(
             .order_by(samples_table.c.created_at.desc())
         )
 
-        with self.engine.connect() as conn:
-            rows = conn.execute(stmt).fetchall()
+        result = await conn.execute(stmt)
+        rows = result.fetchall()
 
         if len(rows) == 0:
             return []
         return [
             SampleSchema.model_validate(row._mapping) for row in rows
         ]
-
-
-samples_repository = SamplesRepository()
