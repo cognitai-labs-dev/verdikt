@@ -18,7 +18,10 @@ jobs:
         run: uv sync --group dev
 
       - name: Run ruff lint
-        run: make lint
+        run: make ruff-lint
+
+      - name: Run ruff format
+        run: make ruff-format
 
       - name: Run mypy
         run: make mypy
