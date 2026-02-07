@@ -20,10 +20,7 @@ jobs:
         run: uv sync --group dev
 
       - name: Run ruff lint
-        run: uv run ruff check yalc/
-
-      - name: Run ruff format check
-        run: uv run ruff format --check yalc/
+        run: make lint
 
       - name: Run mypy
-        run: uv run mypy yalc/
+        run: make mypy
