@@ -22,11 +22,14 @@ lint: # Run pre-commit
 api: up-d upgrade-db # Run api
 	uv run main.py api
 
-eval: # create human and llm evals
-	uv run main.py evaluate HUMAN_AND_LLM
+create-app: # Create the ai-oncall-assistant app
+	uv run main.py create-app
 
-eval-llm: # Create evals for llm only
-	uv run main.py evaluate LLM_ONLY
+create-datasets: # Create datasets for app (usage: make create-datasets APP_ID=1)
+	uv run main.py create-datasets $(APP_ID)
+
+eval: # Create evaluation (usage: make eval APP_ID=1 TYPE=HUMAN_AND_LLM)
+	uv run main.py evaluate $(APP_ID) $(TYPE)
 
 judge: # Judge evals
 	uv run main.py run-judging
@@ -35,7 +38,7 @@ up-d: # Run database in the background
 	docker compose up -d
 
 down:
-	docker compose down 
+	docker compose down
 
 db: # enter db prompt
 	psql postgresql://postgresql:alpharius@localhost:5432

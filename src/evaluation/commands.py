@@ -29,7 +29,6 @@ class EvaluationCommands:
         judgment_repo: JudgmentRepository,
         app_dataset_repo: AppDatasetRepository,
     ):
-        # TODO: fix later with passing models via request
         self.evaluation = evaluation_repo
         self.sample = sample_repo
         self.judgment = judgment_repo
