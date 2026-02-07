@@ -2,7 +2,6 @@ import sqlalchemy as sa
 
 from src.db.pg import sa_metadata
 
-
 samples_table = sa.Table(
     "samples",
     sa_metadata,
@@ -23,5 +22,4 @@ samples_table = sa.Table(
     sa.Column("human_answer", sa.Text, nullable=False),
     sa.Column("app_answer", sa.Text, nullable=False),
     sa.Column("app_cost", sa.Float, nullable=True),
-    sa.Column("metadata", sa.JSON, nullable=True),
 )
