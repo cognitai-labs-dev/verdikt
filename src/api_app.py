@@ -4,14 +4,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.v1.router import router
-from src.config import Settings
+from src.config import APISettings
 from src.dependencies import db_adpater
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    settings = Settings()
-    await db_adpater.connect(settings.postgresql)
+    settings = APISettings()
+    await db_adpater.connect(settings.postgres_dsn)
     yield
     await db_adpater.disconnect()
 

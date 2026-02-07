@@ -5,16 +5,33 @@ from yalc import LLMModel
 
 ROOT_DIR = Path(__file__).parent.parent
 
+settings_config_dict = SettingsConfigDict(
+    env_file=".env", extra="ignore"
+)
+
 
 class AppSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = settings_config_dict
 
     APP_ENV: str = "dev"
     LOG_LEVEL: str = "INFO"
 
 
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+class PostgresSettings(BaseSettings):
+    model_config = settings_config_dict
+
+    PG_HOST: str = "localhost"
+    PG_PORT: str = "5433"
+    PG_USER: str = "postgresql"
+    PG_PASSWORD: str = "alpharius"
+
+    @property
+    def postgres_dsn(self):
+        return f"postgresql+psycopg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}"
+
+
+class LLMSettings(BaseSettings):
+    model_config = settings_config_dict
 
     OPENAI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
@@ -25,14 +42,13 @@ class Settings(BaseSettings):
         LLMModel.claude_sonnet_4_5,
     ]
 
-    PG_HOST: str = "localhost"
-    PG_PORT: str = "5433"
-    PG_USER: str = "postgresql"
-    PG_PASSWORD: str = "alpharius"
-
     WORKER_WAIT_TIME: int = 5
     WORKER_BATCH_SIZE: int = 10
 
-    @property
-    def postgresql(self):
-        return f"postgresql+psycopg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}"
+
+class ProcessorSettings(LLMSettings, PostgresSettings):
+    pass
+
+
+class APISettings(PostgresSettings):
+    pass

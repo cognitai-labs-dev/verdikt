@@ -4,7 +4,7 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncEngine
 from yalc import LLMModel, create_client
 
-from src.config import Settings
+from src.config import ProcessorSettings
 from src.dependencies import (
     db_adpater,
     judgement_commands,
@@ -26,7 +26,7 @@ class JudgmentProcessor:
     def __init__(
         self,
         db_engine: AsyncEngine,
-        settings: Settings,
+        settings: ProcessorSettings,
         judgment_repo: JudgmentRepository,
         sample_repo: SamplesRepository,
         judgement_commands: JudgementCommands,
@@ -120,8 +120,8 @@ class JudgmentProcessor:
 
 
 async def main():
-    settings = Settings()
-    await db_adpater.connect(settings.postgresql)
+    settings = ProcessorSettings()
+    await db_adpater.connect(settings.postgres_dsn)
     processor = JudgmentProcessor(
         db_adpater.engine,
         settings,

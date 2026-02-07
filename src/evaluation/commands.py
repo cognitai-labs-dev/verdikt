@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.schemas import EvaluationApiSchema
-from src.config import Settings
+from src.config import LLMSettings
 from src.constants import (
     EvaluationType,
     JudgmentStatus,
@@ -26,10 +26,10 @@ class EvaluationCommands:
         evaluation_repo: EvaluationsRepository,
         sample_repo: SamplesRepository,
         judgment_repo: JudgmentRepository,
-        settings: Settings | None = None,
+        settings: LLMSettings | None = None,
     ):
         # TODO: fix later with passing models via request
-        settings = settings or Settings()
+        settings = settings or LLMSettings()
         self.llm_judges = settings.JUDGING_LLM_MODELS
         self.evaluation = evaluation_repo
         self.sample = sample_repo
