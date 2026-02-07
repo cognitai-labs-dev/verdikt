@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from src.config import Settings
+from src.config import PostgresSettings
 
-settings = Settings()
+settings = PostgresSettings()
 
 # Load environment variables from .env file (if using one)
 load_dotenv()
@@ -15,14 +15,7 @@ load_dotenv()
 # Add project root to path for module imports (if necessary for models)
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-# Get the full connection URI from the environment variable
-# We use a common fallback name, 'POSTGRES_SERVICE_URI', which matches your setup.
-POSTGRES_URI = settings.postgresql
-
-if not POSTGRES_URI:
-    raise ValueError(
-        "POSTGRES_SERVICE_URI or PG_URL environment variable is not set. Cannot connect to DB."
-    )
+POSTGRES_URI = settings.postgres_dsn
 
 # --- END: Custom Setup ---
 

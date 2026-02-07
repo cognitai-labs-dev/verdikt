@@ -12,6 +12,11 @@ from tests.pg_test import AsyncEngineTestWrapper
 
 
 @pytest.fixture(scope="session")
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.fixture(scope="session")
 async def db_engine() -> AsyncGenerator[AsyncEngineTestWrapper, Any]:
     settings = PostgresSettings()
     async with AsyncEngineTestWrapper(

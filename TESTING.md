@@ -45,6 +45,16 @@ def test_order_total_includes_discount():
 - Contains **all** information needed to understand the assertion — nothing more.
 - **Hardcode plain values.** Don't reuse constants from production code.
 - **Limit the number of inputs.** More inputs = less clarity.
+- **Comment why each record matters.** When arranging multiple rows that test filtering, add a short comment explaining whether each row should match or why it won't:
+
+```python
+# matching status and role
+create_user(status="active", role="admin")
+# matching status but wrong role
+create_user(status="active", role="viewer")
+# matching role but wrong status
+create_user(status="inactive", role="admin")
+```
 
 ### Assert
 

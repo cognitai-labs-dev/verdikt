@@ -1,6 +1,6 @@
 services:
   postgresql:
-    container_name: postgresql-evaluation-app
+    container_name: postgres-evaluation-app
     image: pgvector/pgvector:pg18
     ports:
       - "5433:5432"
