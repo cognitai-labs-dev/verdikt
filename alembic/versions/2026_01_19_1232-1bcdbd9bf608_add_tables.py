@@ -8,9 +8,9 @@ Create Date: 2026-01-19 12:32:20.731224
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "1bcdbd9bf608"
@@ -23,21 +23,33 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         "evaluations",
-        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("app_id", sa.String(length=100), nullable=False),
-        sa.Column("app_version", sa.String(length=50), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "id", sa.Integer(), autoincrement=True, nullable=False
+        ),
+        sa.Column("app_id", sa.Integer, nullable=False),
+        sa.Column(
+            "app_version", sa.String(length=50), nullable=False
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column("metadata", sa.JSON(), nullable=True),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_evaluations")),
     )
     op.create_table(
         "samples",
-        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column(
+            "id", sa.Integer(), autoincrement=True, nullable=False
+        ),
         sa.Column("evaluation_id", sa.Integer(), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column("question", sa.Text(), nullable=False),
         sa.Column("answer", sa.Text(), nullable=False),
@@ -52,17 +64,29 @@ def upgrade() -> None:
     )
     op.create_table(
         "judgments",
-        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "id", sa.Integer(), autoincrement=True, nullable=False
         ),
         sa.Column(
-            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column("sample_id", sa.Integer(), nullable=False),
         sa.Column("status", sa.String(length=50), nullable=False),
-        sa.Column("judgment_type", sa.String(length=50), nullable=False),
-        sa.Column("judgment_model", sa.String(length=50), nullable=False),
+        sa.Column(
+            "judgment_type", sa.String(length=50), nullable=False
+        ),
+        sa.Column(
+            "judgment_model", sa.String(length=50), nullable=False
+        ),
         sa.Column("reasoning", sa.Text(), nullable=True),
         sa.Column("passed", sa.Boolean(), nullable=True),
         sa.Column("score", sa.Integer(), nullable=True),

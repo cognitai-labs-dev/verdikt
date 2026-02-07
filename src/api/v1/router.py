@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
+    AppRequest,
     EvaluationSummary,
     JudgmentRequest,
     SampleJudgements,
@@ -10,6 +11,7 @@ from src.api.v1.schemas import (
 )
 from src.constants import EvaluationType
 from src.dependencies import (
+    app_repo,
     evaluation_queries,
     evaluation_repo,
     get_connection,
@@ -18,6 +20,7 @@ from src.dependencies import (
     sample_queries,
 )
 from src.judgement.schemas import JudgmentResult
+from src.schemas.app import AppCreateSchema
 
 router = APIRouter(
     prefix="/v1", default_response_class=ORJsonResponse
@@ -108,3 +111,16 @@ async def get_evaluation_samples(
     return await sample_queries.summary_by_eval_ids(
         conn, [evaluation_id], evaluation.type
     )
+
+
+@router.post("/app", operation_id="postApp")
+async def post_app(
+    request: AppRequest,
+    conn: AsyncConnection = Depends(get_connection),
+):
+    await app_repo.create(conn, AppCreateSchema(name=request.name))
+
+
+# Post /app/datasets (multiple)
+# Get /app/{app_id}/datasets
+#

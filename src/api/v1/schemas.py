@@ -10,6 +10,10 @@ from src.schemas.judgment import JudgmentSchema
 from src.schemas.sample import SampleSchema
 
 
+class AppRequest(BaseModel):
+    name: str
+
+
 class JudgmentRequest(BaseModel):
     reasoning: str
     passed: bool

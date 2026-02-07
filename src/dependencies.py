@@ -7,6 +7,8 @@ from src.evaluation.commands import EvaluationCommands
 from src.evaluation.queries import EvaluationQueries
 from src.judgement.commands import JudgementCommands
 from src.judgement.queries import JudgementQueries
+from src.repositories.app_dataset import AppDatasetRepository
+from src.repositories.apps import AppsRepository
 from src.repositories.evaluation import EvaluationsRepository
 from src.repositories.judgment import JudgmentRepository
 from src.repositories.sample import SamplesRepository
@@ -28,6 +30,8 @@ async def get_connection() -> AsyncIterator[AsyncConnection]:
 evaluation_repo = EvaluationsRepository()
 judgment_repo = JudgmentRepository()
 sample_repo = SamplesRepository()
+app_repo = AppsRepository()
+app_dataset_repo = AppDatasetRepository()
 
 # Queries
 

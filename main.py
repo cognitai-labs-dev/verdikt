@@ -3,7 +3,7 @@ import asyncio
 import uvicorn
 
 from src.api.schemas import EvaluationApiSchema, SampleApiSchema
-from src.config import Settings
+from src.config import PostgresSettings
 from src.constants import EvaluationType
 from src.dependencies import db_adpater, evaluation_commands
 from src.logging import setup_logging
@@ -92,11 +92,11 @@ def create_example_request(
 
 @app.command()
 def evaluate(eval_type: EvaluationType):
-    setting = Settings()
+    setting = PostgresSettings()
 
     async def run():
         request = create_example_request(eval_type)
-        await db_adpater.connect(setting.postgresql)
+        await db_adpater.connect(setting.postgres_dsn)
 
         async with db_adpater.engine.begin() as conn:
             await evaluation_commands.create(conn, request)
