@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
+    AppDatasetsRequest,
     AppRequest,
     EvaluationSummary,
     JudgmentRequest,
@@ -11,6 +12,7 @@ from src.api.v1.schemas import (
 )
 from src.constants import EvaluationType
 from src.dependencies import (
+    app_dataset_repo,
     app_repo,
     evaluation_queries,
     evaluation_repo,
@@ -21,6 +23,10 @@ from src.dependencies import (
 )
 from src.judgement.schemas import JudgmentResult
 from src.schemas.app import AppCreateSchema
+from src.schemas.app_dataset import (
+    AppDatasetCreateSchema,
+    AppDatasetSchema,
+)
 
 router = APIRouter(
     prefix="/v1", default_response_class=ORJsonResponse
@@ -75,7 +81,7 @@ async def get_sample(
     "/evaluation/summary", operation_id="getEvaluationsSummaries"
 )
 async def get_evaluations(
-    app_id: str,
+    app_id: int,
     eval_type: EvaluationType,
     conn: AsyncConnection = Depends(get_connection),
 ) -> list[EvaluationSummary]:
@@ -121,6 +127,34 @@ async def post_app(
     await app_repo.create(conn, AppCreateSchema(name=request.name))
 
 
-# Post /app/datasets (multiple)
-# Get /app/{app_id}/datasets
-#
+@router.post("/app/{app_id}/datasets", operation_id="postAppDatasets")
+async def post_app_datasets(
+    app_id: int,
+    request: AppDatasetsRequest,
+    conn: AsyncConnection = Depends(get_connection),
+):
+    app = await app_repo.get(conn, app_id)
+    if app is None:
+        raise HTTPException(status_code=404, detail="App not found")
+
+    items = [
+        AppDatasetCreateSchema(
+            question=d.question,
+            human_answer=d.human_answer,
+            app_id=app_id,
+        )
+        for d in request.datasets
+    ]
+    await app_dataset_repo.create_many(conn, items)
+
+
+@router.get("/app/{app_id}/datasets", operation_id="getAppDatasets")
+async def get_app_datasets(
+    app_id: int,
+    conn: AsyncConnection = Depends(get_connection),
+) -> list[AppDatasetSchema]:
+    app = await app_repo.get(conn, app_id)
+    if app is None:
+        raise HTTPException(status_code=404, detail="App not found")
+
+    return await app_dataset_repo.get_many_by_app_id(conn, app_id)

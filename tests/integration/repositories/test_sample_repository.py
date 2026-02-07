@@ -2,6 +2,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.repositories.sample import SamplesRepository
+from tests.factories.app import app_db_schema_factory
 from tests.factories.evaluation import evaluation_db_schema_factory
 from tests.factories.sample import sample_db_schema_factory
 
@@ -17,9 +18,16 @@ async def test_get_many_by_evaluation_returns_samples_for_given_evaluation_ids(
     db_conn: AsyncConnection, repo: SamplesRepository
 ):
     # Arrange
-    eval_1 = await evaluation_db_schema_factory(db_conn=db_conn)
-    eval_2 = await evaluation_db_schema_factory(db_conn=db_conn)
-    eval_3 = await evaluation_db_schema_factory(db_conn=db_conn)
+    app = await app_db_schema_factory(db_conn)
+    eval_1 = await evaluation_db_schema_factory(
+        db_conn=db_conn, app_id=app.id
+    )
+    eval_2 = await evaluation_db_schema_factory(
+        db_conn=db_conn, app_id=app.id
+    )
+    eval_3 = await evaluation_db_schema_factory(
+        db_conn=db_conn, app_id=app.id
+    )
 
     await sample_db_schema_factory(
         db_conn=db_conn, evaluation_id=eval_1.id

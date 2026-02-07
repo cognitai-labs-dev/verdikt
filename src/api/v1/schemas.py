@@ -14,6 +14,15 @@ class AppRequest(BaseModel):
     name: str
 
 
+class AppDatasetItem(BaseModel):
+    question: str
+    human_answer: str
+
+
+class AppDatasetsRequest(BaseModel):
+    datasets: list[AppDatasetItem]
+
+
 class JudgmentRequest(BaseModel):
     reasoning: str
     passed: bool
