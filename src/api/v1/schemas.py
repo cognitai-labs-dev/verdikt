@@ -3,6 +3,7 @@ Schemas for API responses & requests
 """
 
 from pydantic import BaseModel, Field
+from yalc import LLMModel
 
 from src.constants import EvaluationType
 from src.schemas.evaluation import EvaluationSchema
@@ -16,6 +17,7 @@ class EvaluationRequest(BaseModel):
     app_answers: dict[int, str] = Field(
         description="a dict of values where the key is the dataset id and the value is the app answer to the question"
     )
+    llm_judge_models: list[LLMModel] = list(LLMModel)
 
 
 class AppRequest(BaseModel):

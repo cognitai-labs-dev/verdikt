@@ -56,6 +56,7 @@ evaluation_commands = EvaluationCommands(
     evaluation_repo=evaluation_repo,
     sample_repo=sample_repo,
     judgment_repo=judgment_repo,
+    app_dataset_repo=app_dataset_repo,
 )
 
 db_adpater = DBAdapter()

@@ -179,12 +179,10 @@ async def post_app_evaluation(
     request: EvaluationRequest,
     conn: AsyncConnection = Depends(get_connection),
 ):
-    await evaluation_commands.create(
-        conn,
-        EvaluationSchema(
-            app_id=app_id,
-            app_version=request.app_version,
-            app_answers=request.app_answers,
-            evaluation_type=request.evaluation_type,
-        ),
-    )
+    try:
+        await evaluation_commands.create(
+            conn,
+            EvaluationSchema(app_id=app_id, **request.model_dump()),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
