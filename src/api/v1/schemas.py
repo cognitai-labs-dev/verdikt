@@ -10,6 +10,14 @@ from src.schemas.judgment import JudgmentSchema
 from src.schemas.sample import SampleSchema
 
 
+class EvaluationRequest(BaseModel):
+    app_version: str
+    evaluation_type: EvaluationType
+    app_answers: dict[int, str] = Field(
+        description="a dict of values where the key is the dataset id and the value is the app answer to the question"
+    )
+
+
 class AppRequest(BaseModel):
     name: str
 

@@ -2,13 +2,13 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from src.api.schemas import EvaluationApiSchema
 from src.config import LLMSettings
 from src.constants import (
     EvaluationType,
     JudgmentStatus,
     JudgmentType,
 )
+from src.evaluation.schemas import EvaluationSchema
 from src.repositories.evaluation import EvaluationsRepository
 from src.repositories.judgment import JudgmentRepository
 from src.repositories.sample import SamplesRepository
@@ -38,9 +38,15 @@ class EvaluationCommands:
         self.logger = logging.getLogger(__name__)
 
     async def create(
-        self, conn: AsyncConnection, request: EvaluationApiSchema
+        self, conn: AsyncConnection, evaluation: EvaluationSchema
     ):
-        self.logger.info("Creating evaluation for %s", request.app_id)
+        self.logger.info(
+            "Creating evaluation for %s", evaluation.app_id
+        )
+
+        # TODO:
+        # get all datasets for app, check if all datasets have answers
+        # create evaluation and create samples from datasets
         evaluation = EvaluationCreateSchema(**request.model_dump())
         created_evaluation = await self.evaluation.create(
             conn, evaluation

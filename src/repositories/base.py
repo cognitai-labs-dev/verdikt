@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from sqlalchemy import Table, insert, select, update
+from sqlalchemy import Table, delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.schemas.base import UpdateSchema
@@ -59,6 +59,13 @@ class BaseRepository[
         if row is None:
             return None
         return self.schema.model_validate(row._mapping)
+
+    async def delete(
+        self, conn: AsyncConnection, row_id: int
+    ) -> bool:
+        stmt = delete(self.table).where(self.table.c.id == row_id)
+        result = await conn.execute(stmt)
+        return result.rowcount > 0
 
     async def get_by_many_ids(
         self, conn: AsyncConnection, ids: list[int]

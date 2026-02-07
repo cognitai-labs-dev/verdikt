@@ -5,6 +5,7 @@ from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
     AppDatasetsRequest,
     AppRequest,
+    EvaluationRequest,
     EvaluationSummary,
     JudgmentRequest,
     SampleJudgements,
@@ -14,6 +15,7 @@ from src.constants import EvaluationType
 from src.dependencies import (
     app_dataset_repo,
     app_repo,
+    evaluation_commands,
     evaluation_queries,
     evaluation_repo,
     get_connection,
@@ -21,6 +23,7 @@ from src.dependencies import (
     judgment_repo,
     sample_queries,
 )
+from src.evaluation.schemas import EvaluationSchema
 from src.judgement.schemas import JudgmentResult
 from src.schemas.app import AppCreateSchema
 from src.schemas.app_dataset import (
@@ -127,6 +130,14 @@ async def post_app(
     await app_repo.create(conn, AppCreateSchema(name=request.name))
 
 
+@router.delete("/app/{app_id}", operation_id="deleteApp")
+async def delete_app(
+    app_id: int,
+    conn: AsyncConnection = Depends(get_connection),
+):
+    await app_repo.delete(conn, app_id)
+
+
 @router.post("/app/{app_id}/datasets", operation_id="postAppDatasets")
 async def post_app_datasets(
     app_id: int,
@@ -158,3 +169,22 @@ async def get_app_datasets(
         raise HTTPException(status_code=404, detail="App not found")
 
     return await app_dataset_repo.get_many_by_app_id(conn, app_id)
+
+
+@router.post(
+    "/app/{app_id}/evaluation", operation_id="postAppEvaluation"
+)
+async def post_app_evaluation(
+    app_id: int,
+    request: EvaluationRequest,
+    conn: AsyncConnection = Depends(get_connection),
+):
+    await evaluation_commands.create(
+        conn,
+        EvaluationSchema(
+            app_id=app_id,
+            app_version=request.app_version,
+            app_answers=request.app_answers,
+            evaluation_type=request.evaluation_type,
+        ),
+    )
