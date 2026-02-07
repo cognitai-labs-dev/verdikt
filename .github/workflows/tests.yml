@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PG_HOST: "postgres" 
       PG_PORT: "5432" 
 
     services:
