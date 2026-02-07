@@ -126,7 +126,7 @@ class SampleQueries:
             llm_judgements=llm_judgments,
         )
 
-    def human_passed_count(
+    def _human_passed_count(
         self,
         evaluation_type: EvaluationType,
         summaries: list[SampleSummary],

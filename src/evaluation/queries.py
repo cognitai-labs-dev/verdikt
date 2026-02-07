@@ -40,7 +40,7 @@ class EvaluationQueries:
             evaluation = evaluations_mapped[eval_id]
             aggregated = SummaryResponse.from_summaries(summaries)
             humans_count, humans_completed = (
-                self.sample_queries.human_passed_count(
+                self.sample_queries._human_passed_count(
                     evaluation_type, summaries
                 )
             )

@@ -5,15 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.v1.router import router
 from src.config import Settings
-from src.db.pg import db
+from src.dependencies import db_adpater
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = Settings()
-    await db.connect(settings.postgresql)
+    await db_adpater.connect(settings.postgresql)
     yield
-    await db.disconnect()
+    await db_adpater.disconnect()
 
 
 def api_factory():
