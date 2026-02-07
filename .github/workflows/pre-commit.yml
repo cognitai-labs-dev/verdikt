@@ -1,0 +1,27 @@
+name: pre-commit
+
+on: [push]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run ruff lint
+        run: make ruff-lint
+
+      - name: Run ruff format
+        run: make ruff-format
+
+      - name: Run mypy
+        run: make mypy

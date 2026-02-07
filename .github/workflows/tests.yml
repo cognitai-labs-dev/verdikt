@@ -1,0 +1,43 @@
+name: tests
+
+on: [push]
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      PG_PORT: "5432" 
+
+    services:
+      # Label used to access the service container
+      postgres:
+        image: postgres:18
+        # Provide the password for postgres
+        env:
+          POSTGRES_USER: postgresql
+          POSTGRES_PASSWORD: alpharius
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Run tests
+        run: make test
+
+
+

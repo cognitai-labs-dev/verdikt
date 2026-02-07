@@ -40,6 +40,3 @@ class DBAdapter:
         if self._engine:
             await self._engine.dispose()
             self.logger.info("Disconnected from Postgresql server")
-
-
-db = DBAdapter()

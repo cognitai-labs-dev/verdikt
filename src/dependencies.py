@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from src.db.pg import db
+from src.db.pg import DBAdapter
 from src.evaluation.commands import EvaluationCommands
 from src.evaluation.queries import EvaluationQueries
 from src.judgement.commands import JudgementCommands
@@ -14,7 +14,7 @@ from src.sample.queries import SampleQueries
 
 
 async def get_connection() -> AsyncIterator[AsyncConnection]:
-    async with db.engine.connect() as conn:
+    async with db_adpater.engine.connect() as conn:
         try:
             yield conn
             await conn.commit()
@@ -53,3 +53,5 @@ evaluation_commands = EvaluationCommands(
     sample_repo=sample_repo,
     judgment_repo=judgment_repo,
 )
+
+db_adpater = DBAdapter()
