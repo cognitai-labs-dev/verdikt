@@ -22,14 +22,11 @@ lint: # Run pre-commit
 api: up-d upgrade-db # Run api
 	uv run main.py api
 
-create-app: # Create the ai-oncall-assistant app
+init: # Init app with 1 llm and 1 human evaluations
 	uv run main.py create-app
-
-create-datasets: # Create datasets for app (usage: make create-datasets APP_ID=1)
-	uv run main.py create-datasets $(APP_ID)
-
-eval: # Create evaluation (usage: make eval APP_ID=1 TYPE=HUMAN_AND_LLM)
-	uv run main.py evaluate $(APP_ID) $(TYPE)
+	uv run main.py create-datasets 1
+	uv run main.py evaluate 1 HUMAN_AND_LLM
+	uv run main.py evaluate 1 LLM_ONLY
 
 judge: # Judge evals
 	uv run main.py run-judging
