@@ -11,6 +11,10 @@ from src.schemas.judgment import JudgmentSchema
 from src.schemas.sample import SampleSchema
 
 
+class ErrorResponse(BaseModel):
+    detail: str
+
+
 class EvaluationRequest(BaseModel):
     app_version: str
     evaluation_type: EvaluationType

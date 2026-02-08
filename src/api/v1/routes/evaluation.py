@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
+    ErrorResponse,
     EvaluationSummary,
     SampleSummary,
 )
@@ -41,6 +42,9 @@ async def get_evaluations(
 @router.get(
     "/{evaluation_id}/samples/summary",
     operation_id="getSamplesSummaries",
+    responses={
+        404: {"model": ErrorResponse},
+    },
 )
 async def get_evaluation_samples(
     evaluation_id: int,
@@ -53,7 +57,8 @@ async def get_evaluation_samples(
     )
     if evaluation is None:
         raise HTTPException(
-            status_code=404, detail="Evaluation not found"
+            status_code=404,
+            detail="Evaluation not found",
         )
 
     return await sample_queries.summary_by_eval_ids(

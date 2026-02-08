@@ -27,9 +27,9 @@ class AppDatasetRepository(
     ) -> list[AppDatasetSchema]:
         """Get all dataset entries for a given app ID."""
         stmt = (
-            select(app_datasets_table)
-            .where(app_datasets_table.c.app_id == app_id)
-            .order_by(app_datasets_table.c.created_at.desc())
+            select(self.table)
+            .where(self.table.c.app_id == app_id)
+            .order_by(self.table.c.created_at.desc())
         )
 
         result = await conn.execute(stmt)
@@ -38,6 +38,5 @@ class AppDatasetRepository(
         if len(rows) == 0:
             return []
         return [
-            AppDatasetSchema.model_validate(row._mapping)
-            for row in rows
+            self.schema.model_validate(row._mapping) for row in rows
         ]
