@@ -29,5 +29,4 @@ prompt_versions_table = sa.Table(
         server_default=sa.func.now(),
         nullable=False,
     ),
-    sa.UniqueConstraint("app_id", "hash"),
 )
