@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -14,7 +13,6 @@ def sample_create_schema_factory(
     human_answer: str = "4",
     app_answer: str = "The answer is 4.",
     app_cost: float | None = None,
-    metadata: dict[str, Any] | None = None,
 ) -> SampleCreateSchema:
     return SampleCreateSchema(
         evaluation_id=evaluation_id,
@@ -22,7 +20,6 @@ def sample_create_schema_factory(
         human_answer=human_answer,
         app_answer=app_answer,
         app_cost=app_cost,
-        metadata=metadata,
     )
 
 
@@ -33,7 +30,6 @@ async def sample_db_schema_factory(
     human_answer: str = "4",
     app_answer: str = "The answer is 4.",
     app_cost: float | None = None,
-    metadata: dict[str, Any] | None = None,
 ) -> SampleSchema:
     create_schema = sample_create_schema_factory(
         evaluation_id=evaluation_id,
@@ -41,7 +37,6 @@ async def sample_db_schema_factory(
         human_answer=human_answer,
         app_answer=app_answer,
         app_cost=app_cost,
-        metadata=metadata,
     )
     if db_conn:
         repo = SamplesRepository()

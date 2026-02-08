@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.constants import JudgmentStatus, JudgmentType
 from src.repositories.judgment import JudgmentRepository
+from tests.factories.app import app_db_schema_factory
 from tests.factories.evaluation import evaluation_db_schema_factory
 from tests.factories.judgment import judgment_db_schema_factory
 from tests.factories.sample import sample_db_schema_factory
@@ -17,7 +18,10 @@ def repo() -> JudgmentRepository:
 @pytest.fixture
 async def sample_id(db_conn: AsyncConnection) -> int:
     """A persisted sample with its parent evaluation, returns the sample id."""
-    evaluation = await evaluation_db_schema_factory(db_conn=db_conn)
+    app = await app_db_schema_factory(db_conn)
+    evaluation = await evaluation_db_schema_factory(
+        db_conn=db_conn, app_id=app.id
+    )
     sample = await sample_db_schema_factory(
         db_conn=db_conn, evaluation_id=evaluation.id
     )
@@ -92,12 +96,15 @@ async def test_get_many_by_sample_ids_returns_judgments_grouped_by_sample_id_and
     db_conn: AsyncConnection, repo: JudgmentRepository
 ):
     # Arrange
-    eval_ = await evaluation_db_schema_factory(db_conn=db_conn)
+    app = await app_db_schema_factory(db_conn)
+    eval = await evaluation_db_schema_factory(
+        db_conn=db_conn, app_id=app.id
+    )
     s1 = await sample_db_schema_factory(
-        db_conn=db_conn, evaluation_id=eval_.id
+        db_conn=db_conn, evaluation_id=eval.id
     )
     s2 = await sample_db_schema_factory(
-        db_conn=db_conn, evaluation_id=eval_.id
+        db_conn=db_conn, evaluation_id=eval.id
     )
     # matching sample and type
     j1 = await judgment_db_schema_factory(
@@ -145,9 +152,12 @@ async def test_get_human_judgments_by_sample_ids_returns_judgment_or_none_per_sa
     sample_id: int,
 ):
     # Arrange
-    eval_ = await evaluation_db_schema_factory(db_conn=db_conn)
+    app = await app_db_schema_factory(db_conn)
+    eval = await evaluation_db_schema_factory(
+        db_conn=db_conn, app_id=app.id
+    )
     sample_without = await sample_db_schema_factory(
-        db_conn=db_conn, evaluation_id=eval_.id
+        db_conn=db_conn, evaluation_id=eval.id
     )
     await judgment_db_schema_factory(
         db_conn=db_conn,
@@ -172,7 +182,10 @@ async def test_get_llm_judgments_by_sample_id_returns_list_or_empty(
     repo: JudgmentRepository,
 ):
     # Arrange
-    eval_ = await evaluation_db_schema_factory(db_conn=db_conn)
+    app = await app_db_schema_factory(db_conn)
+    eval_ = await evaluation_db_schema_factory(
+        db_conn=db_conn, app_id=app.id
+    )
     s1 = await sample_db_schema_factory(
         db_conn=db_conn, evaluation_id=eval_.id
     )

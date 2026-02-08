@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from src.constants import JudgmentType, JudgmentStatus
+from src.constants import JudgmentStatus, JudgmentType
 from src.schemas.base import UpdateSchema
 
 

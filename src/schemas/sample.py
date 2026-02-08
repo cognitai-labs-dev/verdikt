@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -19,9 +18,6 @@ class SampleCreateSchema(BaseModel):
     )
     app_cost: float | None = Field(
         default=None, description="Cost of the application call"
-    )
-    metadata: dict[str, Any] | None = Field(
-        default=None, description="Additional metadata"
     )
 
 

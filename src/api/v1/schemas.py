@@ -3,11 +3,38 @@ Schemas for API responses & requests
 """
 
 from pydantic import BaseModel, Field
+from yalc import LLMModel
 
 from src.constants import EvaluationType
 from src.schemas.evaluation import EvaluationSchema
 from src.schemas.judgment import JudgmentSchema
 from src.schemas.sample import SampleSchema
+
+
+class ErrorResponse(BaseModel):
+    detail: str
+
+
+class EvaluationRequest(BaseModel):
+    app_version: str
+    evaluation_type: EvaluationType
+    app_answers: dict[int, str] = Field(
+        description="a dict of values where the key is the dataset id and the value is the app answer to the question"
+    )
+    llm_judge_models: list[LLMModel] = list(LLMModel)
+
+
+class AppRequest(BaseModel):
+    name: str
+
+
+class AppDatasetItem(BaseModel):
+    question: str
+    human_answer: str
+
+
+class AppDatasetsRequest(BaseModel):
+    datasets: list[AppDatasetItem]
 
 
 class JudgmentRequest(BaseModel):

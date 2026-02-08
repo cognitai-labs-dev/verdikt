@@ -1,9 +1,9 @@
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.constants import EvaluationType
-from src.repositories.base import BaseRepository
 from src.db.tables.evaluations import evaluations_table
+from src.repositories.base import BaseRepository
 from src.schemas.base import UpdateSchema
 from src.schemas.evaluation import (
     EvaluationCreateSchema,
@@ -24,7 +24,7 @@ class EvaluationsRepository(
     async def get_many_by_app_id(
         self,
         conn: AsyncConnection,
-        app_id: str,
+        app_id: int,
         eval_type: EvaluationType,
     ) -> list[EvaluationSchema]:
         """Get all evaluations for a given app_id."""

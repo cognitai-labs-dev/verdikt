@@ -1,110 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncConnection
+from fastapi import APIRouter
 
 from src.api.v1.response import ORJsonResponse
-from src.api.v1.schemas import (
-    EvaluationSummary,
-    JudgmentRequest,
-    SampleJudgements,
-    SampleSummary,
-)
-from src.constants import EvaluationType
-from src.dependencies import (
-    evaluation_queries,
-    evaluation_repo,
-    get_connection,
-    judgement_commands,
-    judgment_repo,
-    sample_queries,
-)
-from src.judgement.schemas import JudgmentResult
+from src.api.v1.routes.app import router as app_router
+from src.api.v1.routes.evaluation import router as evaluation_router
+from src.api.v1.routes.sample import router as sample_router
 
 router = APIRouter(
     prefix="/v1", default_response_class=ORJsonResponse
 )
 
-
-@router.post(
-    "/sample/{sample_id}/judgment",
-    operation_id="postJudgment",
-)
-async def post_sample(
-    sample_id: int,
-    request: JudgmentRequest,
-    conn: AsyncConnection = Depends(get_connection),
-):
-    judgment = await judgment_repo.get_human_judgement_by_sample_id(
-        conn, sample_id
-    )
-    if judgment is None:
-        raise HTTPException(
-            status_code=404, detail="Judgment not found"
-        )
-    if judgment.passed is not None:
-        raise HTTPException(
-            status_code=400,
-            detail="Judgment already judged",
-        )
-
-    await judgement_commands.create(
-        conn,
-        judgment.id,
-        JudgmentResult(**request.model_dump()),
-    )
-
-
-@router.get("/sample/{sample_id}", operation_id="getSampleDetail")
-async def get_sample(
-    sample_id: int,
-    conn: AsyncConnection = Depends(get_connection),
-) -> SampleJudgements:
-    sample_judgements = await sample_queries.judgements_with_summary(
-        conn, sample_id
-    )
-    if sample_judgements is None:
-        raise HTTPException(
-            status_code=404, detail="Sample not found"
-        )
-    return sample_judgements
-
-
-@router.get(
-    "/evaluation/summary", operation_id="getEvaluationsSummaries"
-)
-async def get_evaluations(
-    app_id: str,
-    eval_type: EvaluationType,
-    conn: AsyncConnection = Depends(get_connection),
-) -> list[EvaluationSummary]:
-    evaluations = await evaluation_repo.get_many_by_app_id(
-        conn, app_id, eval_type
-    )
-    if len(evaluations) == 0:
-        return []
-
-    return await evaluation_queries.evaluation_summaries_by_eval_ids(
-        conn, evaluations, eval_type
-    )
-
-
-@router.get(
-    "/evaluation/{evaluation_id}/samples/summary",
-    operation_id="getSamplesSummaries",
-)
-async def get_evaluation_samples(
-    evaluation_id: int,
-    conn: AsyncConnection = Depends(get_connection),
-) -> list[SampleSummary]:
-    evaluation = (
-        await evaluation_queries.sample_queries.evaluation.get(
-            conn, evaluation_id
-        )
-    )
-    if evaluation is None:
-        raise HTTPException(
-            status_code=404, detail="Evaluation not found"
-        )
-
-    return await sample_queries.summary_by_eval_ids(
-        conn, [evaluation_id], evaluation.type
-    )
+router.include_router(app_router)
+router.include_router(sample_router)
+router.include_router(evaluation_router)
