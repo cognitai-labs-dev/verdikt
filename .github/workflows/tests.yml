@@ -18,6 +18,7 @@ jobs:
         env:
           POSTGRES_USER: postgresql
           POSTGRES_PASSWORD: alpharius
+          POSTGRES_DB: evaluation
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
