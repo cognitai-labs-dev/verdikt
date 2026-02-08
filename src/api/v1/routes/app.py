@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.v1.response import ORJsonResponse
@@ -14,12 +15,17 @@ from src.dependencies import (
     app_repo,
     evaluation_commands,
     get_connection,
+    prompt_version_repo,
 )
 from src.evaluation.schemas import EvaluationSchema
-from src.schemas.app import AppSchema
+from src.schemas.app import AppSchema, AppUpdateSchema
 from src.schemas.app_dataset import (
     AppDatasetCreateSchema,
     AppDatasetSchema,
+)
+from src.schemas.prompt_version import (
+    PromptVersionCreateSchema,
+    PromptVersionSchema,
 )
 
 router = APIRouter(
@@ -148,3 +154,95 @@ async def post_app_evaluation(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+class PromptRequest(BaseModel):
+    content: str = Field(
+        description="Prompt content",
+    )
+
+
+class UpdateCurrentPromptRequest(BaseModel):
+    prompt_id: int = Field(
+        description="Prompt version ID to set as current",
+    )
+
+
+@router.get(
+    "/{app_id}/prompts",
+    operation_id="getAppPrompts",
+    responses={
+        404: {"model": ErrorResponse},
+    },
+)
+async def get_app_prompts(
+    app_id: int,
+    conn: AsyncConnection = Depends(get_connection),
+) -> list[PromptVersionSchema]:
+    app = await app_repo.get(conn, app_id)
+    if app is None:
+        raise HTTPException(status_code=404, detail="App not found")
+
+    return await prompt_version_repo.get_many_by_app_id(conn, app_id)
+
+
+@router.post(
+    "/{app_id}/prompt",
+    operation_id="postAppPrompt",
+    status_code=201,
+    responses={
+        404: {"model": ErrorResponse},
+    },
+)
+async def post_app_prompt(
+    app_id: int,
+    request: PromptRequest,
+    conn: AsyncConnection = Depends(get_connection),
+) -> PromptVersionSchema:
+    app = await app_repo.get(conn, app_id)
+    if app is None:
+        raise HTTPException(status_code=404, detail="App not found")
+
+    return await prompt_version_repo.create(
+        conn,
+        PromptVersionCreateSchema(
+            app_id=app_id,
+            content=request.content,
+        ),
+    )
+
+
+@router.patch(
+    "/{app_id}",
+    operation_id="patchApp",
+    responses={
+        404: {"model": ErrorResponse},
+    },
+)
+async def patch_app(
+    app_id: int,
+    request: UpdateCurrentPromptRequest,
+    conn: AsyncConnection = Depends(get_connection),
+) -> AppSchema:
+    app = await app_repo.get(conn, app_id)
+    if app is None:
+        raise HTTPException(status_code=404, detail="App not found")
+
+    prompt = await prompt_version_repo.get(conn, request.prompt_id)
+    if prompt is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Prompt version not found",
+        )
+
+    updated = await app_repo.update(
+        conn,
+        AppUpdateSchema(
+            id=app_id,
+            current_prompt_version_id=request.prompt_id,
+        ),
+    )
+    if updated is None:
+        raise HTTPException(status_code=404, detail="App not found")
+
+    return updated
