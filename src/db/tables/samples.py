@@ -9,7 +9,7 @@ samples_table = sa.Table(
     sa.Column(
         "evaluation_id",
         sa.Integer,
-        sa.ForeignKey("evaluations.id"),
+        sa.ForeignKey("evaluations.id", ondelete="CASCADE"),
         nullable=False,
     ),
     sa.Column(

@@ -11,7 +11,7 @@ app_datasets_table = sa.Table(
     sa.Column(
         "app_id",
         sa.Integer,
-        sa.ForeignKey("apps.id"),
+        sa.ForeignKey("apps.id", ondelete="CASCADE"),
         nullable=False,
     ),
     sa.Column(

@@ -23,7 +23,7 @@ judgments_table = sa.Table(
     sa.Column(
         "sample_id",
         sa.Integer,
-        sa.ForeignKey("samples.id"),
+        sa.ForeignKey("samples.id", ondelete="CASCADE"),
         nullable=False,
     ),
     sa.Column("status", sa.String(50), nullable=False),

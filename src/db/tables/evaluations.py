@@ -9,7 +9,7 @@ evaluations_table = sa.Table(
     sa.Column(
         "app_id",
         sa.Integer,
-        sa.ForeignKey("apps.id"),
+        sa.ForeignKey("apps.id", ondelete="CASCADE"),
         nullable=False,
     ),
     sa.Column("version", sa.String(50), nullable=False),
