@@ -17,11 +17,6 @@ prompt_versions_table = sa.Table(
         sa.ForeignKey("apps.id", ondelete="CASCADE"),
         nullable=False,
     ),
-    sa.Column(
-        "hash",
-        sa.String(64),
-        nullable=False,
-    ),
     sa.Column("content", sa.Text, nullable=False),
     sa.Column(
         "created_at",
