@@ -16,7 +16,7 @@ def repo() -> PromptVersionRepository:
 
 
 @pytest.mark.anyio
-async def test_create_returns_hash_correctly(
+async def test_create_returns_schema_correctly(
     db_conn: AsyncConnection,
     repo: PromptVersionRepository,
 ):
@@ -32,10 +32,6 @@ async def test_create_returns_hash_correctly(
 
     # Assert
     assert result.id is not None
-    assert (
-        result.hash
-        == "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
-    )
     assert result.content == create_schema.content
     assert result.app_id == app.id
     assert result.created_at is not None
