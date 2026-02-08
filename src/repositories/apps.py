@@ -17,7 +17,7 @@ class AppsRepository(
 
     async def get_many(self, conn: AsyncConnection):
         stmt = select(self.table).order_by(
-            self.table.c.c.created_at.desc()
+            self.table.c.created_at.desc()
         )
 
         result = await conn.execute(stmt)

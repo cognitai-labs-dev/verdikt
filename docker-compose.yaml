@@ -6,5 +6,6 @@ services:
       - "5433:5432"
     environment:
       POSTGRES_USER: postgresql
+      POSTGRES_DB: evaluation
       POSTGRES_PASSWORD: alpharius
 

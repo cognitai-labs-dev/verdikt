@@ -24,10 +24,11 @@ class PostgresSettings(BaseSettings):
     PG_PORT: str = "5433"
     PG_USER: str = "postgresql"
     PG_PASSWORD: str = "alpharius"
+    PG_DB: str = "evaluation"
 
     @property
     def postgres_dsn(self):
-        return f"postgresql+psycopg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}"
+        return f"postgresql+psycopg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}/{self.PG_DB}"
 
 
 class LLMSettings(BaseSettings):
