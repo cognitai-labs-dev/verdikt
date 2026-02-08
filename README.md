@@ -1,9 +1,9 @@
 # How to run
 
-To create a mock evaluation (simulate app call)
+first start the api
 
 ```shell
-make eval
+make api
 ```
 
 To run the judging of samples
@@ -12,10 +12,10 @@ To run the judging of samples
 make judge
 ```
 
-To run API required for FE
+To init the app with some mock data run
 
 ```shell
-make api
+make init
 ```
 
 # Evaluation Framework Architecture
@@ -117,4 +117,3 @@ Frontend part is PURELY for interacting with the human for judging and displayin
 repositories -- data access only, no business logic, no data transformation beyond mapping DB rows to base schemas
 services -- business logic and validation
 schemas -- always have up to 2 api schemas 1 for list returns and 1 for detail return
-

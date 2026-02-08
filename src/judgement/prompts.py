@@ -14,5 +14,3 @@ Your evaluation should consider the following criteria:
 You must provide:
 - reasoning: A clear explanation of your evaluation, highlighting how the app answer compares to the golden standard
 - passed: true if the app answer adequately addresses the question in alignment with the golden standard, false otherwise"""
-
-JUDGE_EVAL_PROMPT = "Please evaluate the app answer by comparing it against the human answer (golden standard) for the given question."
