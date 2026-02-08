@@ -36,7 +36,6 @@ class EvaluationCommands:
 
         self.logger = logging.getLogger(__name__)
 
-    # TODO: for displaying active prompt, just return the app itself without prompt, and get the priompt from get all prompts, its simpler
     async def create(
         self, conn: AsyncConnection, evaluation: EvaluationSchema
     ):
@@ -72,8 +71,8 @@ class EvaluationCommands:
         )
 
         app = await self.app_repo.get(conn, evaluation.app_id)
-        if not app:
-            raise ValueError("No app found")
+        if not app or app.current_prompt_version_id is None:
+            raise ValueError("No app prompt found")
 
         samples = [
             SampleCreateSchema(

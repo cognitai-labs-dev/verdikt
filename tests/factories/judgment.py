@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from src.constants import JudgmentStatus, JudgmentType
 from src.repositories.judgment import JudgmentRepository
 from src.schemas.judgment import JudgmentCreateSchema, JudgmentSchema
+from tests.factories.app import app_db_schema_factory
 from tests.factories.prompt_version import (
     prompt_version_db_schema_factory,
 )
@@ -53,8 +54,11 @@ async def judgment_db_schema_factory(
     output_tokens_cost: float | None = None,
     prompt_version_id: int | None = None,
 ) -> JudgmentSchema:
-    if prompt_version_id is None:
-        prompt = await prompt_version_db_schema_factory(db_conn)
+    if prompt_version_id is None and db_conn:
+        app = await app_db_schema_factory(db_conn)
+        prompt = await prompt_version_db_schema_factory(
+            db_conn, app_id=app.id
+        )
         prompt_version_id = prompt.id
 
     create_schema = judgment_create_schema_factory(

@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class PromptVersionCreateSchema(BaseModel):
+    app_id: int = Field(description="App this prompt belongs to")
     hash: str | None = Field(
         default=None,
         max_length=64,
@@ -23,6 +24,7 @@ class PromptVersionCreateSchema(BaseModel):
 
 class PromptVersionSchema(BaseModel):
     id: int = Field(description="Unique identifier")
+    app_id: int = Field(description="App this prompt belongs to")
     hash: str = Field(
         max_length=64,
         description="SHA-256 hash of the content",

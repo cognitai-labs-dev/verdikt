@@ -3,12 +3,15 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.db.tables.apps import apps_table
 from src.repositories.base import BaseRepository
-from src.schemas.app import AppCreateSchema, AppSchema
-from src.schemas.base import UpdateSchema
+from src.schemas.app import (
+    AppCreateSchema,
+    AppSchema,
+    AppUpdateSchema,
+)
 
 
 class AppsRepository(
-    BaseRepository[AppCreateSchema, AppSchema, UpdateSchema]
+    BaseRepository[AppCreateSchema, AppSchema, AppUpdateSchema]
 ):
     """Data access layer for apps operations."""
 

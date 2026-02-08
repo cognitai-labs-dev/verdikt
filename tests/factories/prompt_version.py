@@ -13,17 +13,23 @@ from tests.utils import random_int, random_word
 
 
 def prompt_version_create_schema_factory(
+    app_id: int = 0,
     content: str | None = None,
 ) -> PromptVersionCreateSchema:
-    return PromptVersionCreateSchema(content=content or random_word())
+    return PromptVersionCreateSchema(
+        app_id=app_id,
+        content=content or random_word(),
+    )
 
 
 async def prompt_version_db_schema_factory(
     db_conn: AsyncConnection | None = None,
+    app_id: int = 0,
     content: str | None = None,
 ) -> PromptVersionSchema:
     create_schema = prompt_version_create_schema_factory(
-        content=content
+        app_id=app_id,
+        content=content,
     )
     if db_conn:
         repo = PromptVersionRepository()

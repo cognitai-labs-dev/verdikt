@@ -11,7 +11,7 @@ apps_table = sa.Table(
         "current_prompt_version_id",
         sa.Integer,
         sa.ForeignKey("prompt_versions.id"),
-        nullable=False,
+        nullable=True,
     ),
     sa.Column(
         "created_at",

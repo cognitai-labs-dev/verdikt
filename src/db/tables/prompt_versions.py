@@ -12,10 +12,15 @@ prompt_versions_table = sa.Table(
         autoincrement=True,
     ),
     sa.Column(
+        "app_id",
+        sa.Integer,
+        sa.ForeignKey("apps.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    sa.Column(
         "hash",
         sa.String(64),
         nullable=False,
-        unique=True,
     ),
     sa.Column("content", sa.Text, nullable=False),
     sa.Column(
@@ -24,4 +29,5 @@ prompt_versions_table = sa.Table(
         server_default=sa.func.now(),
         nullable=False,
     ),
+    sa.UniqueConstraint("app_id", "hash"),
 )

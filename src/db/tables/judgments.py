@@ -37,7 +37,7 @@ judgments_table = sa.Table(
     sa.Column(
         "prompt_version_id",
         sa.Integer,
-        sa.ForeignKey("prompt_versions.id"),
+        sa.ForeignKey("prompt_versions.id", ondelete="CASCADE"),
         nullable=False,
     ),
 )

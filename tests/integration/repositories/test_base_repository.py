@@ -7,9 +7,6 @@ from tests.factories.app import (
     app_create_schema_factory,
     app_db_schema_factory,
 )
-from tests.factories.prompt_version import (
-    prompt_version_db_schema_factory,
-)
 
 
 @pytest.fixture
@@ -23,10 +20,7 @@ async def test_create_returns_schema_with_generated_id(
     db_conn: AsyncConnection, repo: AppsRepository
 ):
     # Arrange
-    prompt = await prompt_version_db_schema_factory(db_conn)
-    create_schema = app_create_schema_factory(
-        name="app-1", prompt_version_id=prompt.id
-    )
+    create_schema = app_create_schema_factory(name="app-1")
 
     # Act
     result = await repo.create(db_conn, create_schema)
@@ -41,14 +35,9 @@ async def test_create_many_returns_all_created_records(
     db_conn: AsyncConnection, repo: AppsRepository
 ):
     # Arrange
-    prompt = await prompt_version_db_schema_factory(db_conn)
     schemas = [
-        app_create_schema_factory(
-            name="app-1", prompt_version_id=prompt.id
-        ),
-        app_create_schema_factory(
-            name="app-2", prompt_version_id=prompt.id
-        ),
+        app_create_schema_factory(name="app-1"),
+        app_create_schema_factory(name="app-2"),
     ]
 
     # Act
