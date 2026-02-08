@@ -2,6 +2,8 @@ from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from src.app.commands import AppCommands
+from src.app.queries import AppQueries
 from src.db.pg import DBAdapter
 from src.evaluation.commands import EvaluationCommands
 from src.evaluation.queries import EvaluationQueries
@@ -49,6 +51,9 @@ sample_queries = SampleQueries(
 evaluation_queries = EvaluationQueries(
     sample_queries=sample_queries,
 )
+app_queries = AppQueries(
+    app_repo=app_repo, prompt_version_repo=prompt_version_repo
+)
 
 # Commands
 
@@ -61,6 +66,11 @@ evaluation_commands = EvaluationCommands(
     sample_repo=sample_repo,
     judgment_repo=judgment_repo,
     app_dataset_repo=app_dataset_repo,
+    app_queries=app_queries,
+)
+
+app_commands = AppCommands(
+    app_repo=app_repo, prompt_version_repo=prompt_version_repo
 )
 
 db_adpater = DBAdapter()

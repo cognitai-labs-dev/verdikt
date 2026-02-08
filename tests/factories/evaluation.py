@@ -8,6 +8,9 @@ from src.schemas.evaluation import (
     EvaluationCreateSchema,
     EvaluationSchema,
 )
+from tests.factories.prompt_version import (
+    prompt_version_db_schema_factory,
+)
 from tests.utils import random_int
 
 
@@ -21,7 +24,7 @@ def evaluation_create_schema_factory(
         app_id=app_id or random_int(),
         version=version or "1.0.0",
         type=type,
-        prompt_version_id=prompt_version_id,
+        prompt_version_id=prompt_version_id or 1,
     )
 
 
@@ -32,6 +35,10 @@ async def evaluation_db_schema_factory(
     type: EvaluationType = EvaluationType.LLM_ONLY,
     prompt_version_id: int | None = None,
 ) -> EvaluationSchema:
+    if prompt_version_id is None:
+        prompt = await prompt_version_db_schema_factory(db_conn)
+        prompt_version_id = prompt.id
+
     create_schema = evaluation_create_schema_factory(
         app_id=app_id,
         type=type,

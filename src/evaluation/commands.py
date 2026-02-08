@@ -3,6 +3,7 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncConnection
 from yalc import LLMModel
 
+from src.app.queries import AppQueries
 from src.constants import (
     EvaluationType,
     JudgmentStatus,
@@ -28,11 +29,13 @@ class EvaluationCommands:
         sample_repo: SamplesRepository,
         judgment_repo: JudgmentRepository,
         app_dataset_repo: AppDatasetRepository,
+        app_queries: AppQueries,
     ):
         self.evaluation = evaluation_repo
         self.sample = sample_repo
         self.judgment = judgment_repo
         self.app_dataset = app_dataset_repo
+        self.app_queries = app_queries
 
         self.logger = logging.getLogger(__name__)
 
@@ -61,10 +64,17 @@ class EvaluationCommands:
                 f"Missing app answers for dataset IDs: {missing}"
             )
 
+        app = await self.app_queries.get_app_with_prompt(
+            conn, evaluation.app_id
+        )
+        if not app:
+            raise ValueError(f"No app found for {evaluation.app_id}")
+
         eval_create = EvaluationCreateSchema(
             app_id=evaluation.app_id,
             type=evaluation.evaluation_type,
             version=evaluation.app_version,
+            prompt_version_id=app.current_prompt_version_id,
         )
         created_evaluation = await self.evaluation.create(
             conn, eval_create

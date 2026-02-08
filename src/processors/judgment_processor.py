@@ -13,7 +13,6 @@ from src.dependencies import (
 )
 from src.judgement.commands import JudgementCommands
 from src.judgement.prompts import (
-    JUDGE_EVAL_PROMPT,
     JUDGE_SYSTEM_PROMPT,
 )
 from src.judgement.schemas import JudgmentResult, PricingSchema
@@ -98,7 +97,6 @@ class JudgmentProcessor:
             {"role": "user", "content": sample.question},
             {"role": "user", "content": sample.human_answer},
             {"role": "assistant", "content": sample.app_answer},
-            {"role": "user", "content": JUDGE_EVAL_PROMPT},
         ]
 
         result, metadata = await client.structured_response(

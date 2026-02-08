@@ -9,18 +9,18 @@ from src.schemas.prompt_version import (
     PromptVersionCreateSchema,
     PromptVersionSchema,
 )
-from tests.utils import random_int
+from tests.utils import random_int, random_word
 
 
 def prompt_version_create_schema_factory(
-    content: str = "You are a helpful assistant.",
+    content: str | None = None,
 ) -> PromptVersionCreateSchema:
-    return PromptVersionCreateSchema(content=content)
+    return PromptVersionCreateSchema(content=content or random_word())
 
 
 async def prompt_version_db_schema_factory(
     db_conn: AsyncConnection | None = None,
-    content: str = "You are a helpful assistant.",
+    content: str | None = None,
 ) -> PromptVersionSchema:
     create_schema = prompt_version_create_schema_factory(
         content=content

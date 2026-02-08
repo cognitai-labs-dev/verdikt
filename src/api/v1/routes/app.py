@@ -8,14 +8,17 @@ from src.api.v1.schemas import (
     ErrorResponse,
     EvaluationRequest,
 )
+from src.app.schemas import AppWithPrompts
 from src.dependencies import (
+    app_commands,
     app_dataset_repo,
+    app_queries,
     app_repo,
     evaluation_commands,
     get_connection,
 )
 from src.evaluation.schemas import EvaluationSchema
-from src.schemas.app import AppCreateSchema, AppSchema
+from src.schemas.app import AppSchema
 from src.schemas.app_dataset import (
     AppDatasetCreateSchema,
     AppDatasetSchema,
@@ -38,8 +41,8 @@ router = APIRouter(
 async def get_app(
     app_id: int,
     conn: AsyncConnection = Depends(get_connection),
-) -> AppSchema:
-    app = await app_repo.get(conn, app_id)
+) -> AppWithPrompts:
+    app = await app_queries.get_app_with_prompt(conn, app_id)
     if not app:
         raise HTTPException(status_code=404, detail="app not found")
     return app
@@ -61,7 +64,7 @@ async def post_app(
     request: AppRequest,
     conn: AsyncConnection = Depends(get_connection),
 ) -> None:
-    await app_repo.create(conn, AppCreateSchema(name=request.name))
+    await app_commands.create(conn, request.name)
 
 
 @router.delete(

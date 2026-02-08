@@ -45,7 +45,7 @@ def upgrade() -> None:
     op.add_column(
         "apps",
         sa.Column(
-            "current_prompt_version_id", sa.Integer(), nullable=True
+            "current_prompt_version_id", sa.Integer(), nullable=False
         ),
     )
     op.create_foreign_key(
@@ -57,7 +57,7 @@ def upgrade() -> None:
     )
     op.add_column(
         "evaluations",
-        sa.Column("prompt_version_id", sa.Integer(), nullable=True),
+        sa.Column("prompt_version_id", sa.Integer(), nullable=False),
     )
     op.create_foreign_key(
         op.f("fk_evaluations_prompt_version_id_prompt_versions"),

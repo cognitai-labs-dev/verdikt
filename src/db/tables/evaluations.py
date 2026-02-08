@@ -18,7 +18,7 @@ evaluations_table = sa.Table(
         "prompt_version_id",
         sa.Integer,
         sa.ForeignKey("prompt_versions.id"),
-        nullable=True,
+        nullable=False,
     ),
     sa.Column(
         "created_at",
