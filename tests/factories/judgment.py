@@ -5,6 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from src.constants import JudgmentStatus, JudgmentType
 from src.repositories.judgment import JudgmentRepository
 from src.schemas.judgment import JudgmentCreateSchema, JudgmentSchema
+from tests.factories.prompt_version import (
+    prompt_version_db_schema_factory,
+)
 from tests.utils import random_int
 
 
@@ -19,6 +22,7 @@ def judgment_create_schema_factory(
     output_tokens: int | None = None,
     input_tokens_cost: float | None = None,
     output_tokens_cost: float | None = None,
+    prompt_version_id: int | None = None,
 ) -> JudgmentCreateSchema:
     return JudgmentCreateSchema(
         sample_id=sample_id,
@@ -31,6 +35,7 @@ def judgment_create_schema_factory(
         output_tokens=output_tokens,
         input_tokens_cost=input_tokens_cost,
         output_tokens_cost=output_tokens_cost,
+        prompt_version_id=prompt_version_id or 1,
     )
 
 
@@ -46,7 +51,12 @@ async def judgment_db_schema_factory(
     output_tokens: int | None = None,
     input_tokens_cost: float | None = None,
     output_tokens_cost: float | None = None,
+    prompt_version_id: int | None = None,
 ) -> JudgmentSchema:
+    if prompt_version_id is None:
+        prompt = await prompt_version_db_schema_factory(db_conn)
+        prompt_version_id = prompt.id
+
     create_schema = judgment_create_schema_factory(
         sample_id=sample_id,
         judgment_type=judgment_type,
@@ -58,6 +68,7 @@ async def judgment_db_schema_factory(
         output_tokens=output_tokens,
         input_tokens_cost=input_tokens_cost,
         output_tokens_cost=output_tokens_cost,
+        prompt_version_id=prompt_version_id,
     )
     if db_conn:
         repo = JudgmentRepository()

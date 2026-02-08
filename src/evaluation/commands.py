@@ -3,7 +3,6 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncConnection
 from yalc import LLMModel
 
-from src.app.queries import AppQueries
 from src.constants import (
     EvaluationType,
     JudgmentStatus,
@@ -11,15 +10,13 @@ from src.constants import (
 )
 from src.evaluation.schemas import EvaluationSchema
 from src.repositories.app_dataset import AppDatasetRepository
+from src.repositories.apps import AppsRepository
 from src.repositories.evaluation import EvaluationsRepository
 from src.repositories.judgment import JudgmentRepository
 from src.repositories.sample import SamplesRepository
 from src.schemas.evaluation import EvaluationCreateSchema
 from src.schemas.judgment import JudgmentCreateSchema
-from src.schemas.sample import (
-    SampleCreateSchema,
-    SampleSchema,
-)
+from src.schemas.sample import SampleCreateSchema, SampleSchema
 
 
 class EvaluationCommands:
@@ -29,16 +26,17 @@ class EvaluationCommands:
         sample_repo: SamplesRepository,
         judgment_repo: JudgmentRepository,
         app_dataset_repo: AppDatasetRepository,
-        app_queries: AppQueries,
+        app_repo: AppsRepository,
     ):
         self.evaluation = evaluation_repo
         self.sample = sample_repo
         self.judgment = judgment_repo
         self.app_dataset = app_dataset_repo
-        self.app_queries = app_queries
+        self.app_repo = app_repo
 
         self.logger = logging.getLogger(__name__)
 
+    # TODO: for displaying active prompt, just return the app itself without prompt, and get the priompt from get all prompts, its simpler
     async def create(
         self, conn: AsyncConnection, evaluation: EvaluationSchema
     ):
@@ -64,21 +62,18 @@ class EvaluationCommands:
                 f"Missing app answers for dataset IDs: {missing}"
             )
 
-        app = await self.app_queries.get_app_with_prompt(
-            conn, evaluation.app_id
-        )
-        if not app:
-            raise ValueError(f"No app found for {evaluation.app_id}")
-
         eval_create = EvaluationCreateSchema(
             app_id=evaluation.app_id,
             type=evaluation.evaluation_type,
             version=evaluation.app_version,
-            prompt_version_id=app.current_prompt_version_id,
         )
         created_evaluation = await self.evaluation.create(
             conn, eval_create
         )
+
+        app = await self.app_repo.get(conn, evaluation.app_id)
+        if not app:
+            raise ValueError("No app found")
 
         samples = [
             SampleCreateSchema(
@@ -96,6 +91,7 @@ class EvaluationCommands:
             db_samples,
             evaluation.evaluation_type,
             evaluation.llm_judge_models,
+            app.current_prompt_version_id,
         )
 
     async def _create_judgments(
@@ -104,6 +100,7 @@ class EvaluationCommands:
         db_samples: list[SampleSchema],
         eval_type: EvaluationType,
         llm_judges: list[LLMModel],
+        prompt_id: int,
     ):
         llm_judgments = []
         human_judgments = []
@@ -115,6 +112,7 @@ class EvaluationCommands:
                         judgment_model=model,
                         judgment_type=JudgmentType.LLM,
                         status=JudgmentStatus.PENDING,
+                        prompt_version_id=prompt_id,
                     )
                 )
             if eval_type == eval_type.HUMAN_AND_LLM:
@@ -124,6 +122,7 @@ class EvaluationCommands:
                         judgment_model="human",
                         judgment_type=JudgmentType.HUMAN,
                         status=JudgmentStatus.PENDING,
+                        prompt_version_id=prompt_id,
                     )
                 )
 

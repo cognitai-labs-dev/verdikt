@@ -36,6 +36,7 @@ class JudgmentCreateSchema(BaseModel):
     output_tokens_cost: float | None = Field(
         default=None, description="Cost of output tokens"
     )
+    prompt_version_id: int
 
 
 class JudgmentSchema(JudgmentCreateSchema):

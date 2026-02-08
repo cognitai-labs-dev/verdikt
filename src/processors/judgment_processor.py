@@ -9,14 +9,13 @@ from src.dependencies import (
     db_adpater,
     judgement_commands,
     judgment_repo,
+    prompt_version_repo,
     sample_repo,
 )
 from src.judgement.commands import JudgementCommands
-from src.judgement.prompts import (
-    JUDGE_SYSTEM_PROMPT,
-)
 from src.judgement.schemas import JudgmentResult, PricingSchema
 from src.repositories.judgment import JudgmentRepository
+from src.repositories.prompt_version import PromptVersionRepository
 from src.repositories.sample import SamplesRepository
 from src.schemas.judgment import JudgmentSchema
 
@@ -29,6 +28,7 @@ class JudgmentProcessor:
         judgment_repo: JudgmentRepository,
         sample_repo: SamplesRepository,
         judgement_commands: JudgementCommands,
+        prompt_version_repo: PromptVersionRepository,
     ):
         self.logger = logging.getLogger(__name__)
         self.db_engine = db_engine
@@ -45,6 +45,7 @@ class JudgmentProcessor:
         self.judgment_repo = judgment_repo
         self.judgement_commands = judgement_commands
         self.sample_repo = sample_repo
+        self.prompt_version_repo = prompt_version_repo
 
     async def run(self):
         while self.running:
@@ -77,26 +78,32 @@ class JudgmentProcessor:
             "Done processing pending judgments in a batch"
         )
 
-    async def _process_one_judgment(self, judgment: JudgmentSchema):
+    async def _process_one_judgment(self, judgement: JudgmentSchema):
         self.logger.info(
             "Processing judgment (%s) with id: %d",
-            judgment.judgment_model,
-            judgment.id,
+            judgement.judgment_model,
+            judgement.id,
         )
 
-        client = self.clients[LLMModel(judgment.judgment_model)]
+        client = self.clients[LLMModel(judgement.judgment_model)]
         async with self.db_engine.begin() as conn:
             sample = await self.sample_repo.get(
-                conn, judgment.sample_id
+                conn, judgement.sample_id
+            )
+            # NOTE: Possible future optimalization to pre cache prompt for all judgements
+            prompt = await self.prompt_version_repo.get(
+                conn, judgement.prompt_version_id
             )
         if sample is None:
             raise RuntimeError("Sample not found for judgment")
+        if prompt is None:
+            raise RuntimeError("Prompt not found for judgment")
 
         messages = [
-            {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
+            {"role": "system", "content": prompt.content},
             {"role": "user", "content": sample.question},
+            {"role": "user", "content": sample.app_answer},
             {"role": "user", "content": sample.human_answer},
-            {"role": "assistant", "content": sample.app_answer},
         ]
 
         result, metadata = await client.structured_response(
@@ -105,15 +112,15 @@ class JudgmentProcessor:
         async with self.db_engine.begin() as conn:
             await self.judgement_commands.create(
                 conn,
-                judgment.id,
+                judgement.id,
                 result,
                 PricingSchema(**metadata.model_dump()),
             )
 
         self.logger.info(
             "Done judgement (%s) with id: %d",
-            judgment.judgment_model,
-            judgment.id,
+            judgement.judgment_model,
+            judgement.id,
         )
 
 
@@ -126,6 +133,7 @@ async def main():
         judgment_repo,
         sample_repo,
         judgement_commands,
+        prompt_version_repo,
     )
     await processor.run()
 

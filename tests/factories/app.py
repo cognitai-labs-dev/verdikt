@@ -19,14 +19,16 @@ def app_create_schema_factory(
 async def app_db_schema_factory(
     db_conn: AsyncConnection,
     name: str = "test-app",
+    prompt_id: int | None = None,
 ) -> AppSchema:
     """Create an app record in the database and return it."""
-    prompt = await prompt_version_db_schema_factory(db_conn)
-    prompt_version_id = prompt.id
+    if not prompt_id:
+        prompt = await prompt_version_db_schema_factory(db_conn)
+        prompt_id = prompt.id
     repo = AppsRepository()
     return await repo.create(
         db_conn,
         AppCreateSchema(
-            name=name, current_prompt_version_id=prompt_version_id
+            name=name, current_prompt_version_id=prompt_id
         ),
     )

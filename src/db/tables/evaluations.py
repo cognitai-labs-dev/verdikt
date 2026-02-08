@@ -15,12 +15,6 @@ evaluations_table = sa.Table(
     sa.Column("version", sa.String(50), nullable=False),
     sa.Column("type", sa.String(50), nullable=False),
     sa.Column(
-        "prompt_version_id",
-        sa.Integer,
-        sa.ForeignKey("prompt_versions.id"),
-        nullable=False,
-    ),
-    sa.Column(
         "created_at",
         sa.DateTime,
         server_default=sa.func.now(),

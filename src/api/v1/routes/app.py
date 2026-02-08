@@ -8,11 +8,9 @@ from src.api.v1.schemas import (
     ErrorResponse,
     EvaluationRequest,
 )
-from src.app.schemas import AppWithPrompts
 from src.dependencies import (
     app_commands,
     app_dataset_repo,
-    app_queries,
     app_repo,
     evaluation_commands,
     get_connection,
@@ -41,8 +39,8 @@ router = APIRouter(
 async def get_app(
     app_id: int,
     conn: AsyncConnection = Depends(get_connection),
-) -> AppWithPrompts:
-    app = await app_queries.get_app_with_prompt(conn, app_id)
+) -> AppSchema:
+    app = await app_repo.get(conn, app_id)
     if not app:
         raise HTTPException(status_code=404, detail="app not found")
     return app
