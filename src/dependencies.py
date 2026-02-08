@@ -11,6 +11,9 @@ from src.repositories.app_dataset import AppDatasetRepository
 from src.repositories.apps import AppsRepository
 from src.repositories.evaluation import EvaluationsRepository
 from src.repositories.judgment import JudgmentRepository
+from src.repositories.prompt_version import (
+    PromptVersionRepository,
+)
 from src.repositories.sample import SamplesRepository
 from src.sample.queries import SampleQueries
 
@@ -32,6 +35,7 @@ judgment_repo = JudgmentRepository()
 sample_repo = SamplesRepository()
 app_repo = AppsRepository()
 app_dataset_repo = AppDatasetRepository()
+prompt_version_repo = PromptVersionRepository()
 
 # Queries
 

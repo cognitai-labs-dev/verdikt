@@ -9,6 +9,7 @@ class AppCreateSchema(BaseModel):
 
 class AppSchema(AppCreateSchema):
     id: int = Field(description="Unique identifier")
+    current_prompt_version_id: int | None = None
     created_at: datetime = Field(
         description="Timestamp when app was created"
     )

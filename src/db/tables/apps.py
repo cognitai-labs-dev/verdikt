@@ -8,6 +8,12 @@ apps_table = sa.Table(
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
     sa.Column("name", sa.String(100), nullable=False),
     sa.Column(
+        "current_prompt_version_id",
+        sa.Integer,
+        sa.ForeignKey("prompt_versions.id"),
+        nullable=True,
+    ),
+    sa.Column(
         "created_at",
         sa.DateTime,
         server_default=sa.func.now(),

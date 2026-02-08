@@ -15,11 +15,13 @@ def evaluation_create_schema_factory(
     app_id: int | None = None,
     version: str | None = None,
     type: EvaluationType = EvaluationType.LLM_ONLY,
+    prompt_version_id: int | None = None,
 ) -> EvaluationCreateSchema:
     return EvaluationCreateSchema(
         app_id=app_id or random_int(),
         version=version or "1.0.0",
         type=type,
+        prompt_version_id=prompt_version_id,
     )
 
 
@@ -28,11 +30,13 @@ async def evaluation_db_schema_factory(
     app_id: int | None = None,
     version: str | None = None,
     type: EvaluationType = EvaluationType.LLM_ONLY,
+    prompt_version_id: int | None = None,
 ) -> EvaluationSchema:
     create_schema = evaluation_create_schema_factory(
         app_id=app_id,
         type=type,
         version=version,
+        prompt_version_id=prompt_version_id,
     )
     if db_conn:
         repo = EvaluationsRepository()

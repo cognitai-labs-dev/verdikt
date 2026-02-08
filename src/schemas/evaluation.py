@@ -9,6 +9,7 @@ class EvaluationCreateSchema(BaseModel):
     app_id: int = Field(description="Application identifier")
     type: EvaluationType
     version: str
+    prompt_version_id: int | None = None
 
 
 class EvaluationSchema(EvaluationCreateSchema):
