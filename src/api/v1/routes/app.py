@@ -8,6 +8,7 @@ from src.api.v1.schemas import (
     AppRequest,
     ErrorResponse,
     EvaluationRequest,
+    PromptVersionSummary,
 )
 from src.dependencies import (
     app_commands,
@@ -178,7 +179,7 @@ class UpdateCurrentPromptRequest(BaseModel):
 async def get_app_prompts(
     app_id: int,
     conn: AsyncConnection = Depends(get_connection),
-) -> list[PromptVersionSchema]:
+) -> list[PromptVersionSummary]:
     app = await app_repo.get(conn, app_id)
     if app is None:
         raise HTTPException(status_code=404, detail="App not found")

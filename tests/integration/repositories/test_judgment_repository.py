@@ -6,6 +6,12 @@ from src.repositories.judgment import JudgmentRepository
 from tests.factories.app import app_db_schema_factory
 from tests.factories.evaluation import evaluation_db_schema_factory
 from tests.factories.judgment import judgment_db_schema_factory
+from tests.factories.prompt_version import (
+    prompt_version_db_schema_factory,
+)
+from tests.factories.prompt_version import (
+    prompt_version_db_schema_factory,
+)
 from tests.factories.sample import sample_db_schema_factory
 
 
@@ -89,6 +95,45 @@ async def test_get_many_pending_returns_empty_list_when_none_pending(
 
     # Assert
     assert results == []
+
+
+@pytest.mark.anyio
+async def test_get_many_by_prompt_ids_groups_by_sample_id(
+    db_conn: AsyncConnection,
+    repo: JudgmentRepository,
+    sample_id: int,
+):
+    # Arrange
+    app = await app_db_schema_factory(db_conn)
+    p = await prompt_version_db_schema_factory(
+        db_conn, app_id=app.id
+    )
+    j1 = await judgment_db_schema_factory(
+        db_conn=db_conn,
+        sample_id=sample_id,
+        prompt_version_id=p.id,
+    )
+    # non-matching prompt — should be excluded
+    await judgment_db_schema_factory(
+        db_conn=db_conn, sample_id=sample_id,
+    )
+
+    # Act
+    results = await repo.get_many_by_prompt_ids(
+        db_conn, [p.id]
+    )
+
+    # Assert
+    assert list(results.keys()) == [sample_id]
+    assert [j.id for j in results[sample_id]] == [j1.id]
+
+
+@pytest.mark.anyio
+async def test_get_many_by_prompt_ids_empty_input(
+    db_conn: AsyncConnection,
+    repo: JudgmentRepository,
+):
+    assert await repo.get_many_by_prompt_ids(db_conn, []) == {}
 
 
 @pytest.mark.anyio
