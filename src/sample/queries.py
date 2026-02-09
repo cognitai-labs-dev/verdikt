@@ -83,14 +83,6 @@ class SampleQueries:
         )
         return await self.summary(conn, samples, eval_type)
 
-    async def summary_by_prompt_ids(
-        self,
-        conn: AsyncConnection,
-        prompt_id: int,
-        eval_type: EvaluationType,
-    ) -> list[SampleSummary]:
-        return await self.summary(conn, samples, eval_type)
-
     async def summary_by_sample_ids(
         self,
         conn: AsyncConnection,

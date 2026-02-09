@@ -48,28 +48,6 @@ class JudgmentRepository(
             for row in rows
         ]
 
-    async def get_many_by_prompt_ids(
-        self,
-        conn: AsyncConnection,
-        prompt_ids: list[int],
-    ) -> list[JudgmentSchema]:
-        if not prompt_ids:
-            return []
-
-        stmt = (
-            select(self.table)
-            .where(self.table.c.prompt_version_id.in_(prompt_ids))
-            .order_by(self.table.c.created_at.desc())
-        )
-
-        result = await conn.execute(stmt)
-        rows = result.fetchall()
-
-        return [
-            JudgmentSchema.model_validate(row._mapping)
-            for row in rows
-        ]
-
     async def get_many_by_sample_ids(
         self,
         conn: AsyncConnection,

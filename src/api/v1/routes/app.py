@@ -16,6 +16,7 @@ from src.dependencies import (
     app_repo,
     evaluation_commands,
     get_connection,
+    prompt_queries,
     prompt_version_repo,
 )
 from src.evaluation.schemas import EvaluationSchema
@@ -184,7 +185,7 @@ async def get_app_prompts(
     if app is None:
         raise HTTPException(status_code=404, detail="App not found")
 
-    return await prompt_version_repo.get_many_by_app_id(conn, app_id)
+    return await prompt_queries.prompts_summaries(conn, app_id)
 
 
 @router.post(

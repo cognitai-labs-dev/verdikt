@@ -34,10 +34,4 @@ judgments_table = sa.Table(
     sa.Column("output_tokens", sa.Integer, nullable=True),
     sa.Column("input_tokens_cost", sa.Float, nullable=True),
     sa.Column("output_tokens_cost", sa.Float, nullable=True),
-    sa.Column(
-        "prompt_version_id",
-        sa.Integer,
-        sa.ForeignKey("prompt_versions.id", ondelete="CASCADE"),
-        nullable=False,
-    ),
 )

@@ -8,6 +8,7 @@ from src.evaluation.commands import EvaluationCommands
 from src.evaluation.queries import EvaluationQueries
 from src.judgement.commands import JudgementCommands
 from src.judgement.queries import JudgementQueries
+from src.prompt_version.queries import PromptVersionQueries
 from src.repositories.app_dataset import AppDatasetRepository
 from src.repositories.apps import AppsRepository
 from src.repositories.evaluation import EvaluationsRepository
@@ -49,6 +50,11 @@ sample_queries = SampleQueries(
 )
 evaluation_queries = EvaluationQueries(
     sample_queries=sample_queries,
+)
+prompt_queries = PromptVersionQueries(
+    sample_queries=sample_queries,
+    prompt_version_repo=prompt_version_repo,
+    evaluation_repo=evaluation_repo,
 )
 
 # Commands
