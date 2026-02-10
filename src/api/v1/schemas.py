@@ -110,3 +110,4 @@ class PromptVersionSummary(PromptVersionSchema):
     llm_total_count: int
     human_and_llm_matched_count: int
     human_and_llm_total_count: int
+    evaluations_count: int

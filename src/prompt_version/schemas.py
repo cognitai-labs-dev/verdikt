@@ -6,3 +6,4 @@ class PromptSummary(BaseModel):
     llm_total_count: int = 0
     human_and_llm_matched_count: int = 0
     human_and_llm_total_count: int = 0
+    evaluations_count: int = 0

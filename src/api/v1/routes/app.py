@@ -27,7 +27,6 @@ from src.schemas.app_dataset import (
 )
 from src.schemas.prompt_version import (
     PromptVersionCreateSchema,
-    PromptVersionSchema,
 )
 
 router = APIRouter(
@@ -185,7 +184,7 @@ async def get_app_prompts(
     if app is None:
         raise HTTPException(status_code=404, detail="App not found")
 
-    return await prompt_queries.prompts_summaries(conn, app_id)
+    return await prompt_queries.prompts_summaries_by_app(conn, app_id)
 
 
 @router.post(
@@ -200,18 +199,21 @@ async def post_app_prompt(
     app_id: int,
     request: PromptRequest,
     conn: AsyncConnection = Depends(get_connection),
-) -> PromptVersionSchema:
+) -> PromptVersionSummary:
     app = await app_repo.get(conn, app_id)
     if app is None:
         raise HTTPException(status_code=404, detail="App not found")
 
-    return await prompt_version_repo.create(
+    new_prompt = await prompt_version_repo.create(
         conn,
         PromptVersionCreateSchema(
             app_id=app_id,
             content=request.content,
         ),
     )
+    return (
+        await prompt_queries.prompts_summaries(conn, [new_prompt])
+    )[0]
 
 
 @router.patch(

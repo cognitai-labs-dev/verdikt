@@ -8,6 +8,7 @@ from src.repositories.prompt_version import (
     PromptVersionRepository,
 )
 from src.sample.queries import SampleQueries
+from src.schemas.prompt_version import PromptVersionSchema
 
 
 class PromptVersionQueries:
@@ -22,12 +23,10 @@ class PromptVersionQueries:
         self.evaluation_repo = evaluation_repo
 
     async def prompts_summaries(
-        self, conn: AsyncConnection, app_id: int
+        self,
+        conn: AsyncConnection,
+        prompts: list[PromptVersionSchema],
     ) -> list[PromptVersionSummary]:
-        prompts = await self.prompt_version_repo.get_many_by_app_id(
-            conn, app_id
-        )
-
         prompt_hash_map = {p.id: p.hash for p in prompts}
         prompt_stats: dict[str, PromptSummary] = {
             p.hash: PromptSummary() for p in prompts
@@ -42,6 +41,7 @@ class PromptVersionQueries:
         for prompt_id, evaluations in evals_by_prompt.items():
             prompt_hash = prompt_hash_map[prompt_id]
             stats = prompt_stats[prompt_hash]
+            stats.evaluations_count += len(evaluations)
 
             for evaluation in evaluations:
                 sample_summaries = (
@@ -77,3 +77,11 @@ class PromptVersionQueries:
             )
             for prompt in prompts
         ]
+
+    async def prompts_summaries_by_app(
+        self, conn: AsyncConnection, app_id: int
+    ) -> list[PromptVersionSummary]:
+        prompts = await self.prompt_version_repo.get_many_by_app_id(
+            conn, app_id
+        )
+        return await self.prompts_summaries(conn, prompts)
