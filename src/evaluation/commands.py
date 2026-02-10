@@ -61,18 +61,19 @@ class EvaluationCommands:
                 f"Missing app answers for dataset IDs: {missing}"
             )
 
+        app = await self.app_repo.get(conn, evaluation.app_id)
+        if not app or app.current_prompt_version_id is None:
+            raise ValueError("No app prompt found")
+
         eval_create = EvaluationCreateSchema(
             app_id=evaluation.app_id,
             type=evaluation.evaluation_type,
             version=evaluation.app_version,
+            prompt_version_id=app.current_prompt_version_id,
         )
         created_evaluation = await self.evaluation.create(
             conn, eval_create
         )
-
-        app = await self.app_repo.get(conn, evaluation.app_id)
-        if not app or app.current_prompt_version_id is None:
-            raise ValueError("No app prompt found")
 
         samples = [
             SampleCreateSchema(
@@ -90,7 +91,6 @@ class EvaluationCommands:
             db_samples,
             evaluation.evaluation_type,
             evaluation.llm_judge_models,
-            app.current_prompt_version_id,
         )
 
     async def _create_judgments(
@@ -99,7 +99,6 @@ class EvaluationCommands:
         db_samples: list[SampleSchema],
         eval_type: EvaluationType,
         llm_judges: list[LLMModel],
-        prompt_id: int,
     ):
         llm_judgments = []
         human_judgments = []
@@ -111,7 +110,6 @@ class EvaluationCommands:
                         judgment_model=model,
                         judgment_type=JudgmentType.LLM,
                         status=JudgmentStatus.PENDING,
-                        prompt_version_id=prompt_id,
                     )
                 )
             if eval_type == eval_type.HUMAN_AND_LLM:
@@ -121,7 +119,6 @@ class EvaluationCommands:
                         judgment_model="human",
                         judgment_type=JudgmentType.HUMAN,
                         status=JudgmentStatus.PENDING,
-                        prompt_version_id=prompt_id,
                     )
                 )
 

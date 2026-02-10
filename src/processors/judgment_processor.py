@@ -7,6 +7,7 @@ from yalc import LLMModel, create_client
 from src.config import ProcessorSettings
 from src.dependencies import (
     db_adpater,
+    evaluation_repo,
     judgement_commands,
     judgment_repo,
     prompt_version_repo,
@@ -14,6 +15,7 @@ from src.dependencies import (
 )
 from src.judgement.commands import JudgementCommands
 from src.judgement.schemas import JudgmentResult, PricingSchema
+from src.repositories.evaluation import EvaluationsRepository
 from src.repositories.judgment import JudgmentRepository
 from src.repositories.prompt_version import PromptVersionRepository
 from src.repositories.sample import SamplesRepository
@@ -29,6 +31,7 @@ class JudgmentProcessor:
         sample_repo: SamplesRepository,
         judgement_commands: JudgementCommands,
         prompt_version_repo: PromptVersionRepository,
+        evaluation_repo: EvaluationsRepository,
     ):
         self.logger = logging.getLogger(__name__)
         self.db_engine = db_engine
@@ -46,6 +49,7 @@ class JudgmentProcessor:
         self.judgement_commands = judgement_commands
         self.sample_repo = sample_repo
         self.prompt_version_repo = prompt_version_repo
+        self.evaluation_repo = evaluation_repo
 
     async def run(self):
         while self.running:
@@ -90,20 +94,31 @@ class JudgmentProcessor:
             sample = await self.sample_repo.get(
                 conn, judgement.sample_id
             )
-            # NOTE: Possible future optimalization to pre cache prompt for all judgements
-            prompt = await self.prompt_version_repo.get(
-                conn, judgement.prompt_version_id
+            if sample is None:
+                raise RuntimeError("Sample not found for judgment")
+            evaluation = await self.evaluation_repo.get(
+                conn, sample.evaluation_id
             )
-        if sample is None:
-            raise RuntimeError("Sample not found for judgment")
+            if evaluation is None:
+                raise RuntimeError(
+                    "Evaluation not found for judgment"
+                )
+            prompt = await self.prompt_version_repo.get(
+                conn, evaluation.prompt_version_id
+            )
+
         if prompt is None:
             raise RuntimeError("Prompt not found for judgment")
 
+        user_content = (
+            f"Question:\n{sample.question}\n\n"
+            f"Golden standard (human answer):\n"
+            f"{sample.human_answer}\n\n"
+            f"App answer:\n{sample.app_answer}"
+        )
         messages = [
             {"role": "system", "content": prompt.content},
-            {"role": "user", "content": sample.question},
-            {"role": "user", "content": sample.app_answer},
-            {"role": "user", "content": sample.human_answer},
+            {"role": "user", "content": user_content},
         ]
 
         result, metadata = await client.structured_response(
@@ -134,6 +149,7 @@ async def main():
         sample_repo,
         judgement_commands,
         prompt_version_repo,
+        evaluation_repo,
     )
     await processor.run()
 

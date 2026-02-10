@@ -8,6 +8,7 @@ from yalc import LLMModel
 from src.constants import EvaluationType
 from src.schemas.evaluation import EvaluationSchema
 from src.schemas.judgment import JudgmentSchema
+from src.schemas.prompt_version import PromptVersionSchema
 from src.schemas.sample import SampleSchema
 
 
@@ -102,3 +103,11 @@ class SampleSummary(SummaryResponse, SampleSchema):
 class SampleJudgements(SampleSummary):
     human_judgment: JudgmentSchema | None
     llm_judgements: list[JudgmentSchema]
+
+
+class PromptVersionSummary(PromptVersionSchema):
+    llm_passed_count: int
+    llm_total_count: int
+    human_and_llm_matched_count: int
+    human_and_llm_total_count: int
+    evaluations_count: int

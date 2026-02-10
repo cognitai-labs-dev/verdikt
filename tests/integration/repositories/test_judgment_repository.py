@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from src.constants import JudgmentStatus, JudgmentType
 from src.repositories.judgment import JudgmentRepository
 from tests.factories.app import app_db_schema_factory
-from tests.factories.evaluation import evaluation_db_schema_factory
+from tests.factories.evaluation import (
+    evaluation_db_schema_factory,
+)
 from tests.factories.judgment import judgment_db_schema_factory
 from tests.factories.sample import sample_db_schema_factory
 

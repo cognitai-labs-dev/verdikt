@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -46,3 +48,28 @@ class EvaluationsRepository(
             EvaluationSchema.model_validate(row._mapping)
             for row in rows
         ]
+
+    async def get_many_by_prompt_version_ids(
+        self,
+        conn: AsyncConnection,
+        prompt_version_ids: list[int],
+    ) -> dict[int, list[EvaluationSchema]]:
+        if not prompt_version_ids:
+            return {}
+
+        stmt = (
+            select(self.table)
+            .where(
+                self.table.c.prompt_version_id.in_(prompt_version_ids)
+            )
+            .order_by(self.table.c.created_at.desc())
+        )
+        result = await conn.execute(stmt)
+        rows = result.fetchall()
+
+        grouped: dict[int, list[EvaluationSchema]] = defaultdict(list)
+        for row in rows:
+            evaluation = EvaluationSchema.model_validate(row._mapping)
+            grouped[evaluation.prompt_version_id].append(evaluation)
+
+        return dict(grouped)

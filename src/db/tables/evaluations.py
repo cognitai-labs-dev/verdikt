@@ -20,4 +20,10 @@ evaluations_table = sa.Table(
         server_default=sa.func.now(),
         nullable=False,
     ),
+    sa.Column(
+        "prompt_version_id",
+        sa.Integer,
+        sa.ForeignKey("prompt_versions.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
 )
