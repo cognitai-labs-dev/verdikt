@@ -28,6 +28,11 @@ init: # Init app with 1 llm and 1 human evaluations
 	uv run main.py evaluate 1 HUMAN_AND_LLM
 	uv run main.py evaluate 1 LLM_ONLY
 
+eval:
+	uv run main.py evaluate 1 HUMAN_AND_LLM
+	uv run main.py evaluate 1 LLM_ONLY
+
+
 judge: # Judge evals
 	uv run main.py run-judging
 

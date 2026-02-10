@@ -18,6 +18,12 @@ To init the app with some mock data run
 make init
 ```
 
+To create more mock data
+
+```shell
+make eval
+```
+
 # Evaluation Framework Architecture
 
 ## Overview

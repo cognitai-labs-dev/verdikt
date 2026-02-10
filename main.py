@@ -132,6 +132,7 @@ def evaluate(
         "app_version": "1.0.0",
         "evaluation_type": eval_type,
         "app_answers": app_answers,
+        "llm_judge_models": ["gpt-4o-mini", "gpt-5-mini"],
     }
     response = httpx.post(
         f"{BASE_URL}/app/{app_id}/evaluation", json=payload

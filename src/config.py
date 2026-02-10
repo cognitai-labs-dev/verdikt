@@ -40,7 +40,6 @@ class LLMSettings(BaseSettings):
     JUDGING_LLM_MODELS: list[LLMModel] = [
         LLMModel.gpt_4o_mini,
         LLMModel.gpt_5_mini,
-        LLMModel.claude_sonnet_4_5,
     ]
 
     WORKER_WAIT_TIME: int = 5
