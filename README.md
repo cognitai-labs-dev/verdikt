@@ -118,6 +118,78 @@ POST /sample/{sample_id}/judgment
 
 Frontend part is PURELY for interacting with the human for judging and displaying result information.
 
+## Database Schema
+
+```mermaid
+erDiagram
+    apps {
+        int id PK
+        string name
+        int current_prompt_version_id FK
+        datetime created_at
+    }
+
+    prompt_versions {
+        int id PK
+        int app_id FK
+        string hash
+        text content
+        datetime created_at
+    }
+
+    evaluations {
+        int id PK
+        int app_id FK
+        int prompt_version_id FK
+        string version
+        string type
+        datetime created_at
+    }
+
+    samples {
+        int id PK
+        int evaluation_id FK
+        text question
+        text human_answer
+        text app_answer
+        float app_cost
+        datetime created_at
+    }
+
+    judgments {
+        int id PK
+        int sample_id FK
+        string status
+        string judgment_type
+        string judgment_model
+        text reasoning
+        bool passed
+        int input_tokens
+        int output_tokens
+        float input_tokens_cost
+        float output_tokens_cost
+        datetime created_at
+        datetime updated_at
+    }
+
+    app_datasets {
+        int id PK
+        int app_id FK
+        text question
+        text human_answer
+        datetime created_at
+        datetime updated_at
+    }
+
+    apps ||--o{ prompt_versions : "has"
+    apps ||--o| prompt_versions : "current"
+    apps ||--o{ evaluations : "has"
+    apps ||--o{ app_datasets : "has"
+    prompt_versions ||--o{ evaluations : "used in"
+    evaluations ||--o{ samples : "contains"
+    samples ||--o{ judgments : "judged by"
+```
+
 ## Components
 
 repositories -- data access only, no business logic, no data transformation beyond mapping DB rows to base schemas
