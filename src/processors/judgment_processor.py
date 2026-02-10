@@ -110,11 +110,15 @@ class JudgmentProcessor:
         if prompt is None:
             raise RuntimeError("Prompt not found for judgment")
 
+        user_content = (
+            f"Question:\n{sample.question}\n\n"
+            f"Golden standard (human answer):\n"
+            f"{sample.human_answer}\n\n"
+            f"App answer:\n{sample.app_answer}"
+        )
         messages = [
             {"role": "system", "content": prompt.content},
-            {"role": "user", "content": sample.question},
-            {"role": "user", "content": sample.app_answer},
-            {"role": "user", "content": sample.human_answer},
+            {"role": "user", "content": user_content},
         ]
 
         result, metadata = await client.structured_response(
