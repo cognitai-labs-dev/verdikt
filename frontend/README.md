@@ -29,14 +29,3 @@ pnpm test:unit
 ```sh
 pnpm lint
 ```
-
-## TODO
-
-- [ ] Add notifications (toast/snackbar for actions)
-- [ ] Rework API calls to use promises properly
-- [ ] Add human gold standard type of samples and their evaluation
-- [ ] Add copy from previous eval for human judgments
-- [ ] Add small summary for evaluation table per eval
-- [ ] Add summary for eval aftert clicking on it
-- [ ] Add evaluation comparison view (compare runs side-by-side)
-- [ ] Add bulk human judgment mode
