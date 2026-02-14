@@ -3,7 +3,7 @@ name: tests
 on: [push]
 
 jobs:
-  test:
+  be-test:
     runs-on: ubuntu-latest
     defaults:
       run:
