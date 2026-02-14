@@ -46,3 +46,6 @@ db: # enter db prompt
 
 test: # Run tests
 	cd backend && uv run pytest $(TA)
+
+fe:
+	cd frontend && pnpm run dev

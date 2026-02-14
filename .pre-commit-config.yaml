@@ -25,3 +25,34 @@ repos:
     entry: make mypy
     pass_filenames: false
 
+  - id: fe-format
+    name: fe-format
+    language: system
+    types_or:
+      - vue
+      - ts
+      - javascript
+      - css
+      - json
+    entry: bash -c 'cd frontend && pnpm run format'
+    pass_filenames: false
+
+  - id: fe-lint
+    name: fe-lint
+    language: system
+    types_or:
+      - vue
+      - ts
+      - javascript
+    entry: bash -c 'cd frontend && pnpm run lint'
+    pass_filenames: false
+
+  - id: fe-type-check
+    name: fe-type-check
+    language: system
+    types_or:
+      - vue
+      - ts
+    entry: bash -c 'cd frontend && pnpm run type-check'
+    pass_filenames: false
+
