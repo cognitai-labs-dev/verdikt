@@ -54,8 +54,7 @@ const headers = computed(() => {
 })
 
 const fetchEvaluations = async () => {
-  const res = await getEvaluationsSummaries({
-    app_id: Number(props.id),
+  const res = await getEvaluationsSummaries(Number(props.id), {
     eval_type: selectedEvalType.value,
   })
   if (res.status === 200) {

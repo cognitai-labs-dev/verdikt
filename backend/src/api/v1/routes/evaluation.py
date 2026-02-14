@@ -4,13 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
     ErrorResponse,
-    EvaluationSummary,
     SampleSummary,
 )
-from src.constants import EvaluationType
 from src.dependencies import (
     evaluation_queries,
-    evaluation_repo,
     get_connection,
     sample_queries,
 )
@@ -20,23 +17,6 @@ router = APIRouter(
     tags=["Evaluation"],
     default_response_class=ORJsonResponse,
 )
-
-
-@router.get("/summary", operation_id="getEvaluationsSummaries")
-async def get_evaluations(
-    app_id: int,
-    eval_type: EvaluationType,
-    conn: AsyncConnection = Depends(get_connection),
-) -> list[EvaluationSummary]:
-    evaluations = await evaluation_repo.get_many_by_app_id(
-        conn, app_id, eval_type
-    )
-    if len(evaluations) == 0:
-        return []
-
-    return await evaluation_queries.evaluation_summaries_by_eval_ids(
-        conn, evaluations, eval_type
-    )
 
 
 @router.get(
