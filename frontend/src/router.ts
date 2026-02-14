@@ -4,6 +4,7 @@ import SamplesView from "./views/SamplesView.vue"
 import SampleDetailView from "./views/SampleDetailView.vue"
 import AppsView from "./views/AppsView.vue"
 import AppDetailView from "./views/AppDetailView.vue"
+import JudgingView from "./views/JudgingView.vue"
 
 const routes = [
   { path: "/", component: AppsView, name: "Apps" },
@@ -13,6 +14,12 @@ const routes = [
     path: "/evaluation/:id/samples",
     component: SamplesView,
     name: "Evaluation Samples",
+    props: true,
+  },
+  {
+    path: "/evaluation/:id/judging",
+    component: JudgingView,
+    name: "Judging",
     props: true,
   },
   { path: "/sample/:id/detail", component: SampleDetailView, name: "Sample Detail", props: true },

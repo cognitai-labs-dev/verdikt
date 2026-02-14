@@ -2,8 +2,6 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from src.schemas.judgment import JudgmentCreateSchema
-
 
 class SampleCreateSchema(BaseModel):
     """DB schema for creating samples in postgres."""
@@ -32,13 +30,14 @@ class SampleSchema(SampleCreateSchema):
     )
 
 
-class SampleWithJudgmentSchema(SampleSchema, JudgmentCreateSchema):
-    """Flat sample + judgment row."""
+class SampleJudgmentSummarySchema(BaseModel):
+    """Lightweight sample + judgment status for navigation."""
 
-    judgment_id: int = Field(description="Judgment unique identifier")
-    judgment_created_at: datetime = Field(
-        description="When judgment was created"
+    sample_id: int = Field(description="The sample identifier")
+    status: str = Field(
+        description="Judgment status (PENDING or COMPLETED)"
     )
-    judgment_updated_at: datetime = Field(
-        description="When judgment was updated"
+    passed: bool | None = Field(
+        default=None,
+        description="Whether the judgment passed",
     )

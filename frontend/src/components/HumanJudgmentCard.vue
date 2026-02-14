@@ -51,6 +51,8 @@ async function saveJudgment() {
   }
   saving.value = false
 }
+
+defineExpose({ humanPassed, humanReasoning, saveJudgment, isLocked })
 </script>
 
 <template>

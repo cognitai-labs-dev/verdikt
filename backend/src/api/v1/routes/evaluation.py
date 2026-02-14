@@ -13,7 +13,7 @@ from src.dependencies import (
     sample_queries,
     sample_repo,
 )
-from src.schemas.sample import SampleWithJudgmentSchema
+from src.schemas.sample import SampleJudgmentSummarySchema
 
 router = APIRouter(
     prefix="/evaluation",
@@ -57,7 +57,7 @@ async def get_evaluation_samples(
     evaluation_id: int,
     judgment_type: JudgmentType = JudgmentType.HUMAN,
     conn: AsyncConnection = Depends(get_connection),
-) -> list[SampleWithJudgmentSchema]:
+) -> list[SampleJudgmentSummarySchema]:
     return await sample_repo.get_many_by_evaluation_with_judgements(
         conn, evaluation_id, judgment_type
     )

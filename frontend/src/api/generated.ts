@@ -226,6 +226,18 @@ export interface SampleJudgements {
   llm_judgements: JudgmentSchema[]
 }
 
+/**
+ * Lightweight sample + judgment status for navigation.
+ */
+export interface SampleJudgmentSummarySchema {
+  /** The sample identifier */
+  sample_id: number
+  /** Judgment status (PENDING or COMPLETED) */
+  status: string
+  /** Whether the judgment passed */
+  passed?: boolean | null
+}
+
 export interface SampleSummary {
   /** Foreign key to evaluations table */
   evaluation_id: number
@@ -252,54 +264,6 @@ export interface SampleSummary {
   evaluation_type: EvaluationType
   /** Whether or not the judgment passed or not. If null it means the judgment was not made yet or its a llm only evaluation. */
   human_judgment_passed: boolean | null
-}
-
-/**
- * Flat sample + judgment row.
- */
-export interface SampleWithJudgmentSchema {
-  /** Foreign key to samples table */
-  sample_id: number
-  /** Type of judgment */
-  judgment_type: JudgmentType
-  /**
-   * Model used by judge
-   * @maxLength 50
-   */
-  judgment_model: string
-  status: JudgmentStatus
-  /** Reasoning why the score and passed mark */
-  reasoning?: string | null
-  /** Whether the evaluation passed */
-  passed?: boolean | null
-  /** Number of input tokens */
-  input_tokens?: number | null
-  /** Number of output tokens */
-  output_tokens?: number | null
-  /** Cost of input tokens */
-  input_tokens_cost?: number | null
-  /** Cost of output tokens */
-  output_tokens_cost?: number | null
-  /** Foreign key to evaluations table */
-  evaluation_id: number
-  /** The question asked */
-  question: string
-  /** The answer provided by the human (golden standard) */
-  human_answer: string
-  /** The answer provided by the app */
-  app_answer: string
-  /** Cost of the application call */
-  app_cost?: number | null
-  /** Unique identifier */
-  id: number
-  /** Timestamp when sample was created */
-  created_at: string
-  /** Judgment unique identifier */
-  judgment_id: number
-  /** When judgment was created */
-  judgment_created_at: string
-  /** When judgment was updated */
-  judgment_updated_at: string
 }
 
 export interface UpdateCurrentPromptRequest {
@@ -929,7 +893,7 @@ export const getSamplesSummaries = async (
  * @summary Get Evaluation Samples
  */
 export type getEvaluationSamplesResponse200 = {
-  data: SampleWithJudgmentSchema[]
+  data: SampleJudgmentSummarySchema[]
   status: 200
 }
 
