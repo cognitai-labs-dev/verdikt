@@ -6,11 +6,14 @@ from src.api.v1.schemas import (
     ErrorResponse,
     SampleSummary,
 )
+from src.constants import JudgmentType
 from src.dependencies import (
     evaluation_queries,
     get_connection,
     sample_queries,
+    sample_repo,
 )
+from src.schemas.sample import SampleWithJudgmentSchema
 
 router = APIRouter(
     prefix="/evaluation",
@@ -20,13 +23,13 @@ router = APIRouter(
 
 
 @router.get(
-    "/{evaluation_id}/samples/summary",
+    "/{evaluation_id}/sample/summary",
     operation_id="getSamplesSummaries",
     responses={
         404: {"model": ErrorResponse},
     },
 )
-async def get_evaluation_samples(
+async def get_evaluation_samples_summaries(
     evaluation_id: int,
     conn: AsyncConnection = Depends(get_connection),
 ) -> list[SampleSummary]:
@@ -43,4 +46,18 @@ async def get_evaluation_samples(
 
     return await sample_queries.summary_by_eval_ids(
         conn, [evaluation_id], evaluation.type
+    )
+
+
+@router.get(
+    "/{evaluation_id}/sample/judgment",
+    operation_id="getEvaluationSamples",
+)
+async def get_evaluation_samples(
+    evaluation_id: int,
+    judgment_type: JudgmentType = JudgmentType.HUMAN,
+    conn: AsyncConnection = Depends(get_connection),
+) -> list[SampleWithJudgmentSchema]:
+    return await sample_repo.get_many_by_evaluation_with_judgements(
+        conn, evaluation_id, judgment_type
     )

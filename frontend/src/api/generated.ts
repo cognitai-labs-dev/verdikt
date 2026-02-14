@@ -254,6 +254,54 @@ export interface SampleSummary {
   human_judgment_passed: boolean | null
 }
 
+/**
+ * Flat sample + judgment row.
+ */
+export interface SampleWithJudgmentSchema {
+  /** Foreign key to samples table */
+  sample_id: number
+  /** Type of judgment */
+  judgment_type: JudgmentType
+  /**
+   * Model used by judge
+   * @maxLength 50
+   */
+  judgment_model: string
+  status: JudgmentStatus
+  /** Reasoning why the score and passed mark */
+  reasoning?: string | null
+  /** Whether the evaluation passed */
+  passed?: boolean | null
+  /** Number of input tokens */
+  input_tokens?: number | null
+  /** Number of output tokens */
+  output_tokens?: number | null
+  /** Cost of input tokens */
+  input_tokens_cost?: number | null
+  /** Cost of output tokens */
+  output_tokens_cost?: number | null
+  /** Foreign key to evaluations table */
+  evaluation_id: number
+  /** The question asked */
+  question: string
+  /** The answer provided by the human (golden standard) */
+  human_answer: string
+  /** The answer provided by the app */
+  app_answer: string
+  /** Cost of the application call */
+  app_cost?: number | null
+  /** Unique identifier */
+  id: number
+  /** Timestamp when sample was created */
+  created_at: string
+  /** Judgment unique identifier */
+  judgment_id: number
+  /** When judgment was created */
+  judgment_created_at: string
+  /** When judgment was updated */
+  judgment_updated_at: string
+}
+
 export interface UpdateCurrentPromptRequest {
   /** Prompt version ID to set as current */
   prompt_id: number
@@ -261,6 +309,10 @@ export interface UpdateCurrentPromptRequest {
 
 export type GetEvaluationsSummariesParams = {
   eval_type: EvaluationType
+}
+
+export type GetEvaluationSamplesParams = {
+  judgment_type?: JudgmentType
 }
 
 /**
@@ -828,7 +880,7 @@ export const getSampleDetail = async (
 }
 
 /**
- * @summary Get Evaluation Samples
+ * @summary Get Evaluation Samples Summaries
  */
 export type getSamplesSummariesResponse200 = {
   data: SampleSummary[]
@@ -860,7 +912,7 @@ export type getSamplesSummariesResponse =
   | getSamplesSummariesResponseError
 
 export const getGetSamplesSummariesUrl = (evaluationId: number) => {
-  return `http://127.0.0.1:8000/v1/evaluation/${evaluationId}/samples/summary`
+  return `http://127.0.0.1:8000/v1/evaluation/${evaluationId}/sample/summary`
 }
 
 export const getSamplesSummaries = async (
@@ -871,4 +923,61 @@ export const getSamplesSummaries = async (
     ...options,
     method: "GET",
   })
+}
+
+/**
+ * @summary Get Evaluation Samples
+ */
+export type getEvaluationSamplesResponse200 = {
+  data: SampleWithJudgmentSchema[]
+  status: 200
+}
+
+export type getEvaluationSamplesResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getEvaluationSamplesResponseSuccess = getEvaluationSamplesResponse200 & {
+  headers: Headers
+}
+export type getEvaluationSamplesResponseError = getEvaluationSamplesResponse422 & {
+  headers: Headers
+}
+
+export type getEvaluationSamplesResponse =
+  | getEvaluationSamplesResponseSuccess
+  | getEvaluationSamplesResponseError
+
+export const getGetEvaluationSamplesUrl = (
+  evaluationId: number,
+  params?: GetEvaluationSamplesParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `http://127.0.0.1:8000/v1/evaluation/${evaluationId}/sample/judgment?${stringifiedParams}`
+    : `http://127.0.0.1:8000/v1/evaluation/${evaluationId}/sample/judgment`
+}
+
+export const getEvaluationSamples = async (
+  evaluationId: number,
+  params?: GetEvaluationSamplesParams,
+  options?: RequestInit,
+): Promise<getEvaluationSamplesResponse> => {
+  return customFetch<getEvaluationSamplesResponse>(
+    getGetEvaluationSamplesUrl(evaluationId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  )
 }

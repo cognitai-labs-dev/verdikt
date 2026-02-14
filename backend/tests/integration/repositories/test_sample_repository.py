@@ -1,9 +1,12 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from src.constants import JudgmentType
 from src.repositories.sample import SamplesRepository
+from src.schemas.sample import SampleWithJudgmentSchema
 from tests.factories.app import app_db_schema_factory
 from tests.factories.evaluation import evaluation_db_schema_factory
+from tests.factories.judgment import judgment_db_schema_factory
 from tests.factories.sample import sample_db_schema_factory
 
 
@@ -62,3 +65,46 @@ async def test_get_many_by_evaluation_returns_empty_list_when_no_match(
 
     # Assert
     assert results == []
+
+
+@pytest.mark.anyio
+async def test_get_many_by_evaluation_with_judgements_returns_flat_rows(
+    db_conn: AsyncConnection, repo: SamplesRepository
+):
+    # Arrange
+    app = await app_db_schema_factory(db_conn)
+    evaluation = await evaluation_db_schema_factory(
+        db_conn=db_conn,
+        app_id=app.id,
+    )
+    sample = await sample_db_schema_factory(
+        db_conn=db_conn,
+        evaluation_id=evaluation.id,
+    )
+    judgment = await judgment_db_schema_factory(
+        db_conn=db_conn,
+        sample_id=sample.id,
+        judgment_type=JudgmentType.LLM,
+    )
+    await judgment_db_schema_factory(
+        db_conn=db_conn,
+        sample_id=sample.id,
+        judgment_type=JudgmentType.HUMAN,
+    )
+
+    # Act
+    results = await repo.get_many_by_evaluation_with_judgements(
+        db_conn,
+        evaluation_id=evaluation.id,
+        judgement_type=JudgmentType.LLM,
+    )
+
+    # Assert
+    assert len(results) == 1
+    row = results[0]
+    assert isinstance(row, SampleWithJudgmentSchema)
+    assert row.id == sample.id
+    assert row.question == sample.question
+    assert row.judgment_id == judgment.id
+    assert row.judgment_type == judgment.judgment_type
+    assert row.status == judgment.status
