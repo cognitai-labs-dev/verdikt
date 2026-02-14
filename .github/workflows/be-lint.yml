@@ -1,9 +1,9 @@
-name: pre-commit
+name: be-lint
 
 on: [push]
 
 jobs:
-  pre-commit:
+  be-lint:
     runs-on: ubuntu-latest
     defaults:
       run:
