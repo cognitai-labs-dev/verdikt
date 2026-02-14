@@ -5,36 +5,35 @@ help: # Show help for each of the Makefile recipes
 TA ?= -v tests/
 
 upgrade-db:
-	uv run alembic upgrade head
+	cd backend && uv run alembic upgrade head
 
 ruff-lint: # Run ruff linter
-	uv run ruff check --fix src/
+	cd backend && uv run ruff check --fix src/
 
 ruff-format: # Run ruff formatter
-	uv run ruff format src/
+	cd backend && uv run ruff format src/
 
 mypy: # Run mypy type checker
-	uv run mypy src/
+	cd backend && uv run mypy src/
 
 lint: # Run pre-commit
 	pre-commit run --all-files
 
 api: up-d upgrade-db # Run api
-	uv run main.py api
+	cd backend && uv run main.py api
 
 init: # Init app with 1 llm and 1 human evaluations
-	uv run main.py create-app
-	uv run main.py create-datasets 1
-	uv run main.py evaluate 1 HUMAN_AND_LLM
-	uv run main.py evaluate 1 LLM_ONLY
+	cd backend && uv run main.py create-app
+	cd backend && uv run main.py create-datasets 1
+	cd backend && uv run main.py evaluate 1 HUMAN_AND_LLM
+	cd backend && uv run main.py evaluate 1 LLM_ONLY
 
 eval:
-	uv run main.py evaluate 1 HUMAN_AND_LLM
-	uv run main.py evaluate 1 LLM_ONLY
-
+	cd backend && uv run main.py evaluate 1 HUMAN_AND_LLM
+	cd backend && uv run main.py evaluate 1 LLM_ONLY
 
 judge: # Judge evals
-	uv run main.py run-judging
+	cd backend && uv run main.py run-judging
 
 up-d: # Run database in the background
 	docker compose up -d
@@ -46,4 +45,7 @@ db: # enter db prompt
 	psql postgresql://postgresql:alpharius@localhost:5432
 
 test: # Run tests
-	uv run pytest $(TA)
+	cd backend && uv run pytest $(TA)
+
+fe:
+	cd frontend && pnpm run dev

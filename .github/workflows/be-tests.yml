@@ -1,20 +1,20 @@
-name: tests
+name: be-tests
 
 on: [push]
 
-
 jobs:
-  test:
+  be-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     env:
-      PG_PORT: "5432" 
+      PG_PORT: "5432"
 
     services:
-      # Label used to access the service container
       postgres:
         image: postgres:18
-        # Provide the password for postgres
         env:
           POSTGRES_USER: postgresql
           POSTGRES_PASSWORD: alpharius
@@ -27,7 +27,6 @@ jobs:
         ports:
           - 5432:5432
 
-
     steps:
       - uses: actions/checkout@v4
 
@@ -38,7 +37,4 @@ jobs:
         run: uv python install 3.13
 
       - name: Run tests
-        run: make test
-
-
-
+        run: uv run pytest -v tests/
