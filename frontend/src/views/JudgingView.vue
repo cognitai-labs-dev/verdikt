@@ -118,11 +118,6 @@ function handleKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement
   const isInInput = target.tagName === "TEXTAREA" || target.tagName === "INPUT"
 
-  if (e.key === "Escape") {
-    goBack()
-    return
-  }
-
   if (e.key === "ArrowLeft" && !isInInput) {
     e.preventDefault()
     navigate("prev")
@@ -264,10 +259,6 @@ function handleKeydown(e: KeyboardEvent) {
                       <div class="shortcut-item">
                         <kbd>&larr;</kbd> <kbd>&rarr;</kbd>
                         <span class="text-body-2 text-medium-emphasis">Navigate</span>
-                      </div>
-                      <div class="shortcut-item">
-                        <kbd>Esc</kbd>
-                        <span class="text-body-2 text-medium-emphasis">Back</span>
                       </div>
                     </div>
                   </v-card-text>
