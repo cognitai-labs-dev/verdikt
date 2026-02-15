@@ -30,6 +30,10 @@ onMounted(async () => {
     if (evaluationType.value === EvaluationType.LLM_ONLY) {
       headers.value.push({ title: "AI judging", key: "llm_judgements_status" })
       headers.value.push({ title: "Passed", key: "llm_judgements_statistic" })
+    } else if (evaluationType.value === EvaluationType.HUMAN_AND_LLM) {
+      headers.value.push({ title: "Human judging", key: "human_judgment_passed" })
+      headers.value.push({ title: "AI judging", key: "llm_judgements_status" })
+      headers.value.push({ title: "Matched", key: "llm_judgements_statistic" })
     }
   }
   headers.value.push({ title: "Cost", key: "total_cost" })
@@ -47,7 +51,11 @@ function goBack() {
 }
 
 function onRowClick(_event: Event, { item }: { item: SampleSummary }) {
-  router.push(`/sample/${item.id}/detail`)
+  if (evaluationType.value == EvaluationType.LLM_ONLY) {
+    router.push({ path: `/sample/${item.id}/detail` })
+  } else {
+    router.push({ path: `/evaluation/${props.id}/judging`, query: { startSampleId: item.id } })
+  }
 }
 </script>
 

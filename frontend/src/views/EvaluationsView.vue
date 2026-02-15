@@ -74,11 +74,7 @@ const switchEvalType = async (type: EvaluationType) => {
 }
 
 const routeToEval = (_event: Event, { item }: { item: EvaluationSummary }) => {
-  if (selectedEvalType.value === EvaluationType.HUMAN_AND_LLM) {
-    router.push({ path: `/evaluation/${item.id}/judging` })
-  } else {
-    router.push({ path: `/evaluation/${item.id}/samples` })
-  }
+  router.push({ path: `/evaluation/${item.id}/samples` })
 }
 </script>
 

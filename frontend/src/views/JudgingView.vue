@@ -11,9 +11,10 @@ import HumanJudgmentCard from "@/components/HumanJudgmentCard.vue"
 import LlmJudgmentsCard from "@/components/LlmJudgmentsCard.vue"
 import SampleContentCards from "@/components/SampleContentCards.vue"
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
-import { useRouter } from "vue-router"
+import { useRoute, useRouter } from "vue-router"
 
 const router = useRouter()
+const route = useRoute()
 
 const props = defineProps({
   id: {
@@ -43,8 +44,14 @@ onMounted(async () => {
   const res = await getEvaluationSamples(parseInt(props.id), { judgment_type: "HUMAN" })
   if (res.status === 200) {
     samples.value = res.data
-    const firstPending = samples.value.findIndex((s) => s.status !== "COMPLETED")
-    currentIndex.value = firstPending >= 0 ? firstPending : 0
+    const querySampleId = route.query.startSampleId
+    if (querySampleId) {
+      const targetIndex = samples.value.findIndex((s) => s.sample_id === Number(querySampleId))
+      currentIndex.value = targetIndex >= 0 ? targetIndex : 0
+    } else {
+      const firstPending = samples.value.findIndex((s) => s.status !== "COMPLETED")
+      currentIndex.value = firstPending >= 0 ? firstPending : 0
+    }
     await loadCurrentDetail()
   }
   loadingList.value = false
