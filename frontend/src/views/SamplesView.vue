@@ -51,7 +51,11 @@ function goBack() {
 }
 
 function onRowClick(_event: Event, { item }: { item: SampleSummary }) {
-  router.push(`/sample/${item.id}/detail`)
+  if (evaluationType.value == EvaluationType.LLM_ONLY) {
+    router.push({ path: `/sample/${item.id}/detail` })
+  } else {
+    router.push({ path: `/evaluation/${props.id}/judging`, query: { startSampleId: item.id } })
+  }
 }
 </script>
 

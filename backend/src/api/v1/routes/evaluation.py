@@ -4,16 +4,16 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
     ErrorResponse,
-    EvaluationSummary,
     SampleSummary,
 )
-from src.constants import EvaluationType
+from src.constants import JudgmentType
 from src.dependencies import (
     evaluation_queries,
-    evaluation_repo,
     get_connection,
     sample_queries,
+    sample_repo,
 )
+from src.schemas.sample import SampleJudgmentSummarySchema
 
 router = APIRouter(
     prefix="/evaluation",
@@ -22,31 +22,14 @@ router = APIRouter(
 )
 
 
-@router.get("/summary", operation_id="getEvaluationsSummaries")
-async def get_evaluations(
-    app_id: int,
-    eval_type: EvaluationType,
-    conn: AsyncConnection = Depends(get_connection),
-) -> list[EvaluationSummary]:
-    evaluations = await evaluation_repo.get_many_by_app_id(
-        conn, app_id, eval_type
-    )
-    if len(evaluations) == 0:
-        return []
-
-    return await evaluation_queries.evaluation_summaries_by_eval_ids(
-        conn, evaluations, eval_type
-    )
-
-
 @router.get(
-    "/{evaluation_id}/samples/summary",
+    "/{evaluation_id}/sample/summary",
     operation_id="getSamplesSummaries",
     responses={
         404: {"model": ErrorResponse},
     },
 )
-async def get_evaluation_samples(
+async def get_evaluation_samples_summaries(
     evaluation_id: int,
     conn: AsyncConnection = Depends(get_connection),
 ) -> list[SampleSummary]:
@@ -63,4 +46,18 @@ async def get_evaluation_samples(
 
     return await sample_queries.summary_by_eval_ids(
         conn, [evaluation_id], evaluation.type
+    )
+
+
+@router.get(
+    "/{evaluation_id}/sample/judgment",
+    operation_id="getEvaluationSamples",
+)
+async def get_evaluation_samples(
+    evaluation_id: int,
+    judgment_type: JudgmentType = JudgmentType.HUMAN,
+    conn: AsyncConnection = Depends(get_connection),
+) -> list[SampleJudgmentSummarySchema]:
+    return await sample_repo.get_many_by_evaluation_with_judgements(
+        conn, evaluation_id, judgment_type
     )

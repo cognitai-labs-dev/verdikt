@@ -226,6 +226,18 @@ export interface SampleJudgements {
   llm_judgements: JudgmentSchema[]
 }
 
+/**
+ * Lightweight sample + judgment status for navigation.
+ */
+export interface SampleJudgmentSummarySchema {
+  /** The sample identifier */
+  sample_id: number
+  /** Judgment status (PENDING or COMPLETED) */
+  status: string
+  /** Whether the judgment passed */
+  passed?: boolean | null
+}
+
 export interface SampleSummary {
   /** Foreign key to evaluations table */
   evaluation_id: number
@@ -260,8 +272,11 @@ export interface UpdateCurrentPromptRequest {
 }
 
 export type GetEvaluationsSummariesParams = {
-  app_id: number
   eval_type: EvaluationType
+}
+
+export type GetEvaluationSamplesParams = {
+  judgment_type?: JudgmentType
 }
 
 /**
@@ -592,39 +607,39 @@ export const postAppEvaluation = async (
 /**
  * @summary Get App Prompts
  */
-export type getAppPromptsResponse200 = {
+export type getAppPromptResponse200 = {
   data: PromptVersionSummary[]
   status: 200
 }
 
-export type getAppPromptsResponse404 = {
+export type getAppPromptResponse404 = {
   data: ErrorResponse
   status: 404
 }
 
-export type getAppPromptsResponse422 = {
+export type getAppPromptResponse422 = {
   data: HTTPValidationError
   status: 422
 }
 
-export type getAppPromptsResponseSuccess = getAppPromptsResponse200 & {
+export type getAppPromptResponseSuccess = getAppPromptResponse200 & {
   headers: Headers
 }
-export type getAppPromptsResponseError = (getAppPromptsResponse404 | getAppPromptsResponse422) & {
+export type getAppPromptResponseError = (getAppPromptResponse404 | getAppPromptResponse422) & {
   headers: Headers
 }
 
-export type getAppPromptsResponse = getAppPromptsResponseSuccess | getAppPromptsResponseError
+export type getAppPromptResponse = getAppPromptResponseSuccess | getAppPromptResponseError
 
-export const getGetAppPromptsUrl = (appId: number) => {
-  return `http://127.0.0.1:8000/v1/app/${appId}/prompts`
+export const getGetAppPromptUrl = (appId: number) => {
+  return `http://127.0.0.1:8000/v1/app/${appId}/prompt`
 }
 
-export const getAppPrompts = async (
+export const getAppPrompt = async (
   appId: number,
   options?: RequestInit,
-): Promise<getAppPromptsResponse> => {
-  return customFetch<getAppPromptsResponse>(getGetAppPromptsUrl(appId), {
+): Promise<getAppPromptResponse> => {
+  return customFetch<getAppPromptResponse>(getGetAppPromptUrl(appId), {
     ...options,
     method: "GET",
   })
@@ -672,6 +687,63 @@ export const postAppPrompt = async (
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(promptRequest),
   })
+}
+
+/**
+ * @summary Get Evaluations
+ */
+export type getEvaluationsSummariesResponse200 = {
+  data: EvaluationSummary[]
+  status: 200
+}
+
+export type getEvaluationsSummariesResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getEvaluationsSummariesResponseSuccess = getEvaluationsSummariesResponse200 & {
+  headers: Headers
+}
+export type getEvaluationsSummariesResponseError = getEvaluationsSummariesResponse422 & {
+  headers: Headers
+}
+
+export type getEvaluationsSummariesResponse =
+  | getEvaluationsSummariesResponseSuccess
+  | getEvaluationsSummariesResponseError
+
+export const getGetEvaluationsSummariesUrl = (
+  appId: number,
+  params: GetEvaluationsSummariesParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `http://127.0.0.1:8000/v1/app/${appId}/evaluation/summary?${stringifiedParams}`
+    : `http://127.0.0.1:8000/v1/app/${appId}/evaluation/summary`
+}
+
+export const getEvaluationsSummaries = async (
+  appId: number,
+  params: GetEvaluationsSummariesParams,
+  options?: RequestInit,
+): Promise<getEvaluationsSummariesResponse> => {
+  return customFetch<getEvaluationsSummariesResponse>(
+    getGetEvaluationsSummariesUrl(appId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  )
 }
 
 /**
@@ -772,57 +844,7 @@ export const getSampleDetail = async (
 }
 
 /**
- * @summary Get Evaluations
- */
-export type getEvaluationsSummariesResponse200 = {
-  data: EvaluationSummary[]
-  status: 200
-}
-
-export type getEvaluationsSummariesResponse422 = {
-  data: HTTPValidationError
-  status: 422
-}
-
-export type getEvaluationsSummariesResponseSuccess = getEvaluationsSummariesResponse200 & {
-  headers: Headers
-}
-export type getEvaluationsSummariesResponseError = getEvaluationsSummariesResponse422 & {
-  headers: Headers
-}
-
-export type getEvaluationsSummariesResponse =
-  | getEvaluationsSummariesResponseSuccess
-  | getEvaluationsSummariesResponseError
-
-export const getGetEvaluationsSummariesUrl = (params: GetEvaluationsSummariesParams) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `http://127.0.0.1:8000/v1/evaluation/summary?${stringifiedParams}`
-    : `http://127.0.0.1:8000/v1/evaluation/summary`
-}
-
-export const getEvaluationsSummaries = async (
-  params: GetEvaluationsSummariesParams,
-  options?: RequestInit,
-): Promise<getEvaluationsSummariesResponse> => {
-  return customFetch<getEvaluationsSummariesResponse>(getGetEvaluationsSummariesUrl(params), {
-    ...options,
-    method: "GET",
-  })
-}
-
-/**
- * @summary Get Evaluation Samples
+ * @summary Get Evaluation Samples Summaries
  */
 export type getSamplesSummariesResponse200 = {
   data: SampleSummary[]
@@ -854,7 +876,7 @@ export type getSamplesSummariesResponse =
   | getSamplesSummariesResponseError
 
 export const getGetSamplesSummariesUrl = (evaluationId: number) => {
-  return `http://127.0.0.1:8000/v1/evaluation/${evaluationId}/samples/summary`
+  return `http://127.0.0.1:8000/v1/evaluation/${evaluationId}/sample/summary`
 }
 
 export const getSamplesSummaries = async (
@@ -865,4 +887,61 @@ export const getSamplesSummaries = async (
     ...options,
     method: "GET",
   })
+}
+
+/**
+ * @summary Get Evaluation Samples
+ */
+export type getEvaluationSamplesResponse200 = {
+  data: SampleJudgmentSummarySchema[]
+  status: 200
+}
+
+export type getEvaluationSamplesResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getEvaluationSamplesResponseSuccess = getEvaluationSamplesResponse200 & {
+  headers: Headers
+}
+export type getEvaluationSamplesResponseError = getEvaluationSamplesResponse422 & {
+  headers: Headers
+}
+
+export type getEvaluationSamplesResponse =
+  | getEvaluationSamplesResponseSuccess
+  | getEvaluationSamplesResponseError
+
+export const getGetEvaluationSamplesUrl = (
+  evaluationId: number,
+  params?: GetEvaluationSamplesParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `http://127.0.0.1:8000/v1/evaluation/${evaluationId}/sample/judgment?${stringifiedParams}`
+    : `http://127.0.0.1:8000/v1/evaluation/${evaluationId}/sample/judgment`
+}
+
+export const getEvaluationSamples = async (
+  evaluationId: number,
+  params?: GetEvaluationSamplesParams,
+  options?: RequestInit,
+): Promise<getEvaluationSamplesResponse> => {
+  return customFetch<getEvaluationSamplesResponse>(
+    getGetEvaluationSamplesUrl(evaluationId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  )
 }

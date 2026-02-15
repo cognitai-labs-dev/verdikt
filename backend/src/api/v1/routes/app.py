@@ -8,13 +8,17 @@ from src.api.v1.schemas import (
     AppRequest,
     ErrorResponse,
     EvaluationRequest,
+    EvaluationSummary,
     PromptVersionSummary,
 )
+from src.constants import EvaluationType
 from src.dependencies import (
     app_commands,
     app_dataset_repo,
     app_repo,
     evaluation_commands,
+    evaluation_queries,
+    evaluation_repo,
     get_connection,
     prompt_queries,
     prompt_version_repo,
@@ -170,8 +174,8 @@ class UpdateCurrentPromptRequest(BaseModel):
 
 
 @router.get(
-    "/{app_id}/prompts",
-    operation_id="getAppPrompts",
+    "/{app_id}/prompt",
+    operation_id="getAppPrompt",
     responses={
         404: {"model": ErrorResponse},
     },
@@ -250,3 +254,23 @@ async def patch_app(
         raise HTTPException(status_code=404, detail="App not found")
 
     return updated
+
+
+@router.get(
+    "/{app_id}/evaluation/summary",
+    operation_id="getEvaluationsSummaries",
+)
+async def get_evaluations(
+    app_id: int,
+    eval_type: EvaluationType,
+    conn: AsyncConnection = Depends(get_connection),
+) -> list[EvaluationSummary]:
+    evaluations = await evaluation_repo.get_many_by_app_id(
+        conn, app_id, eval_type
+    )
+    if len(evaluations) == 0:
+        return []
+
+    return await evaluation_queries.evaluation_summaries_by_eval_ids(
+        conn, evaluations, eval_type
+    )

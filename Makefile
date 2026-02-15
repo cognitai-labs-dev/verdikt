@@ -49,3 +49,6 @@ test: # Run tests
 
 fe:
 	cd frontend && pnpm run dev
+
+api-gen:
+	cd frontend && pnpm run api:generate

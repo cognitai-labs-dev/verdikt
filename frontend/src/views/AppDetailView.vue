@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from "vue"
 import { useRouter } from "vue-router"
 import { useActiveApp } from "@/stores/useActiveApp"
-import { getAppPrompts, postAppPrompt, patchApp, type PromptVersionSummary } from "@/api/generated"
+import { getAppPrompt, postAppPrompt, patchApp, type PromptVersionSummary } from "@/api/generated"
 import PromptList from "@/components/PromptList.vue"
 
 const props = defineProps<{ id: string }>()
@@ -18,7 +18,7 @@ const activePrompt = computed(() =>
 
 onMounted(async () => {
   await loadApp(appId)
-  const res = await getAppPrompts(appId)
+  const res = await getAppPrompt(appId)
   if (res.status === 200) {
     prompts.value = res.data
   }

@@ -28,3 +28,16 @@ class SampleSchema(SampleCreateSchema):
     created_at: datetime = Field(
         description="Timestamp when sample was created"
     )
+
+
+class SampleJudgmentSummarySchema(BaseModel):
+    """Lightweight sample + judgment status for navigation."""
+
+    sample_id: int = Field(description="The sample identifier")
+    status: str = Field(
+        description="Judgment status (PENDING or COMPLETED)"
+    )
+    passed: bool | None = Field(
+        default=None,
+        description="Whether the judgment passed",
+    )
