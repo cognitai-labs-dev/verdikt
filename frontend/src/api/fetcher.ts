@@ -1,3 +1,5 @@
+import zitadelAuth from "@/services/zitadelAuth"
+
 const getBody = <T>(c: Response | Request): Promise<T> => {
   const contentType = c.headers.get("content-type")
 
@@ -20,8 +22,10 @@ const getUrl = (contextUrl: string): string => {
 }
 
 const getHeaders = (headers?: HeadersInit, method?: string): HeadersInit => {
+  const token = zitadelAuth.oidcAuth.accessToken
   const baseHeaders: HeadersInit = {
     ...headers,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 
   // Only set Content-Type for requests with body
