@@ -22,7 +22,7 @@ class PostgresSettings(BaseSettings):
 
     PG_HOST: str = "localhost"
     PG_PORT: str = "5433"
-    PG_USER: str = "postgresql"
+    PG_USER: str = "evaluation"
     PG_PASSWORD: str = "alpharius"
     PG_DB: str = "evaluation"
 
