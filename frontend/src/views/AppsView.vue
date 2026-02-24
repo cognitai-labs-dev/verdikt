@@ -4,7 +4,6 @@ import { getApps, deleteApp, type AppSchema } from "@/api/generated"
 import { useRouter } from "vue-router"
 import { formatDate } from "@/utils/format"
 import { useActiveApp } from "@/stores/useActiveApp"
-import zitadelAuth from "@/services/zitadelAuth"
 
 const router = useRouter()
 const { setApp } = useActiveApp()
@@ -12,8 +11,6 @@ const apps = ref<AppSchema[]>([])
 const loading = ref(true)
 const deleteDialog = ref(false)
 const appToDelete = ref<AppSchema | null>(null)
-
-const token = zitadelAuth.oidcAuth.accessToken
 
 const confirmDelete = (app: AppSchema) => {
   appToDelete.value = app
@@ -51,7 +48,6 @@ const navigateToEvaluations = (app: AppSchema) => {
 
 <template>
   <v-container fluid class="pa-6">
-    {{ token }}
     <v-progress-linear v-if="loading" indeterminate />
 
     <v-row v-if="!loading">
