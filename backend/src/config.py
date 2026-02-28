@@ -51,4 +51,6 @@ class ProcessorSettings(LLMSettings, PostgresSettings):
 
 
 class APISettings(PostgresSettings):
-    pass
+    JKWS_URI: str = "http://localhost:8080/oauth/v2/keys"
+    JWT_ALGORITHMS: list[str] = ["RS256"]
+    JWT_CLIENT_ID: str
