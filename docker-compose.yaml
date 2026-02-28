@@ -119,6 +119,7 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+      - db-data:/var/lib/postgresql/data
     healthcheck:
       test: 
       - CMD-SHELL
@@ -138,4 +139,4 @@ networks:
   zitadel:
 
 volumes:
-  data:
+  db-data:
