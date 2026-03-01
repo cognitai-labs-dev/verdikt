@@ -22,7 +22,6 @@ COPY pyproject.toml uv.lock* ./
 RUN uv sync --no-install-project
 
 COPY src src
-COPY llm llm
 COPY alembic.ini alembic.ini
 COPY alembic alembic
 COPY main.py main.py
@@ -48,7 +47,6 @@ RUN uv sync --frozen --no-dev --no-install-project && \
 	rm -rf /root/.cache/uv
 
 COPY src src
-COPY llm llm
 COPY alembic.ini alembic.ini
 COPY alembic alembic
 COPY main.py main.py
