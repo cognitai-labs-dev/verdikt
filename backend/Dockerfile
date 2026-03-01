@@ -15,6 +15,10 @@ COPY --from=uv-source /uv /uvx /bin/
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+# libpq is required by psycopg at runtime
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY pyproject.toml uv.lock* ./ 
 
@@ -37,6 +41,10 @@ COPY --from=uv-source /uv /uvx /bin/
 
 # Copy uv binary
 ENV PATH="/app/.venv/bin:$PATH"
+
+# libpq is required by psycopg at runtime
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY pyproject.toml uv.lock* ./
