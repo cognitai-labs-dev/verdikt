@@ -22,7 +22,7 @@ class PostgresSettings(BaseSettings):
 
     PG_HOST: str = "localhost"
     PG_PORT: str = "5433"
-    PG_USER: str = "postgresql"
+    PG_USER: str = "evaluation"
     PG_PASSWORD: str = "alpharius"
     PG_DB: str = "evaluation"
 
@@ -51,4 +51,6 @@ class ProcessorSettings(LLMSettings, PostgresSettings):
 
 
 class APISettings(PostgresSettings):
-    pass
+    JKWS_URI: str = "http://localhost:8080/oauth/v2/keys"
+    JWT_ALGORITHMS: list[str] = ["RS256"]
+    JWT_CLIENT_ID: str
