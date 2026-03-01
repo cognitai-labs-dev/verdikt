@@ -15,6 +15,10 @@ COPY --from=uv-source /uv /uvx /bin/
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+# libpq is required by psycopg at runtime
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY pyproject.toml uv.lock* ./ 
 
@@ -22,7 +26,6 @@ COPY pyproject.toml uv.lock* ./
 RUN uv sync --no-install-project
 
 COPY src src
-COPY llm llm
 COPY alembic.ini alembic.ini
 COPY alembic alembic
 COPY main.py main.py
@@ -39,6 +42,10 @@ COPY --from=uv-source /uv /uvx /bin/
 # Copy uv binary
 ENV PATH="/app/.venv/bin:$PATH"
 
+# libpq is required by psycopg at runtime
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY pyproject.toml uv.lock* ./
 
@@ -48,7 +55,6 @@ RUN uv sync --frozen --no-dev --no-install-project && \
 	rm -rf /root/.cache/uv
 
 COPY src src
-COPY llm llm
 COPY alembic.ini alembic.ini
 COPY alembic alembic
 COPY main.py main.py
