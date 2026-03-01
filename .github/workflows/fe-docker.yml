@@ -11,10 +11,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/frontend
-  VITE_API_URL: http://localhost:8000
-  VITE_ZITADEL_ISSUER: http://localhost:8080
-  VITE_ZITADEL_CLIENT_ID: ""
-  VITE_ZITADEL_PROJECT_RESOURCE_ID: ""
 
 jobs:
   build-and-push-image:
@@ -52,7 +48,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_API_URL=${{ env.VITE_API_URL }}
-            VITE_ZITADEL_ISSUER=${{ env.VITE_ZITADEL_ISSUER }}
-            VITE_ZITADEL_CLIENT_ID=${{ env.VITE_ZITADEL_CLIENT_ID }}
-            VITE_ZITADEL_PROJECT_RESOURCE_ID=${{ env.VITE_ZITADEL_PROJECT_RESOURCE_ID }}
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+            VITE_ZITADEL_ISSUER=${{ vars.VITE_ZITADEL_ISSUER }}
+            VITE_ZITADEL_CLIENT_ID=${{ vars.VITE_ZITADEL_CLIENT_ID }}
+            VITE_ZITADEL_PROJECT_RESOURCE_ID=${{ vars.VITE_ZITADEL_PROJECT_RESOURCE_ID }}
