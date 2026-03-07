@@ -280,6 +280,7 @@ export type GetEvaluationSamplesParams = {
 }
 
 /**
+ * Get an app by its id
  * @summary Get App
  */
 export type getAppResponse200 = {
@@ -465,10 +466,11 @@ export const postApp = async (
 }
 
 /**
+ * Create app datasets, datasets are used as templates for judging
  * @summary Post App Datasets
  */
 export type postAppDatasetsResponse201 = {
-  data: unknown
+  data: AppDatasetSchema[]
   status: 201
 }
 
@@ -556,6 +558,7 @@ export const getAppDatasets = async (
 }
 
 /**
+ * Create an evaluation, evaluation is an insance of a dataset where the app answers are provided that will be judged
  * @summary Post App Evaluation
  */
 export type postAppEvaluationResponse201 = {

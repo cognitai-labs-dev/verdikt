@@ -2,8 +2,16 @@
 import { ref, computed, onMounted } from "vue"
 import { useRouter } from "vue-router"
 import { useActiveApp } from "@/stores/useActiveApp"
-import { getAppPrompt, postAppPrompt, patchApp, type PromptVersionSummary } from "@/api/generated"
+import {
+  getAppPrompt,
+  postAppPrompt,
+  patchApp,
+  getAppDatasets,
+  type PromptVersionSummary,
+  type AppDatasetSchema,
+} from "@/api/generated"
 import PromptList from "@/components/PromptList.vue"
+import DatasetList from "@/components/DatasetList.vue"
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -11,6 +19,7 @@ const { activeApp: app, loadApp } = useActiveApp()
 
 const appId = Number(props.id)
 const prompts = ref<PromptVersionSummary[]>([])
+const datasets = ref<AppDatasetSchema[]>([])
 
 const activePrompt = computed(() =>
   prompts.value.find((p) => p.id === app.value?.current_prompt_version_id),
@@ -18,9 +27,12 @@ const activePrompt = computed(() =>
 
 onMounted(async () => {
   await loadApp(appId)
-  const res = await getAppPrompt(appId)
-  if (res.status === 200) {
-    prompts.value = res.data
+  const [promptRes, datasetRes] = await Promise.all([getAppPrompt(appId), getAppDatasets(appId)])
+  if (promptRes.status === 200) {
+    prompts.value = promptRes.data
+  }
+  if (datasetRes.status === 200) {
+    datasets.value = datasetRes.data
   }
 })
 
@@ -123,6 +135,14 @@ const goToEvaluations = () => {
         :active-prompt-id="app.current_prompt_version_id"
         @activated="onPromptActivated"
       />
+
+      <div class="mt-8">
+        <DatasetList
+          :app-id="appId"
+          :datasets="datasets"
+          @created="(items) => datasets.unshift(...items)"
+        />
+      </div>
     </template>
 
     <v-alert v-if="!app" type="error" variant="tonal"> App not found. </v-alert>

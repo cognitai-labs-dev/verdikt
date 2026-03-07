@@ -43,6 +43,7 @@ router = APIRouter(
 @router.get(
     "/{app_id}",
     operation_id="getApp",
+    description="Get an app by its id",
     responses={
         404: {"model": ErrorResponse},
     },
@@ -96,6 +97,7 @@ async def delete_app(
 @router.post(
     "/{app_id}/datasets",
     operation_id="postAppDatasets",
+    description="Create app datasets, datasets are used as templates for judging",
     status_code=201,
     responses={
         404: {"model": ErrorResponse},
@@ -105,7 +107,7 @@ async def post_app_datasets(
     app_id: int,
     request: AppDatasetsRequest,
     conn: AsyncConnection = Depends(get_connection),
-) -> None:
+) -> list[AppDatasetSchema]:
     app = await app_repo.get(conn, app_id)
     if app is None:
         raise HTTPException(status_code=404, detail="App not found")
@@ -118,7 +120,7 @@ async def post_app_datasets(
         )
         for d in request.datasets
     ]
-    await app_dataset_repo.create_many(conn, items)
+    return await app_dataset_repo.create_many(conn, items)
 
 
 @router.get(
@@ -142,6 +144,7 @@ async def get_app_datasets(
 @router.post(
     "/{app_id}/evaluation",
     operation_id="postAppEvaluation",
+    description="Create an evaluation, evaluation is an insance of a dataset where the app answers are provided that will be judged",
     status_code=201,
     responses={
         400: {"model": ErrorResponse},
