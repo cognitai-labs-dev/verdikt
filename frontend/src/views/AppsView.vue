@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
-import { getApps, deleteApp, type AppSchema } from "@/api/generated"
+import { getApps, deleteApp, postApp, type AppSchema } from "@/api/generated"
 import { useRouter } from "vue-router"
 import { formatDate } from "@/utils/format"
 import { useActiveApp } from "@/stores/useActiveApp"
@@ -11,6 +11,10 @@ const apps = ref<AppSchema[]>([])
 const loading = ref(true)
 const deleteDialog = ref(false)
 const appToDelete = ref<AppSchema | null>(null)
+const createDialog = ref(false)
+const newAppName = ref("")
+const creating = ref(false)
+const createError = ref<string | null>(null)
 
 const confirmDelete = (app: AppSchema) => {
   appToDelete.value = app
@@ -35,6 +39,29 @@ onMounted(async () => {
   loading.value = false
 })
 
+const openCreateDialog = () => {
+  newAppName.value = ""
+  createError.value = null
+  createDialog.value = true
+}
+
+const handleCreate = async () => {
+  if (!newAppName.value.trim()) return
+  creating.value = true
+  createError.value = null
+  const res = await postApp({ name: newAppName.value.trim() })
+  creating.value = false
+  if (res.status === 201) {
+    const appsRes = await getApps()
+    if (appsRes.status === 200) {
+      apps.value = appsRes.data
+    }
+    createDialog.value = false
+  } else {
+    createError.value = "Failed to create app. Please try again."
+  }
+}
+
 const navigateToDetail = (app: AppSchema) => {
   setApp(app)
   router.push(`/app/${app.id}/detail`)
@@ -48,6 +75,12 @@ const navigateToEvaluations = (app: AppSchema) => {
 
 <template>
   <v-container fluid class="pa-6">
+    <div class="d-flex justify-end mb-4">
+      <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="openCreateDialog">
+        Create App
+      </v-btn>
+    </div>
+
     <v-progress-linear v-if="loading" indeterminate />
 
     <v-row v-if="!loading">
@@ -97,6 +130,34 @@ const navigateToEvaluations = (app: AppSchema) => {
           <v-spacer />
           <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
           <v-btn color="error" variant="flat" @click="handleDelete">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="createDialog" max-width="400">
+      <v-card>
+        <v-card-title>Create App</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="newAppName"
+            label="App name"
+            autofocus
+            :error-messages="createError ? [createError] : []"
+            @keyup.enter="handleCreate"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="createDialog = false">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            :loading="creating"
+            :disabled="!newAppName.trim()"
+            @click="handleCreate"
+          >
+            Create
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
