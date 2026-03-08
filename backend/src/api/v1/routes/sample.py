@@ -25,6 +25,7 @@ router = APIRouter(
 @router.post(
     "/{sample_id}/judgment",
     operation_id="postJudgment",
+    description="Add a judgement to a sample, used for human judging",
     status_code=201,
     responses={
         404: {"model": ErrorResponse},

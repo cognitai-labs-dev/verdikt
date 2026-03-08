@@ -22,11 +22,12 @@ class EvaluationRequest(BaseModel):
     app_answers: dict[int, str] = Field(
         description="a dict of values where the key is the dataset id and the value is the app answer to the question"
     )
-    llm_judge_models: list[LLMModel] = list(LLMModel)
+    llm_judge_models: list[LLMModel]
 
 
 class AppRequest(BaseModel):
     name: str
+    slug: str
 
 
 class AppDatasetItem(BaseModel):
@@ -111,3 +112,13 @@ class PromptVersionSummary(PromptVersionSchema):
     human_and_llm_matched_count: int
     human_and_llm_total_count: int
     evaluations_count: int
+
+
+class PromptRequest(BaseModel):
+    content: str = Field(description="Prompt content")
+
+
+class UpdateCurrentPromptRequest(BaseModel):
+    prompt_id: int = Field(
+        description="Prompt version ID to set as current"
+    )

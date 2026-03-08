@@ -19,10 +19,12 @@ class AppCommands:
         self.app_repo = app_repo
         self.prompt_repo = prompt_version_repo
 
-    async def create(self, conn: AsyncConnection, name: str):
+    async def create(
+        self, conn: AsyncConnection, name: str, slug: str
+    ):
         app = await self.app_repo.create(
             conn,
-            AppCreateSchema(name=name),
+            AppCreateSchema(name=name, slug=slug),
         )
 
         prompt = await self.prompt_repo.create(

@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.v1.response import ORJsonResponse
@@ -9,11 +8,14 @@ from src.api.v1.schemas import (
     ErrorResponse,
     EvaluationRequest,
     EvaluationSummary,
+    PromptRequest,
     PromptVersionSummary,
+    UpdateCurrentPromptRequest,
 )
 from src.constants import EvaluationType
 from src.dependencies import (
     app_commands,
+    app_dataset_queries,
     app_dataset_repo,
     app_repo,
     evaluation_commands,
@@ -25,19 +27,32 @@ from src.dependencies import (
 )
 from src.evaluation.schemas import EvaluationSchema
 from src.schemas.app import AppSchema, AppUpdateSchema
-from src.schemas.app_dataset import (
-    AppDatasetCreateSchema,
-    AppDatasetSchema,
-)
-from src.schemas.prompt_version import (
-    PromptVersionCreateSchema,
-)
+from src.schemas.app_dataset import AppDatasetSchema
+from src.schemas.prompt_version import PromptVersionCreateSchema
 
 router = APIRouter(
     prefix="/app",
     tags=["App"],
     default_response_class=ORJsonResponse,
 )
+
+
+@router.get(
+    "/by-slug/{slug}",
+    operation_id="getAppBySlug",
+    description="Get an app by its slug",
+    responses={
+        404: {"model": ErrorResponse},
+    },
+)
+async def get_app_by_slug(
+    slug: str,
+    conn: AsyncConnection = Depends(get_connection),
+) -> AppSchema:
+    app = await app_repo.get_by_slug(conn, slug)
+    if not app:
+        raise HTTPException(status_code=404, detail="App not found")
+    return app
 
 
 @router.get(
@@ -74,7 +89,7 @@ async def post_app(
     request: AppRequest,
     conn: AsyncConnection = Depends(get_connection),
 ) -> None:
-    await app_commands.create(conn, request.name)
+    await app_commands.create(conn, request.name, request.slug)
 
 
 @router.delete(
@@ -97,30 +112,32 @@ async def delete_app(
 @router.post(
     "/{app_id}/datasets",
     operation_id="postAppDatasets",
-    description="Create app datasets, datasets are used as templates for judging",
+    description="Upsert datasets for an app — inserts new questions, updates changed answers, no-ops identical entries",
     status_code=201,
     responses={
+        200: {"model": list[AppDatasetSchema]},
         404: {"model": ErrorResponse},
     },
 )
 async def post_app_datasets(
     app_id: int,
     request: AppDatasetsRequest,
+    response: Response,
     conn: AsyncConnection = Depends(get_connection),
 ) -> list[AppDatasetSchema]:
     app = await app_repo.get(conn, app_id)
     if app is None:
         raise HTTPException(status_code=404, detail="App not found")
 
-    items = [
-        AppDatasetCreateSchema(
-            question=d.question,
-            human_answer=d.human_answer,
-            app_id=app_id,
-        )
-        for d in request.datasets
-    ]
-    return await app_dataset_repo.create_many(conn, items)
+    items = [(d.question, d.human_answer) for d in request.datasets]
+    results, any_inserted = await app_dataset_queries.sync_datasets(
+        conn, app_id, items
+    )
+
+    if not any_inserted:
+        response.status_code = 200
+
+    return results
 
 
 @router.get(
@@ -162,18 +179,6 @@ async def post_app_evaluation(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-class PromptRequest(BaseModel):
-    content: str = Field(
-        description="Prompt content",
-    )
-
-
-class UpdateCurrentPromptRequest(BaseModel):
-    prompt_id: int = Field(
-        description="Prompt version ID to set as current",
-    )
 
 
 @router.get(

@@ -32,3 +32,14 @@ class AppsRepository(
         return [
             self.schema.model_validate(row._mapping) for row in rows
         ]
+
+    async def get_by_slug(
+        self, conn: AsyncConnection, slug: str
+    ) -> AppSchema | None:
+        """Get an app by its unique slug."""
+        stmt = select(self.table).where(self.table.c.slug == slug)
+        result = await conn.execute(stmt)
+        row = result.fetchone()
+        if row is None:
+            return None
+        return self.schema.model_validate(row._mapping)

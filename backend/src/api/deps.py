@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 import jwt
@@ -8,6 +9,7 @@ from src.api.auth import TokenVerifier
 
 security = HTTPBearer()
 token_verifier = TokenVerifier()
+logger = logging.getLogger(__name__)
 
 
 async def decoded_jwt_token(

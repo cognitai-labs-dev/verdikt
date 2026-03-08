@@ -27,4 +27,9 @@ app_datasets_table = sa.Table(
         onupdate=sa.func.now(),
         nullable=False,
     ),
+    sa.UniqueConstraint(
+        "app_id",
+        "question",
+        name="uq_app_datasets_app_id_question",
+    ),
 )

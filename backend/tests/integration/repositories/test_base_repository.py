@@ -148,3 +148,33 @@ async def test_update_returns_none_when_id_does_not_exist(
 
     # Assert
     assert result is None
+
+
+@pytest.mark.anyio
+async def test_get_by_slug_returns_matching_app(
+    db_conn: AsyncConnection, repo: AppsRepository
+):
+    # Arrange
+    await app_db_schema_factory(db_conn, slug="other-app")
+    created = await app_db_schema_factory(
+        db_conn, slug="my-unique-app"
+    )
+
+    # Act
+    result = await repo.get_by_slug(db_conn, "my-unique-app")
+
+    # Assert
+    assert result is not None
+    assert result.id == created.id
+    assert result.slug == "my-unique-app"
+
+
+@pytest.mark.anyio
+async def test_get_by_slug_returns_none_when_slug_does_not_exist(
+    db_conn: AsyncConnection, repo: AppsRepository
+):
+    # Act
+    result = await repo.get_by_slug(db_conn, "nonexistent-slug")
+
+    # Assert
+    assert result is None
