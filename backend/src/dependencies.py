@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.app.commands import AppCommands
+from src.app.queries import AppDatasetQueries
 from src.db.pg import DBAdapter
 from src.evaluation.commands import EvaluationCommands
 from src.evaluation.queries import EvaluationQueries
@@ -40,6 +41,10 @@ app_dataset_repo = AppDatasetRepository()
 prompt_version_repo = PromptVersionRepository()
 
 # Queries
+
+app_dataset_queries = AppDatasetQueries(
+    app_dataset_repo=app_dataset_repo
+)
 
 judgement_queries = JudgementQueries()
 sample_queries = SampleQueries(

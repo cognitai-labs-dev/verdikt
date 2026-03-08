@@ -31,6 +31,6 @@ class AppDatasetUpdateSchema(UpdateSchema):
     question: str | None = None
     human_answer: str | None = None
     updated_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         description="Timestamp when the row was updated",
     )

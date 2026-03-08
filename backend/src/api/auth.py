@@ -14,5 +14,5 @@ class TokenVerifier:
             token,
             signing_key.key,
             algorithms=self.settings.JWT_ALGORITHMS,
-            audience=self.settings.JWT_CLIENT_ID,
+            options={"verify_aud": False},
         )

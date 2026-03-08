@@ -27,7 +27,7 @@ async def test_get_many_by_app_id_returns_datasets_for_given_app(
     await app_dataset_db_schema_factory(
         db_conn, app_id=app.id, question="Q2"
     )
-    # different app_id
+    # different app_id — must not appear
     await app_dataset_db_schema_factory(
         db_conn, app_id=other_app.id, question="Q3"
     )

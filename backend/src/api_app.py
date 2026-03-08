@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from src.api.v1.router import router
 from src.config import APISettings
@@ -14,6 +15,10 @@ async def lifespan(app: FastAPI):
     await db_adpater.connect(settings.postgres_dsn)
     yield
     await db_adpater.disconnect()
+
+
+class WellKnownResponse(BaseModel):
+    issuer: str
 
 
 def api_factory():
@@ -31,6 +36,16 @@ def api_factory():
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.get(
+        "/.well-known",
+        operation_id="getWellKnown",
+        tags=["Discovery"],
+    )
+    async def get_well_known() -> WellKnownResponse:
+        settings = APISettings()
+        return WellKnownResponse(issuer=settings.zitadel_issuer)
+
     app.include_router(router)
 
     return app

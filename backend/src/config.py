@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import urlparse
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from yalc import LLMModel
@@ -53,4 +54,8 @@ class ProcessorSettings(LLMSettings, PostgresSettings):
 class APISettings(PostgresSettings):
     JKWS_URI: str = "http://localhost:8080/oauth/v2/keys"
     JWT_ALGORITHMS: list[str] = ["RS256"]
-    JWT_CLIENT_ID: str
+
+    @property
+    def zitadel_issuer(self) -> str:
+        parsed = urlparse(self.JKWS_URI)
+        return f"{parsed.scheme}://{parsed.netloc}"

@@ -7,6 +7,7 @@ apps_table = sa.Table(
     sa_metadata,
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
     sa.Column("name", sa.String(100), nullable=False),
+    sa.Column("slug", sa.String(100), nullable=False, unique=True),
     sa.Column(
         "current_prompt_version_id",
         sa.Integer,
