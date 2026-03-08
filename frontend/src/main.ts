@@ -19,18 +19,18 @@ const vuetify = createVuetify({
     themes: {
       light: {
         colors: {
-          primary: "#1565C0",
-          secondary: "#546E7A",
+          primary: "#2563EB",
+          secondary: "#64748B",
           surface: "#FFFFFF",
-          background: "#F5F7FA",
+          background: "#F8FAFC",
         },
       },
       dark: {
         colors: {
-          primary: "#42A5F5",
-          secondary: "#90A4AE",
-          surface: "#1E1E1E",
-          background: "#121212",
+          primary: "#3B82F6",
+          secondary: "#94A3B8",
+          surface: "#1C1C1E",
+          background: "#111113",
         },
       },
     },

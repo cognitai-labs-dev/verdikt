@@ -27,19 +27,29 @@ function toggleTheme() {
 
 <template>
   <v-app>
-    <v-app-bar color="primary" elevation="2">
-      <v-btn icon="mdi-home" variant="text" @click="goHome" />
-      <v-app-bar-title class="font-weight-bold">
+    <v-app-bar color="surface" elevation="0" border="b">
+      <!-- Logo / home -->
+      <div class="d-flex align-center pl-2" style="cursor: pointer" @click="goHome">
+        <v-icon icon="mdi-scale-balance" color="primary" size="22" class="mr-1" />
+        <span class="text-body-1 font-weight-bold" style="letter-spacing: 0.04em">Verdikt</span>
+      </div>
+
+      <!-- Breadcrumb -->
+      <v-app-bar-title class="ml-4">
         <template v-if="activeApp">
-          <span style="cursor: pointer" @click="router.push(`/app/${activeApp.id}/detail`)">
+          <span
+            class="text-body-2 text-medium-emphasis"
+            style="cursor: pointer"
+            @click="router.push(`/app/${activeApp.id}/detail`)"
+          >
             {{ activeApp.name }}
           </span>
-          <span v-if="route.name && route.name !== 'Apps detail'" class="font-weight-regular">
-            / {{ route.name }}
+          <span v-if="route.name && route.name !== 'Apps detail'" class="text-body-2 text-disabled">
+            &nbsp;/&nbsp;{{ route.name }}
           </span>
         </template>
         <template v-else-if="route.name">
-          {{ route.name }}
+          <span class="text-body-2 text-medium-emphasis">{{ route.name }}</span>
         </template>
       </v-app-bar-title>
 
@@ -50,11 +60,20 @@ function toggleTheme() {
           "
           @click="toggleTheme"
           variant="text"
+          size="small"
         />
-        <span v-if="zitadelAuth.oidcAuth.isAuthenticated" class="text-body-2 mx-2">
+        <span
+          v-if="zitadelAuth.oidcAuth.isAuthenticated"
+          class="text-body-2 text-medium-emphasis mx-2"
+        >
           {{ zitadelAuth.oidcAuth.userProfile.name ?? zitadelAuth.oidcAuth.userProfile.email }}
         </span>
-        <v-btn icon="mdi-logout" variant="text" @click="zitadelAuth.oidcAuth.signOut()" />
+        <v-btn
+          icon="mdi-logout"
+          variant="text"
+          size="small"
+          @click="zitadelAuth.oidcAuth.signOut()"
+        />
       </template>
     </v-app-bar>
 
