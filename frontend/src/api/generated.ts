@@ -34,6 +34,7 @@ export interface AppDatasetsRequest {
 
 export interface AppRequest {
   name: string
+  slug: string
 }
 
 export interface AppSchema {
@@ -42,6 +43,11 @@ export interface AppSchema {
    * @maxLength 100
    */
   name: string
+  /**
+   * URL-safe identifier (lowercase, alphanumeric, hyphens)
+   * @maxLength 100
+   */
+  slug: string
   current_prompt_version_id?: number | null
   /** Unique identifier */
   id: number
@@ -78,7 +84,7 @@ export interface EvaluationRequest {
   evaluation_type: EvaluationType
   /** a dict of values where the key is the dataset id and the value is the app answer to the question */
   app_answers: EvaluationRequestAppAnswers
-  llm_judge_models?: LLMModel[]
+  llm_judge_models: LLMModel[]
 }
 
 export interface EvaluationSummary {
@@ -271,12 +277,82 @@ export interface UpdateCurrentPromptRequest {
   prompt_id: number
 }
 
+export interface WellKnownResponse {
+  issuer: string
+}
+
 export type GetEvaluationsSummariesParams = {
   eval_type: EvaluationType
 }
 
 export type GetEvaluationSamplesParams = {
   judgment_type?: JudgmentType
+}
+
+/**
+ * @summary Get Well Known
+ */
+export type getWellKnownResponse200 = {
+  data: WellKnownResponse
+  status: 200
+}
+
+export type getWellKnownResponseSuccess = getWellKnownResponse200 & {
+  headers: Headers
+}
+export type getWellKnownResponse = getWellKnownResponseSuccess
+
+export const getGetWellKnownUrl = () => {
+  return `http://127.0.0.1:8000/.well-known`
+}
+
+export const getWellKnown = async (options?: RequestInit): Promise<getWellKnownResponse> => {
+  return customFetch<getWellKnownResponse>(getGetWellKnownUrl(), {
+    ...options,
+    method: "GET",
+  })
+}
+
+/**
+ * Get an app by its slug
+ * @summary Get App By Slug
+ */
+export type getAppBySlugResponse200 = {
+  data: AppSchema
+  status: 200
+}
+
+export type getAppBySlugResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getAppBySlugResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getAppBySlugResponseSuccess = getAppBySlugResponse200 & {
+  headers: Headers
+}
+export type getAppBySlugResponseError = (getAppBySlugResponse404 | getAppBySlugResponse422) & {
+  headers: Headers
+}
+
+export type getAppBySlugResponse = getAppBySlugResponseSuccess | getAppBySlugResponseError
+
+export const getGetAppBySlugUrl = (slug: string) => {
+  return `http://127.0.0.1:8000/v1/app/by-slug/${slug}`
+}
+
+export const getAppBySlug = async (
+  slug: string,
+  options?: RequestInit,
+): Promise<getAppBySlugResponse> => {
+  return customFetch<getAppBySlugResponse>(getGetAppBySlugUrl(slug), {
+    ...options,
+    method: "GET",
+  })
 }
 
 /**
@@ -466,9 +542,14 @@ export const postApp = async (
 }
 
 /**
- * Create app datasets, datasets are used as templates for judging
+ * Upsert datasets for an app — inserts new questions, updates changed answers, no-ops identical entries
  * @summary Post App Datasets
  */
+export type postAppDatasetsResponse200 = {
+  data: AppDatasetSchema[]
+  status: 200
+}
+
 export type postAppDatasetsResponse201 = {
   data: AppDatasetSchema[]
   status: 201
@@ -484,7 +565,10 @@ export type postAppDatasetsResponse422 = {
   status: 422
 }
 
-export type postAppDatasetsResponseSuccess = postAppDatasetsResponse201 & {
+export type postAppDatasetsResponseSuccess = (
+  | postAppDatasetsResponse200
+  | postAppDatasetsResponse201
+) & {
   headers: Headers
 }
 export type postAppDatasetsResponseError = (
@@ -750,6 +834,7 @@ export const getEvaluationsSummaries = async (
 }
 
 /**
+ * Add a judgement to a sample, used for human judging
  * @summary Post Sample
  */
 export type postJudgmentResponse201 = {

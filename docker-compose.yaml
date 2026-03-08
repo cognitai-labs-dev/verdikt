@@ -1,7 +1,7 @@
 services:
   zitadel:
     restart: unless-stopped
-    container_name: evaluation-app-zitadel
+    container_name: verdikt-zitadel
     image: ghcr.io/zitadel/zitadel:latest
     command: start-from-init --masterkey "MasterkeyNeedsToHave32Characters"
     environment:
@@ -90,7 +90,7 @@ services:
 
   login:
     restart: unless-stopped
-    container_name: evaluation-app-login
+    container_name: verdikt-zitadel-login
     image: ghcr.io/zitadel/zitadel-login:latest
     # If you can't use the network_mode service:zitadel, you can pass the environment variables ZITADEL_API_URL=http://zitadel:8080 and CUSTOM_REQUEST_HEADERS=Host:localhost instead.
     environment:
@@ -107,7 +107,7 @@ services:
         restart: false
 
   db:
-    container_name: evaluation-app-db
+    container_name: verdikt-db
     restart: unless-stopped
     image: postgres:17
     ports:
