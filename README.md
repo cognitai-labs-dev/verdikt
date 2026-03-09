@@ -1,4 +1,4 @@
-# Evaluation App
+# Verdikt
 
 Standalone AI evaluation service that decouples evaluation and judging from the application being evaluated. Supports human and LLM-based judgment of Q&A pairs with cost tracking and judge calibration.
 
