@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncEngine
-from yalc import LLMModel, create_client
+from yalc import create_client, LLMModel
 
 from src.config import ProcessorSettings
 from src.dependencies import (

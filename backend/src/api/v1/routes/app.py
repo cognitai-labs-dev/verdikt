@@ -88,8 +88,8 @@ async def get_apps(
 async def post_app(
     request: AppRequest,
     conn: AsyncConnection = Depends(get_connection),
-) -> None:
-    await app_commands.create(conn, request.name, request.slug)
+) -> AppSchema:
+    return await app_commands.create(conn, request.name, request.slug)
 
 
 @router.delete(
