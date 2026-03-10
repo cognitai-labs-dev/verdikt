@@ -58,6 +58,6 @@ async def get_evaluation_samples(
     judgment_type: JudgmentType = JudgmentType.HUMAN,
     conn: AsyncConnection = Depends(get_connection),
 ) -> list[SampleJudgmentSummarySchema]:
-    return await sample_repo.get_many_by_evaluation_with_judgements(
+    return await sample_repo.get_many_by_evaluation_with_judgments(
         conn, evaluation_id, judgment_type
     )

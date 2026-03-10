@@ -2,19 +2,19 @@ import asyncio
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncEngine
-from yalc import LLMModel, create_client
+from yalc import create_client, LLMModel
 
 from src.config import ProcessorSettings
 from src.dependencies import (
     db_adpater,
     evaluation_repo,
-    judgement_commands,
+    judgment_commands,
     judgment_repo,
     prompt_version_repo,
     sample_repo,
 )
-from src.judgement.commands import JudgementCommands
-from src.judgement.schemas import JudgmentResult, PricingSchema
+from src.judgment.commands import JudgmentCommands
+from src.judgment.schemas import JudgmentResult, PricingSchema
 from src.repositories.evaluation import EvaluationsRepository
 from src.repositories.judgment import JudgmentRepository
 from src.repositories.prompt_version import PromptVersionRepository
@@ -29,7 +29,7 @@ class JudgmentProcessor:
         settings: ProcessorSettings,
         judgment_repo: JudgmentRepository,
         sample_repo: SamplesRepository,
-        judgement_commands: JudgementCommands,
+        judgment_commands: JudgmentCommands,
         prompt_version_repo: PromptVersionRepository,
         evaluation_repo: EvaluationsRepository,
     ):
@@ -46,7 +46,7 @@ class JudgmentProcessor:
         }
 
         self.judgment_repo = judgment_repo
-        self.judgement_commands = judgement_commands
+        self.judgment_commands = judgment_commands
         self.sample_repo = sample_repo
         self.prompt_version_repo = prompt_version_repo
         self.evaluation_repo = evaluation_repo
@@ -82,17 +82,17 @@ class JudgmentProcessor:
             "Done processing pending judgments in a batch"
         )
 
-    async def _process_one_judgment(self, judgement: JudgmentSchema):
+    async def _process_one_judgment(self, judgment: JudgmentSchema):
         self.logger.info(
             "Processing judgment (%s) with id: %d",
-            judgement.judgment_model,
-            judgement.id,
+            judgment.judgment_model,
+            judgment.id,
         )
 
-        client = self.clients[LLMModel(judgement.judgment_model)]
+        client = self.clients[LLMModel(judgment.judgment_model)]
         async with self.db_engine.begin() as conn:
             sample = await self.sample_repo.get(
-                conn, judgement.sample_id
+                conn, judgment.sample_id
             )
             if sample is None:
                 raise RuntimeError("Sample not found for judgment")
@@ -125,17 +125,17 @@ class JudgmentProcessor:
             JudgmentResult, messages
         )
         async with self.db_engine.begin() as conn:
-            await self.judgement_commands.create(
+            await self.judgment_commands.create(
                 conn,
-                judgement.id,
+                judgment.id,
                 result,
                 PricingSchema(**metadata.model_dump()),
             )
 
         self.logger.info(
-            "Done judgement (%s) with id: %d",
-            judgement.judgment_model,
-            judgement.id,
+            "Done judgment (%s) with id: %d",
+            judgment.judgment_model,
+            judgment.id,
         )
 
 
@@ -147,7 +147,7 @@ async def main():
         settings,
         judgment_repo,
         sample_repo,
-        judgement_commands,
+        judgment_commands,
         prompt_version_repo,
         evaluation_repo,
     )

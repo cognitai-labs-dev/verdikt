@@ -1,12 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.constants import JudgmentStatus
-from src.judgement.schemas import JudgmentResult, PricingSchema
+from src.judgment.schemas import JudgmentResult, PricingSchema
 from src.repositories.judgment import JudgmentRepository
 from src.schemas.judgment import JudgmentUpdateSchema
 
 
-class JudgementCommands:
+class JudgmentCommands:
     def __init__(self, judgment_repo: JudgmentRepository):
         self.judgment = judgment_repo
 

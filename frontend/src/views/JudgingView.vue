@@ -5,7 +5,7 @@ import {
   getSampleDetail,
   type JudgmentSchema,
   type SampleJudgmentSummarySchema,
-  type SampleJudgements,
+  type SampleJudgments,
 } from "@/api/generated"
 import HumanJudgmentCard from "@/components/HumanJudgmentCard.vue"
 import LlmJudgmentsCard from "@/components/LlmJudgmentsCard.vue"
@@ -25,7 +25,7 @@ const props = defineProps({
 
 const samples = ref<SampleJudgmentSummarySchema[]>([])
 const currentIndex = ref(0)
-const currentDetail = ref<SampleJudgements | null>(null)
+const currentDetail = ref<SampleJudgments | null>(null)
 const loadingList = ref(true)
 const loadingDetail = ref(false)
 const slideDirection = ref<"left" | "right">("left")
@@ -235,7 +235,7 @@ function handleKeydown(e: KeyboardEvent) {
                 />
 
                 <LlmJudgmentsCard
-                  :judgments="currentDetail.llm_judgements"
+                  :judgments="currentDetail.llm_judgments"
                   :completed="currentDetail.llm_judgments_count_completed"
                   :total="currentDetail.llm_judgments_count"
                   :passed="currentDetail.llm_judgments_count_passed"

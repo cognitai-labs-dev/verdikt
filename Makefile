@@ -22,15 +22,9 @@ lint: # Run pre-commit
 api: up-d upgrade-db # Run api
 	cd backend && uv run main.py api
 
-init: # Init app with 1 llm and 1 human evaluations
-	cd backend && uv run main.py create-app
-	cd backend && uv run main.py create-datasets 1
-	cd backend && uv run main.py evaluate 1 HUMAN_AND_LLM
-	cd backend && uv run main.py evaluate 1 LLM_ONLY
-
-eval:
-	cd backend && uv run main.py evaluate 1 HUMAN_AND_LLM
-	cd backend && uv run main.py evaluate 1 LLM_ONLY
+eval: # Run eval
+	cd backend && uv run main.py evaluate HUMAN_AND_LLM
+	cd backend && uv run main.py evaluate LLM_ONLY
 
 judge: # Judge evals
 	cd backend && uv run main.py run-judging

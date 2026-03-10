@@ -1,15 +1,17 @@
 import asyncio
+import os
+
 import logging
 
-import httpx
 import typer
 import uvicorn
+from verdikt_sdk import VerdiktClient, EvaluationType, Question
+from yalc import LLMModel
 
 from src.logging import setup_logging
 from src.processors.judgment_processor import main as processor_main
 
 setup_logging()
-
 
 logger = logging.getLogger(__name__)
 app = typer.Typer(pretty_exceptions_enable=False)
@@ -73,76 +75,44 @@ DATASETS = [
 
 
 @app.command()
-def create_app():
-    """Create the ai-oncall-assistant application."""
-    response = httpx.post(
-        f"{BASE_URL}/app", json={"name": "ai-oncall-assistant"}
-    )
-    response.raise_for_status()
-    logger.info("Created app 'ai-oncall-assistant'")
-
-
-@app.command()
-def create_datasets(
-    app_id: int = typer.Argument(help="Application ID"),
-):
-    """Load hardcoded datasets for an application."""
-    payload = {
-        "datasets": [
-            {
-                "question": d["question"],
-                "human_answer": d["human_answer"],
-            }
-            for d in DATASETS
-        ]
-    }
-    response = httpx.post(
-        f"{BASE_URL}/app/{app_id}/datasets", json=payload
-    )
-    response.raise_for_status()
-    logger.info(
-        "Created %d datasets for app_id=%d",
-        len(DATASETS),
-        app_id,
-    )
-
-
-@app.command()
 def evaluate(
-    app_id: int = typer.Argument(help="Application ID"),
-    eval_type: str = typer.Argument(
-        default="HUMAN_AND_LLM", help="Evaluation type"
-    ),
+        eval_type: str = typer.Argument(
+            default="HUMAN_AND_LLM", help="Evaluation type"
+        ),
 ):
     """Create an evaluation using hardcoded app answers."""
-    datasets_by_question = {d["question"]: d for d in DATASETS}
 
-    response = httpx.get(f"{BASE_URL}/app/{app_id}/datasets")
-    response.raise_for_status()
-    db_datasets = response.json()
+    async def run():
+        verdikt = VerdiktClient(
+            "http://localhost:8000",
+            client_id=os.environ["VERDIKT_CLIENT_ID"],
+            client_secret=os.environ["VERDIKT_CLIENT_SECRET"],
+        )
 
-    app_answers = {}
-    for ds in db_datasets:
-        if ds["question"] in datasets_by_question:
-            app_answers[str(ds["id"])] = datasets_by_question[
-                ds["question"]
-            ]["app_answer"]
+        questions = [
+            Question(question=d["question"], human_answer=d["human_answer"])
+            for d in DATASETS
+        ]
 
-    payload = {
-        "app_version": "1.0.0",
-        "evaluation_type": eval_type,
-        "app_answers": app_answers,
-        "llm_judge_models": ["gpt-4o-mini", "gpt-5-mini"],
-    }
-    response = httpx.post(
-        f"{BASE_URL}/app/{app_id}/evaluation", json=payload
-    )
-    response.raise_for_status()
-    logger.info(
-        "Created %s evaluation for app_id=%d",
-        eval_type,
-        app_id,
-    )
+        await verdikt.create_app("eval-app", "Evaluation")
+        await verdikt.add_questions("eval-app", questions)
+
+        app_answers = {d["question"]: d["app_answer"] for d in DATASETS}
+
+        async def callback(question: str) -> str:
+            return app_answers[question]
+
+        await verdikt.run_evaluation(
+            app_slug="eval-app",
+            app_version="1.0.0",
+            callback=callback,
+            evaluation_type=EvaluationType(eval_type),
+            llm_judge_models=[LLMModel.gpt_5_mini, LLMModel.gpt_4o_mini],
+        )
+
+        logger.info("Created %s evaluation", eval_type)
+
+    asyncio.run(run())
 
 
 @app.command()

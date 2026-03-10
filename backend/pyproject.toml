@@ -22,7 +22,8 @@ dependencies = [
     "sqlalchemy>=2.0.45",
     "starlette>=0.50.0",
     "uvicorn>=0.40.0",
-    "yalc>=0.1.2",
+    "verdikt-sdk>=0.1.1",
+    "yalc>=0.2.2",
 ]
 
 [dependency-groups]

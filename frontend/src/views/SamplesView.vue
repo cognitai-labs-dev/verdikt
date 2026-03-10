@@ -28,12 +28,12 @@ onMounted(async () => {
     if (items.value.length > 0) evaluationType.value = items.value[0]?.evaluation_type
 
     if (evaluationType.value === EvaluationType.LLM_ONLY) {
-      headers.value.push({ title: "AI judging", key: "llm_judgements_status" })
-      headers.value.push({ title: "Passed", key: "llm_judgements_statistic" })
+      headers.value.push({ title: "AI judging", key: "llm_judgments_status" })
+      headers.value.push({ title: "Passed", key: "llm_judgments_statistic" })
     } else if (evaluationType.value === EvaluationType.HUMAN_AND_LLM) {
       headers.value.push({ title: "Human judging", key: "human_judgment_passed" })
-      headers.value.push({ title: "AI judging", key: "llm_judgements_status" })
-      headers.value.push({ title: "Matched", key: "llm_judgements_statistic" })
+      headers.value.push({ title: "AI judging", key: "llm_judgments_status" })
+      headers.value.push({ title: "Matched", key: "llm_judgments_statistic" })
     }
   }
   headers.value.push({ title: "Cost", key: "total_cost" })
@@ -101,7 +101,7 @@ function onRowClick(_event: Event, { item }: { item: SampleSummary }) {
           </v-tooltip>
         </template>
 
-        <template #header.llm_judgements_statistic="{ column }">
+        <template #header.llm_judgments_statistic="{ column }">
           <span>{{ column.title }}</span>
           <v-icon
             size="small"
@@ -114,7 +114,7 @@ function onRowClick(_event: Event, { item }: { item: SampleSummary }) {
             >mdi-help-circle-outline</v-icon
           >
         </template>
-        <template #item.llm_judgements_statistic="{ item }">
+        <template #item.llm_judgments_statistic="{ item }">
           <LlmStatisticCell
             :passed="item.llm_judgments_count_passed"
             :total="item.llm_judgments_count"
@@ -136,7 +136,7 @@ function onRowClick(_event: Event, { item }: { item: SampleSummary }) {
           <v-icon v-else color="grey" icon="mdi-help-circle-outline" />
         </template>
 
-        <template #header.llm_judgements_status="{ column }">
+        <template #header.llm_judgments_status="{ column }">
           <span>{{ column.title }}</span>
           <v-icon
             size="small"
@@ -146,7 +146,7 @@ function onRowClick(_event: Event, { item }: { item: SampleSummary }) {
           >
         </template>
 
-        <template #item.llm_judgements_status="{ item }">
+        <template #item.llm_judgments_status="{ item }">
           <LlmStatusCell
             :count-completed="item.llm_judgments_count_completed"
             :count="item.llm_judgments_count"

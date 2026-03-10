@@ -2,11 +2,11 @@ from src.constants import EvaluationType, JudgmentStatus
 from src.schemas.judgment import JudgmentSchema
 
 
-class JudgementQueries:
+class JudgmentQueries:
     @staticmethod
     def pass_count(
         evaluation_type: EvaluationType,
-        llm_judgements: list[JudgmentSchema],
+        llm_judgments: list[JudgmentSchema],
         human: JudgmentSchema | None,
     ) -> int:
         if evaluation_type == EvaluationType.HUMAN_AND_LLM:
@@ -15,11 +15,11 @@ class JudgementQueries:
 
             return sum(
                 1
-                for llm in llm_judgements
+                for llm in llm_judgments
                 if llm.passed == human.passed
             )
         else:
-            return sum(1 for j in llm_judgements if j.passed)
+            return sum(1 for j in llm_judgments if j.passed)
 
     @staticmethod
     def llm_completion_count(
@@ -34,10 +34,10 @@ class JudgementQueries:
 
     @staticmethod
     def llm_cost(
-        llm_judgements: list[JudgmentSchema],
+        llm_judgments: list[JudgmentSchema],
     ) -> float:
         total = 0.0
-        for judgement in llm_judgements:
-            total += judgement.input_tokens_cost or 0
-            total += judgement.output_tokens_cost or 0
+        for judgment in llm_judgments:
+            total += judgment.input_tokens_cost or 0
+            total += judgment.output_tokens_cost or 0
         return total

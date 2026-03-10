@@ -1,10 +1,7 @@
-from pathlib import Path
 from urllib.parse import urlparse
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from yalc import LLMModel
-
-ROOT_DIR = Path(__file__).parent.parent
 
 settings_config_dict = SettingsConfigDict(
     env_file=".env", extra="ignore"

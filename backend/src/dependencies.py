@@ -7,8 +7,8 @@ from src.app.queries import AppDatasetQueries
 from src.db.pg import DBAdapter
 from src.evaluation.commands import EvaluationCommands
 from src.evaluation.queries import EvaluationQueries
-from src.judgement.commands import JudgementCommands
-from src.judgement.queries import JudgementQueries
+from src.judgment.commands import JudgmentCommands
+from src.judgment.queries import JudgmentQueries
 from src.prompt_version.queries import PromptVersionQueries
 from src.repositories.app_dataset import AppDatasetRepository
 from src.repositories.apps import AppsRepository
@@ -46,12 +46,12 @@ app_dataset_queries = AppDatasetQueries(
     app_dataset_repo=app_dataset_repo
 )
 
-judgement_queries = JudgementQueries()
+judgment_queries = JudgmentQueries()
 sample_queries = SampleQueries(
     judgment_repo=judgment_repo,
     sample_repo=sample_repo,
     evaluation_repo=evaluation_repo,
-    judgement_queries=judgement_queries,
+    judgment_queries=judgment_queries,
 )
 evaluation_queries = EvaluationQueries(
     sample_queries=sample_queries,
@@ -64,7 +64,7 @@ prompt_queries = PromptVersionQueries(
 
 # Commands
 
-judgement_commands = JudgementCommands(
+judgment_commands = JudgmentCommands(
     judgment_repo=judgment_repo,
 )
 

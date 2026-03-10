@@ -40,11 +40,11 @@ class SamplesRepository(
             SampleSchema.model_validate(row._mapping) for row in rows
         ]
 
-    async def get_many_by_evaluation_with_judgements(
+    async def get_many_by_evaluation_with_judgments(
         self,
         conn: AsyncConnection,
         evaluation_id: int,
-        judgement_type: JudgmentType,
+        judgment_type: JudgmentType,
     ) -> list[SampleJudgmentSummarySchema]:
         """Get lightweight judgment summaries for an evaluation.
 
@@ -64,7 +64,7 @@ class SamplesRepository(
             .where(
                 and_(
                     samples_table.c.evaluation_id == evaluation_id,
-                    judgments_table.c.judgment_type == judgement_type,
+                    judgments_table.c.judgment_type == judgment_type,
                 )
             )
             .order_by(samples_table.c.created_at.desc())

@@ -48,7 +48,7 @@ Password1!
 
 ```shell
 make api      # start DB + migrations + API server
-make init     # seed with mock data
+make eval # seed with mock data
 make judge    # run LLM judgment worker
 make fe       # start frontend dev server
 ```
