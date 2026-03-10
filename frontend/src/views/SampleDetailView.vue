@@ -3,7 +3,7 @@ import {
   EvaluationType,
   getSampleDetail,
   type JudgmentSchema,
-  type SampleJudgements,
+  type SampleJudgments,
 } from "@/api/generated"
 import HumanJudgmentCard from "@/components/HumanJudgmentCard.vue"
 import LlmJudgmentsCard from "@/components/LlmJudgmentsCard.vue"
@@ -20,7 +20,7 @@ const props = defineProps({
   },
 })
 
-const sample = ref<SampleJudgements | null>(null)
+const sample = ref<SampleJudgments | null>(null)
 const loading = ref(true)
 
 onMounted(async () => {
@@ -77,7 +77,7 @@ function onHumanJudgmentSaved(judgment: JudgmentSchema) {
           />
 
           <LlmJudgmentsCard
-            :judgments="sample.llm_judgements"
+            :judgments="sample.llm_judgments"
             :completed="sample.llm_judgments_count_completed"
             :total="sample.llm_judgments_count"
             :passed="sample.llm_judgments_count_passed"

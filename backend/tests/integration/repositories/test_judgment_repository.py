@@ -206,7 +206,7 @@ async def test_get_llm_judgments_by_sample_id_returns_list_or_empty(
     )
 
     # Act
-    results = await repo.get_llm_judgmenets_by_sample_id(
+    results = await repo.get_llm_judgments_by_sample_id(
         db_conn, s1.id
     )
 
@@ -215,11 +215,11 @@ async def test_get_llm_judgments_by_sample_id_returns_list_or_empty(
     assert results[0].id == j1.id
 
 
-# --- get_human_judgement_by_sample_id ---
+# --- get_human_judgment_by_sample_id ---
 
 
 @pytest.mark.anyio
-async def test_get_human_judgement_by_sample_id_returns_judgment_or_none(
+async def test_get_human_judgment_by_sample_id_returns_judgment_or_none(
     db_conn: AsyncConnection,
     repo: JudgmentRepository,
     sample_id: int,
@@ -232,7 +232,7 @@ async def test_get_human_judgement_by_sample_id_returns_judgment_or_none(
     )
 
     # Act
-    result = await repo.get_human_judgement_by_sample_id(
+    result = await repo.get_human_judgment_by_sample_id(
         db_conn, sample_id
     )
 

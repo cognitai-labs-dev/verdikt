@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from src.judgement.prompts import JUDGE_SYSTEM_PROMPT
+from src.judgment.prompts import JUDGE_SYSTEM_PROMPT
 from src.repositories.apps import AppsRepository
 from src.repositories.prompt_version import PromptVersionRepository
 from src.schemas.app import (

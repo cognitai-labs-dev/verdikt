@@ -86,8 +86,8 @@ class SummaryResponse(BaseModel):
 
 
 class EvaluationSummary(SummaryResponse, EvaluationSchema):
-    human_judgement_count: int
-    human_judgement_count_completed: int
+    human_judgment_count: int
+    human_judgment_count_completed: int
 
 
 class SampleSummary(SummaryResponse, SampleSchema):
@@ -101,9 +101,9 @@ class SampleSummary(SummaryResponse, SampleSchema):
     )
 
 
-class SampleJudgements(SampleSummary):
+class SampleJudgments(SampleSummary):
     human_judgment: JudgmentSchema | None
-    llm_judgements: list[JudgmentSchema]
+    llm_judgments: list[JudgmentSchema]
 
 
 class PromptVersionSummary(PromptVersionSchema):

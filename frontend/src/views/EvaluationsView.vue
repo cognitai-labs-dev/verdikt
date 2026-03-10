@@ -40,12 +40,12 @@ const headers = computed(() => {
   ]
 
   if (selectedEvalType.value === EvaluationType.LLM_ONLY) {
-    base.push({ title: "AI judging", key: "llm_judgements_status" })
-    base.push({ title: "Passed", key: "llm_judgements_statistic" })
+    base.push({ title: "AI judging", key: "llm_judgments_status" })
+    base.push({ title: "Passed", key: "llm_judgments_statistic" })
   } else {
-    base.push({ title: "Human judging", key: "human_judgements_status" })
-    base.push({ title: "AI judging", key: "llm_judgements_status" })
-    base.push({ title: "Matched", key: "llm_judgements_statistic" })
+    base.push({ title: "Human judging", key: "human_judgments_status" })
+    base.push({ title: "AI judging", key: "llm_judgments_status" })
+    base.push({ title: "Matched", key: "llm_judgments_statistic" })
   }
 
   base.push({ title: "Cost", key: "total_cost" })
@@ -105,7 +105,7 @@ const routeToEval = (_event: Event, { item }: { item: EvaluationSummary }) => {
           {{ formatDate(item.created_at) }}
         </template>
 
-        <template #header.llm_judgements_statistic="{ column }">
+        <template #header.llm_judgments_statistic="{ column }">
           <span>{{ column.title }}</span>
           <v-icon
             size="small"
@@ -118,14 +118,14 @@ const routeToEval = (_event: Event, { item }: { item: EvaluationSummary }) => {
             >mdi-help-circle-outline</v-icon
           >
         </template>
-        <template #item.llm_judgements_statistic="{ item }">
+        <template #item.llm_judgments_statistic="{ item }">
           <LlmStatisticCell
             :passed="item.llm_judgments_count_passed"
             :total="item.llm_judgments_count"
           />
         </template>
 
-        <template #header.human_judgements_status="{ column }">
+        <template #header.human_judgments_status="{ column }">
           <span>{{ column.title }}</span>
           <v-icon
             size="small"
@@ -137,14 +137,14 @@ const routeToEval = (_event: Event, { item }: { item: EvaluationSummary }) => {
           >
         </template>
 
-        <template #item.human_judgements_status="{ item }">
+        <template #item.human_judgments_status="{ item }">
           <LlmStatusCell
-            :count-completed="item.human_judgement_count_completed"
-            :count="item.human_judgement_count"
+            :count-completed="item.human_judgment_count_completed"
+            :count="item.human_judgment_count"
           />
         </template>
 
-        <template #header.llm_judgements_status="{ column }">
+        <template #header.llm_judgments_status="{ column }">
           <span>{{ column.title }}</span>
           <v-icon
             size="small"
@@ -153,7 +153,7 @@ const routeToEval = (_event: Event, { item }: { item: EvaluationSummary }) => {
             >mdi-help-circle-outline</v-icon
           >
         </template>
-        <template #item.llm_judgements_status="{ item }">
+        <template #item.llm_judgments_status="{ item }">
           <LlmStatusCell
             :count-completed="item.llm_judgments_count_completed"
             :count="item.llm_judgments_count"

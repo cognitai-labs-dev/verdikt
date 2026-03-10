@@ -68,7 +68,7 @@ async def test_get_many_by_evaluation_returns_empty_list_when_no_match(
 
 
 @pytest.mark.anyio
-async def test_get_many_by_evaluation_with_judgements_returns_flat_rows(
+async def test_get_many_by_evaluation_with_judgments_returns_flat_rows(
     db_conn: AsyncConnection, repo: SamplesRepository
 ):
     # Arrange
@@ -93,10 +93,10 @@ async def test_get_many_by_evaluation_with_judgements_returns_flat_rows(
     )
 
     # Act
-    results = await repo.get_many_by_evaluation_with_judgements(
+    results = await repo.get_many_by_evaluation_with_judgments(
         db_conn,
         evaluation_id=evaluation.id,
-        judgement_type=JudgmentType.LLM,
+        judgment_type=JudgmentType.LLM,
     )
 
     # Assert

@@ -1,7 +1,7 @@
 import pytest
 
 from src.constants import EvaluationType, JudgmentStatus
-from src.judgement.queries import JudgementQueries
+from src.judgment.queries import JudgmentQueries
 from tests.factories.judgment import judgment_db_schema_factory
 
 # --- pass_count: LLM_ONLY ---
@@ -22,7 +22,7 @@ async def test_pass_count_for_llm_only(passed_1, passed_2, expected):
         await judgment_db_schema_factory(passed=passed_2),
     ]
 
-    result = JudgementQueries.pass_count(
+    result = JudgmentQueries.pass_count(
         EvaluationType.LLM_ONLY, judgments, human=None
     )
 
@@ -30,7 +30,7 @@ async def test_pass_count_for_llm_only(passed_1, passed_2, expected):
 
 
 def test_pass_count_returns_zero_for_empty_list():
-    result = JudgementQueries.pass_count(
+    result = JudgmentQueries.pass_count(
         EvaluationType.LLM_ONLY, [], human=None
     )
 
@@ -60,7 +60,7 @@ async def test_pass_count_counts_llm_judgments_matching_human(
         await judgment_db_schema_factory(passed=llm_passed_2),
     ]
 
-    result = JudgementQueries.pass_count(
+    result = JudgmentQueries.pass_count(
         EvaluationType.HUMAN_AND_LLM, judgments, human=human
     )
 
@@ -71,7 +71,7 @@ async def test_pass_count_counts_llm_judgments_matching_human(
 async def test_pass_count_returns_zero_when_human_is_none():
     judgments = [await judgment_db_schema_factory(passed=True)]
 
-    result = JudgementQueries.pass_count(
+    result = JudgmentQueries.pass_count(
         EvaluationType.HUMAN_AND_LLM, judgments, human=None
     )
 
@@ -83,7 +83,7 @@ async def test_pass_count_returns_zero_when_human_passed_is_none():
     human = await judgment_db_schema_factory(passed=None)
     judgments = [await judgment_db_schema_factory(passed=True)]
 
-    result = JudgementQueries.pass_count(
+    result = JudgmentQueries.pass_count(
         EvaluationType.HUMAN_AND_LLM, judgments, human=human
     )
 
@@ -123,13 +123,13 @@ async def test_llm_completion_count(status_1, status_2, expected):
         await judgment_db_schema_factory(status=status_2),
     ]
 
-    result = JudgementQueries.llm_completion_count(judgments)
+    result = JudgmentQueries.llm_completion_count(judgments)
 
     assert result == expected
 
 
 def test_llm_completion_count_returns_zero_for_empty_list():
-    result = JudgementQueries.llm_completion_count([])
+    result = JudgmentQueries.llm_completion_count([])
 
     assert result == 0
 
@@ -168,12 +168,12 @@ async def test_llm_cost(
         ),
     ]
 
-    result = JudgementQueries.llm_cost(judgments)
+    result = JudgmentQueries.llm_cost(judgments)
 
     assert result == pytest.approx(expected)
 
 
 def test_llm_cost_returns_zero_for_empty_list():
-    result = JudgementQueries.llm_cost([])
+    result = JudgmentQueries.llm_cost([])
 
     assert result == 0.0

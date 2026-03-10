@@ -105,8 +105,8 @@ export interface EvaluationSummary {
   llm_judgments_count_completed: number
   /** Total cost for the sample */
   total_cost: number
-  human_judgement_count: number
-  human_judgement_count_completed: number
+  human_judgment_count: number
+  human_judgment_count_completed: number
 }
 
 export type ValidationErrorCtx = { [key: string]: unknown }
@@ -202,7 +202,7 @@ export interface PromptVersionSummary {
   evaluations_count: number
 }
 
-export interface SampleJudgements {
+export interface SampleJudgments {
   /** Foreign key to evaluations table */
   evaluation_id: number
   /** The question asked */
@@ -229,7 +229,7 @@ export interface SampleJudgements {
   /** Whether or not the judgment passed or not. If null it means the judgment was not made yet or its a llm only evaluation. */
   human_judgment_passed: boolean | null
   human_judgment: JudgmentSchema | null
-  llm_judgements: JudgmentSchema[]
+  llm_judgments: JudgmentSchema[]
 }
 
 /**
@@ -834,7 +834,7 @@ export const getEvaluationsSummaries = async (
 }
 
 /**
- * Add a judgement to a sample, used for human judging
+ * Add a judgment to a sample, used for human judging
  * @summary Post Sample
  */
 export type postJudgmentResponse201 = {
@@ -891,7 +891,7 @@ export const postJudgment = async (
  * @summary Get Sample
  */
 export type getSampleDetailResponse200 = {
-  data: SampleJudgements
+  data: SampleJudgments
   status: 200
 }
 

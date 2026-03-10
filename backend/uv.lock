@@ -1960,7 +1960,7 @@ requires-dist = [
     { name = "starlette", specifier = ">=0.50.0" },
     { name = "uvicorn", specifier = ">=0.40.0" },
     { name = "verdikt-sdk", specifier = ">=0.1.1" },
-    { name = "yalc", specifier = ">=0.2.1" },
+    { name = "yalc", specifier = ">=0.2.2" },
 ]
 
 [package.metadata.requires-dev]
@@ -2012,16 +2012,16 @@ wheels = [
 
 [[package]]
 name = "yalc"
-version = "0.2.1"
+version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
     { name = "instructor", extra = ["anthropic"] },
     { name = "litellm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b6/ca/e6b13d5b9261342feb0dc18caa277f7e4eefc43cf486f1665749411f6625/yalc-0.2.1.tar.gz", hash = "sha256:8ce5cb4fd2101b1b575d3138137a82c5c5a8be7e0f05bdc98ee27ad5ec4f0026", size = 7217, upload-time = "2026-02-21T13:54:54.071Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/95/88/d34316585df932d9d4a72b9eb1474ead29a0a34c105a6499bbc64189915d/yalc-0.2.2.tar.gz", hash = "sha256:e0ee641b0ebb911014d6f5a6beb2e591971d5d8e9cccd574a30dff107cf5ba13", size = 7225, upload-time = "2026-03-10T20:13:01.588Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ea/24/9c4af6a39a1b7af3c125c5ff914ebfb4ce0a795ed1ccfd3ad2a08d1f8875/yalc-0.2.1-py3-none-any.whl", hash = "sha256:23cb5608b518a08d516cecceab95cc76c844878d8da1f1ad5d9c0a9fe8877bdf", size = 9178, upload-time = "2026-02-21T13:54:52.75Z" },
+    { url = "https://files.pythonhosted.org/packages/de/fc/81163db31a3646d3160dbbc23e6fea45bd37ccba5101ca3bdff7457f28c9/yalc-0.2.2-py3-none-any.whl", hash = "sha256:04aba316bac9e131c245bd7f08bdc77eeae04ce23b9dfb75783d839164a2432c", size = 9125, upload-time = "2026-03-10T20:12:59.889Z" },
 ]
 
 [[package]]

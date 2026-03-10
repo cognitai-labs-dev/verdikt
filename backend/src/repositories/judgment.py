@@ -93,7 +93,7 @@ class JudgmentRepository(
             for sample_id in sample_ids
         }
 
-    async def get_llm_judgmenets_by_sample_id(
+    async def get_llm_judgments_by_sample_id(
         self, conn: AsyncConnection, sample_id: int
     ) -> list[JudgmentSchema]:
         result = await self.get_many_by_sample_ids(
@@ -101,7 +101,7 @@ class JudgmentRepository(
         )
         return result.get(sample_id, [])
 
-    async def get_human_judgement_by_sample_id(
+    async def get_human_judgment_by_sample_id(
         self, conn: AsyncConnection, sample_id: int
     ) -> JudgmentSchema | None:
         result = await self.get_human_judgments_by_sample_ids(

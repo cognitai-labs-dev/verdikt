@@ -49,8 +49,8 @@ class EvaluationQueries:
                 EvaluationSummary(
                     **evaluation.model_dump(),
                     **aggregated.model_dump(),
-                    human_judgement_count=humans_count,
-                    human_judgement_count_completed=humans_completed,
+                    human_judgment_count=humans_count,
+                    human_judgment_count_completed=humans_completed,
                 ),
             )
 
