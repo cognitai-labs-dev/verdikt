@@ -5,6 +5,7 @@ from src.repositories.apps import AppsRepository
 from src.repositories.prompt_version import PromptVersionRepository
 from src.schemas.app import (
     AppCreateSchema,
+    AppSchema,
     AppUpdateSchema,
 )
 from src.schemas.prompt_version import PromptVersionCreateSchema
@@ -21,7 +22,7 @@ class AppCommands:
 
     async def create(
         self, conn: AsyncConnection, name: str, slug: str
-    ):
+    ) -> AppSchema:
         app = await self.app_repo.create(
             conn,
             AppCreateSchema(name=name, slug=slug),
@@ -42,3 +43,8 @@ class AppCommands:
                 current_prompt_version_id=prompt.id,
             ),
         )
+
+        created_app = await self.app_repo.get(conn, app.id)
+        if created_app is None:
+            raise ValueError("App not found after creation")
+        return created_app
