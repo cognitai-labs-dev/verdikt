@@ -80,7 +80,8 @@ class EvaluationCommands:
                 evaluation_id=created_evaluation.id,
                 question=dataset.question,
                 human_answer=dataset.human_answer,
-                app_answer=evaluation.app_answers[dataset.id],
+                app_answer=evaluation.app_answers[dataset.id].answer,
+                app_cost=evaluation.app_answers[dataset.id].cost,
             )
             for dataset in datasets
         ]

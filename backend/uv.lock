@@ -1959,8 +1959,8 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.45" },
     { name = "starlette", specifier = ">=0.50.0" },
     { name = "uvicorn", specifier = ">=0.40.0" },
-    { name = "verdikt-sdk", specifier = ">=0.1.1" },
-    { name = "yalc", specifier = ">=0.2.2" },
+    { name = "verdikt-sdk", specifier = ">=0.2.0" },
+    { name = "yalc", specifier = ">=0.3.2" },
 ]
 
 [package.metadata.requires-dev]
@@ -1975,16 +1975,16 @@ dev = [
 
 [[package]]
 name = "verdikt-sdk"
-version = "0.1.1"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
     { name = "yalc" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/3a/99095b9658a4ef6e3e530c5f8f4b7b4eb3ad8fb2adfb40e183d0c5fabe0c/verdikt_sdk-0.1.1.tar.gz", hash = "sha256:a8cb3a14b4b45218c26eda9384e5a295b47adeaa1cc4d9fd2fb7d74b620cad10", size = 109052, upload-time = "2026-03-09T20:31:10.332Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/00/8c/f40718abbe4c84efe57d641c9dd334aa28f5129fdac78a63c9fdb849571f/verdikt_sdk-0.2.0.tar.gz", hash = "sha256:8d35153a30e3fb0125b93a7b99f02baacb7ae45bf51d1503e6026896c6546c6b", size = 110006, upload-time = "2026-05-09T09:16:39.249Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/53/896b612d5ec8cd2bd9c8665a724ca0ff0f88fc00a414b976fa42688fbe12/verdikt_sdk-0.1.1-py3-none-any.whl", hash = "sha256:34770c30647b8cdb429318f9b1b2b30c2826f0106bdb759d10f66cb942b9c99f", size = 6231, upload-time = "2026-03-09T20:31:08.957Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/39/38da728cb5bcda4c0a62bb76f16654f8d7dfc031865353f6740213518049/verdikt_sdk-0.2.0-py3-none-any.whl", hash = "sha256:83d37d49be2734113da56d553e25009f35fc03d6de6e49b64bcd2b7678b93854", size = 6681, upload-time = "2026-05-09T09:16:37.51Z" },
 ]
 
 [[package]]
@@ -2012,16 +2012,17 @@ wheels = [
 
 [[package]]
 name = "yalc"
-version = "0.2.2"
+version = "0.3.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "anthropic" },
     { name = "cachetools" },
-    { name = "instructor", extra = ["anthropic"] },
+    { name = "instructor" },
     { name = "litellm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/95/88/d34316585df932d9d4a72b9eb1474ead29a0a34c105a6499bbc64189915d/yalc-0.2.2.tar.gz", hash = "sha256:e0ee641b0ebb911014d6f5a6beb2e591971d5d8e9cccd574a30dff107cf5ba13", size = 7225, upload-time = "2026-03-10T20:13:01.588Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/63/f3/ba1a90f2f35243ca7d0f2b3bb78ddd087c18aabbe7842305098c6ee34a80/yalc-0.3.2.tar.gz", hash = "sha256:71eb3f87e385dd15c589bffa366242dba7ffa357e2bff2c62d1b383e9710bc69", size = 110616, upload-time = "2026-04-26T09:52:34.923Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/fc/81163db31a3646d3160dbbc23e6fea45bd37ccba5101ca3bdff7457f28c9/yalc-0.2.2-py3-none-any.whl", hash = "sha256:04aba316bac9e131c245bd7f08bdc77eeae04ce23b9dfb75783d839164a2432c", size = 9125, upload-time = "2026-03-10T20:12:59.889Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/e6/79373059f254a6917c1dd7220e2a175f231dea17244cea94a29caed7eb8f/yalc-0.3.2-py3-none-any.whl", hash = "sha256:07035b68f180e2f56d4ea249a6a4adbddd531bd7fecf708bfbf1e99ee88c48b1", size = 8993, upload-time = "2026-04-26T09:52:33.462Z" },
 ]
 
 [[package]]

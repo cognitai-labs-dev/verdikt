@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from yalc import LLMModel
 
 from src.constants import EvaluationType
+from src.evaluation.schemas import AppAnswerSchema
 from src.schemas.evaluation import EvaluationSchema
 from src.schemas.judgment import JudgmentSchema
 from src.schemas.prompt_version import PromptVersionSchema
@@ -19,8 +20,8 @@ class ErrorResponse(BaseModel):
 class EvaluationRequest(BaseModel):
     app_version: str
     evaluation_type: EvaluationType
-    app_answers: dict[int, str] = Field(
-        description="a dict of values where the key is the dataset id and the value is the app answer to the question"
+    app_answers: dict[int, AppAnswerSchema] = Field(
+        description="A dict keyed by dataset id; each value is the app's answer to that question and the cost (optional) of producing it"
     )
     llm_judge_models: list[LLMModel]
 
