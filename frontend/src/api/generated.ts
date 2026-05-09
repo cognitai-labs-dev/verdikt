@@ -5,6 +5,13 @@
  * OpenAPI spec version: 0.1.0
  */
 import { customFetch } from "./fetcher"
+export interface AppAnswerSchema {
+  /** The answer the app produced for the question */
+  answer: string
+  /** Cost of the app call that produced this answer */
+  cost?: number | null
+}
+
 export interface AppDatasetItem {
   question: string
   human_answer: string
@@ -60,9 +67,9 @@ export interface ErrorResponse {
 }
 
 /**
- * a dict of values where the key is the dataset id and the value is the app answer to the question
+ * A dict keyed by dataset id; each value is the app's answer to that question and the cost (optional) of producing it
  */
-export type EvaluationRequestAppAnswers = { [key: string]: string }
+export type EvaluationRequestAppAnswers = { [key: string]: AppAnswerSchema }
 
 export type EvaluationType = (typeof EvaluationType)[keyof typeof EvaluationType]
 
@@ -71,18 +78,33 @@ export const EvaluationType = {
   HUMAN_AND_LLM: "HUMAN_AND_LLM",
 } as const
 
+/**
+ * Supported LLM models.
+
+Each value is the canonical model ID string used when calling the provider API.
+ */
 export type LLMModel = (typeof LLMModel)[keyof typeof LLMModel]
 
 export const LLMModel = {
   "gpt-4o-mini": "gpt-4o-mini",
   "gpt-5-mini": "gpt-5-mini",
+  "gpt-5-nano": "gpt-5-nano",
+  "gpt-52": "gpt-5.2",
+  "gpt-52-codex": "gpt-5.2-codex",
+  "gpt-54": "gpt-5.4",
+  "gpt-54-mini": "gpt-5.4-mini",
+  "gpt-54-nano": "gpt-5.4-nano",
+  "claude-haiku-4-5": "claude-haiku-4-5",
   "claude-sonnet-4-5": "claude-sonnet-4-5",
+  "claude-sonnet-4-6": "claude-sonnet-4-6",
+  "claude-opus-4-6": "claude-opus-4-6",
+  "claude-opus-4-7": "claude-opus-4-7",
 } as const
 
 export interface EvaluationRequest {
   app_version: string
   evaluation_type: EvaluationType
-  /** a dict of values where the key is the dataset id and the value is the app answer to the question */
+  /** A dict keyed by dataset id; each value is the app's answer to that question and the cost (optional) of producing it */
   app_answers: EvaluationRequestAppAnswers
   llm_judge_models: LLMModel[]
 }
@@ -202,6 +224,18 @@ export interface PromptVersionSummary {
   evaluations_count: number
 }
 
+/**
+ * Lightweight sample + judgment status for navigation.
+ */
+export interface SampleJudgmentSummarySchema {
+  /** The sample identifier */
+  sample_id: number
+  /** Judgment status (PENDING or COMPLETED) */
+  status: string
+  /** Whether the judgment passed */
+  passed?: boolean | null
+}
+
 export interface SampleJudgments {
   /** Foreign key to evaluations table */
   evaluation_id: number
@@ -230,18 +264,6 @@ export interface SampleJudgments {
   human_judgment_passed: boolean | null
   human_judgment: JudgmentSchema | null
   llm_judgments: JudgmentSchema[]
-}
-
-/**
- * Lightweight sample + judgment status for navigation.
- */
-export interface SampleJudgmentSummarySchema {
-  /** The sample identifier */
-  sample_id: number
-  /** Judgment status (PENDING or COMPLETED) */
-  status: string
-  /** Whether the judgment passed */
-  passed?: boolean | null
 }
 
 export interface SampleSummary {
@@ -507,7 +529,7 @@ export const getApps = async (options?: RequestInit): Promise<getAppsResponse> =
  * @summary Post App
  */
 export type postAppResponse201 = {
-  data: unknown
+  data: AppSchema
   status: 201
 }
 

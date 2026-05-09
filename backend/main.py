@@ -5,7 +5,7 @@ import logging
 
 import typer
 import uvicorn
-from verdikt_sdk import VerdiktClient, EvaluationType, Question
+from verdikt_sdk import AnswerWithCost, EvaluationType, Question, VerdiktClient
 from yalc import LLMModel
 
 from src.logging import setup_logging
@@ -99,8 +99,8 @@ def evaluate(
 
         app_answers = {d["question"]: d["app_answer"] for d in DATASETS}
 
-        async def callback(question: str) -> str:
-            return app_answers[question]
+        async def callback(question: str) -> AnswerWithCost:
+            return AnswerWithCost(answer=app_answers[question], cost=0.0)
 
         await verdikt.run_evaluation(
             app_slug="eval-app",
