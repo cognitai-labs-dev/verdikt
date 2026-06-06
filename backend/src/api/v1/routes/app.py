@@ -158,6 +158,28 @@ async def get_app_datasets(
     return await app_dataset_repo.get_many_by_app_id(conn, app_id)
 
 
+@router.delete(
+    "/{app_id}/datasets/{dataset_id}",
+    operation_id="deleteAppDataset",
+    status_code=204,
+    responses={
+        404: {"model": ErrorResponse},
+    },
+)
+async def delete_app_dataset(
+    app_id: int,
+    dataset_id: int,
+    conn: AsyncConnection = Depends(get_connection),
+) -> None:
+    dataset = await app_dataset_repo.get(conn, dataset_id)
+    if dataset is None or dataset.app_id != app_id:
+        raise HTTPException(
+            status_code=404, detail="Question not found"
+        )
+
+    await app_dataset_repo.delete(conn, dataset_id)
+
+
 @router.post(
     "/{app_id}/evaluation",
     operation_id="postAppEvaluation",

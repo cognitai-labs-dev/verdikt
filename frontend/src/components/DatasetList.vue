@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import { postAppDatasets, type AppDatasetSchema } from "@/api/generated"
+import { postAppDatasets, deleteAppDataset, type AppDatasetSchema } from "@/api/generated"
 import { formatDate } from "@/utils/format"
 
 const props = defineProps<{
@@ -8,7 +8,10 @@ const props = defineProps<{
   datasets: AppDatasetSchema[]
 }>()
 
-const emit = defineEmits<{ created: [datasets: AppDatasetSchema[]] }>()
+const emit = defineEmits<{
+  created: [datasets: AppDatasetSchema[]]
+  deleted: [id: number]
+}>()
 
 const headers = [
   { title: "Question", key: "question", sortable: false },
@@ -26,6 +29,12 @@ const humanAnswer = ref("")
 const creating = ref(false)
 const createError = ref<string | null>(null)
 
+// delete-specific state
+const viewingId = ref<number | null>(null)
+const deleteDialogOpen = ref(false)
+const deleting = ref(false)
+const deleteError = ref<string | null>(null)
+
 const dialogTitle = computed(() => (dialogMode.value === "create" ? "Add Question" : "Question"))
 const isReadOnly = computed(() => dialogMode.value === "view")
 
@@ -39,9 +48,28 @@ function openCreateDialog() {
 
 function openViewDialog(item: AppDatasetSchema) {
   dialogMode.value = "view"
+  viewingId.value = item.id
   question.value = item.question
   humanAnswer.value = item.human_answer
   dialogOpen.value = true
+}
+
+async function handleDelete() {
+  if (viewingId.value === null) return
+  deleting.value = true
+  deleteError.value = null
+  try {
+    const res = await deleteAppDataset(props.appId, viewingId.value)
+    if (res.status === 204) {
+      emit("deleted", viewingId.value)
+      deleteDialogOpen.value = false
+      dialogOpen.value = false
+    } else {
+      deleteError.value = "Failed to delete question. Please try again."
+    }
+  } finally {
+    deleting.value = false
+  }
 }
 
 async function handleCreate() {
@@ -154,6 +182,15 @@ function truncate(text: string, maxLen = 100): string {
         </template>
       </v-card-text>
       <v-card-actions>
+        <v-btn
+          v-if="isReadOnly"
+          color="error"
+          variant="text"
+          prepend-icon="mdi-delete"
+          @click="deleteDialogOpen = true"
+        >
+          Delete
+        </v-btn>
         <v-spacer />
         <v-btn variant="text" @click="dialogOpen = false">Close</v-btn>
         <v-btn
@@ -165,6 +202,28 @@ function truncate(text: string, maxLen = 100): string {
           @click="handleCreate"
         >
           Add
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="deleteDialogOpen" max-width="440">
+    <v-card rounded="lg">
+      <v-card-title class="d-flex align-center">
+        <v-icon start color="error">mdi-delete</v-icon>
+        Delete Question
+      </v-card-title>
+      <v-card-text>
+        Are you sure you want to delete this question? This cannot be undone.
+        <v-alert v-if="deleteError" type="error" variant="tonal" class="mt-3">
+          {{ deleteError }}
+        </v-alert>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="deleteDialogOpen = false">Cancel</v-btn>
+        <v-btn color="error" variant="flat" :loading="deleting" @click="handleDelete">
+          Delete
         </v-btn>
       </v-card-actions>
     </v-card>
