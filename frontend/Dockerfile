@@ -13,7 +13,7 @@ ENV VITE_ZITADEL_CLIENT_ID=$VITE_ZITADEL_CLIENT_ID
 ENV VITE_ZITADEL_PROJECT_RESOURCE_ID=$VITE_ZITADEL_PROJECT_RESOURCE_ID
 
 # Enable pnpm via corepack
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@11.5.2 --activate
 
 # Copy package
 COPY package.json pnpm-lock.yaml ./
