@@ -16,7 +16,7 @@ ENV VITE_ZITADEL_PROJECT_RESOURCE_ID=$VITE_ZITADEL_PROJECT_RESOURCE_ID
 RUN corepack enable && corepack prepare pnpm@11.5.2 --activate
 
 # Copy package
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install depedencies
 RUN pnpm install --frozen-lockfile
