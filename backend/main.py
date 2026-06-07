@@ -1,11 +1,15 @@
 import asyncio
-import os
-
 import logging
+import os
 
 import typer
 import uvicorn
-from verdikt_sdk import AnswerWithCost, EvaluationType, Question, VerdiktClient
+from verdikt_sdk import (
+    AnswerWithCost,
+    EvaluationType,
+    Question,
+    VerdiktClient,
+)
 from yalc import LLMModel
 
 from src.logging import setup_logging
@@ -76,9 +80,9 @@ DATASETS = [
 
 @app.command()
 def evaluate(
-        eval_type: str = typer.Argument(
-            default="HUMAN_AND_LLM", help="Evaluation type"
-        ),
+    eval_type: str = typer.Argument(
+        default="HUMAN_AND_LLM", help="Evaluation type"
+    ),
 ):
     """Create an evaluation using hardcoded app answers."""
 
@@ -90,24 +94,33 @@ def evaluate(
         )
 
         questions = [
-            Question(question=d["question"], human_answer=d["human_answer"])
+            Question(
+                question=d["question"], human_answer=d["human_answer"]
+            )
             for d in DATASETS
         ]
 
         await verdikt.create_app("eval-app", "Evaluation")
-        await verdikt.add_questions("eval-app", questions)
+        await verdikt.add_questions("eval-app", questions, True)
 
-        app_answers = {d["question"]: d["app_answer"] for d in DATASETS}
+        app_answers = {
+            d["question"]: d["app_answer"] for d in DATASETS
+        }
 
         async def callback(question: str) -> AnswerWithCost:
-            return AnswerWithCost(answer=app_answers[question], cost=0.0)
+            return AnswerWithCost(
+                answer=app_answers[question], cost=0.0
+            )
 
         await verdikt.run_evaluation(
             app_slug="eval-app",
             app_version="1.0.0",
             callback=callback,
             evaluation_type=EvaluationType(eval_type),
-            llm_judge_models=[LLMModel.gpt_5_mini, LLMModel.gpt_4o_mini],
+            llm_judge_models=[
+                LLMModel.gpt_5_mini,
+                LLMModel.gpt_4o_mini,
+            ],
         )
 
         logger.info("Created %s evaluation", eval_type)

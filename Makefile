@@ -22,6 +22,12 @@ lint: # Run pre-commit
 api: up-d upgrade-db # Run api
 	cd backend && uv run main.py api
 
+dev: up-d upgrade-db # Run full local stack (db + api + frontend) in one go
+	@trap 'kill 0' EXIT INT TERM; \
+	(cd backend && uv run main.py api) & \
+	(cd frontend && pnpm run dev) & \
+	wait
+
 eval: # Run eval
 	cd backend && uv run main.py evaluate HUMAN_AND_LLM
 	cd backend && uv run main.py evaluate LLM_ONLY
