@@ -664,6 +664,53 @@ export const getAppDatasets = async (
 }
 
 /**
+ * @summary Delete App Dataset
+ */
+export type deleteAppDatasetResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteAppDatasetResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteAppDatasetResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type deleteAppDatasetResponseSuccess = deleteAppDatasetResponse204 & {
+  headers: Headers
+}
+export type deleteAppDatasetResponseError = (
+  | deleteAppDatasetResponse404
+  | deleteAppDatasetResponse422
+) & {
+  headers: Headers
+}
+
+export type deleteAppDatasetResponse =
+  | deleteAppDatasetResponseSuccess
+  | deleteAppDatasetResponseError
+
+export const getDeleteAppDatasetUrl = (appId: number, datasetId: number) => {
+  return `http://127.0.0.1:8000/v1/app/${appId}/datasets/${datasetId}`
+}
+
+export const deleteAppDataset = async (
+  appId: number,
+  datasetId: number,
+  options?: RequestInit,
+): Promise<deleteAppDatasetResponse> => {
+  return customFetch<deleteAppDatasetResponse>(getDeleteAppDatasetUrl(appId, datasetId), {
+    ...options,
+    method: "DELETE",
+  })
+}
+
+/**
  * Create an evaluation, evaluation is an insance of a dataset where the app answers are provided that will be judged
  * @summary Post App Evaluation
  */

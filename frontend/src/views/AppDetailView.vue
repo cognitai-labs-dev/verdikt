@@ -141,6 +141,7 @@ const goToEvaluations = () => {
           :app-id="appId"
           :datasets="datasets"
           @created="(items) => datasets.unshift(...items)"
+          @deleted="(id) => (datasets = datasets.filter((d) => d.id !== id))"
         />
       </div>
     </template>

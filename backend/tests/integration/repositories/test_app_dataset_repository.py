@@ -39,3 +39,31 @@ async def test_get_many_by_app_id_returns_datasets_for_given_app(
     assert len(results) == 2
     questions = {r.question for r in results}
     assert questions == {"Q1", "Q2"}
+
+
+@pytest.mark.anyio
+async def test_delete_removes_dataset_by_id(
+    db_conn: AsyncConnection, repo: AppDatasetRepository
+):
+    # Arrange
+    app = await app_db_schema_factory(db_conn)
+    dataset = await app_dataset_db_schema_factory(db_conn, app_id=app.id)
+
+    # Act
+    deleted = await repo.delete(db_conn, dataset.id)
+
+    # Assert
+    assert deleted is True
+    remaining = await repo.get_many_by_app_id(db_conn, app.id)
+    assert len(remaining) == 0
+
+
+@pytest.mark.anyio
+async def test_delete_returns_false_when_id_missing(
+    db_conn: AsyncConnection, repo: AppDatasetRepository
+):
+    # Act
+    deleted = await repo.delete(db_conn, 999999)
+
+    # Assert
+    assert deleted is False
