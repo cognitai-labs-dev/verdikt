@@ -44,7 +44,7 @@ def api_factory():
     )
     async def get_well_known() -> WellKnownResponse:
         settings = APISettings()
-        return WellKnownResponse(issuer=settings.zitadel_issuer)
+        return WellKnownResponse(issuer=settings.OIDC_ISSUER)
 
     app.include_router(router)
 

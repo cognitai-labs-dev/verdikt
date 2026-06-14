@@ -21,7 +21,6 @@
         "@fontsource/roboto": "^5.2.9",
         "@mdi/font": "^7.4.47",
         "@tanstack/vue-query": "^5.92.9",
-        "@zitadel/vue": "^1.1.7",
         "diff": "^8.0.3",
         "diff2html": "^3.4.56",
         "oidc-client": "^1.11.5",

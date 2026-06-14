@@ -2,7 +2,7 @@
 import { useRouter, useRoute } from "vue-router"
 import { useTheme } from "vuetify"
 import { useActiveApp } from "@/stores/useActiveApp"
-import zitadelAuth from "@/services/zitadelAuth"
+import auth from "@/services/auth"
 
 const router = useRouter()
 const route = useRoute()
@@ -62,18 +62,10 @@ function toggleTheme() {
           variant="text"
           size="small"
         />
-        <span
-          v-if="zitadelAuth.oidcAuth.isAuthenticated"
-          class="text-body-2 text-medium-emphasis mx-2"
-        >
-          {{ zitadelAuth.oidcAuth.userProfile.name ?? zitadelAuth.oidcAuth.userProfile.email }}
+        <span v-if="auth.oidcAuth.isAuthenticated" class="text-body-2 text-medium-emphasis mx-2">
+          {{ auth.oidcAuth.userProfile.name ?? auth.oidcAuth.userProfile.email }}
         </span>
-        <v-btn
-          icon="mdi-logout"
-          variant="text"
-          size="small"
-          @click="zitadelAuth.oidcAuth.signOut()"
-        />
+        <v-btn icon="mdi-logout" variant="text" size="small" @click="auth.oidcAuth.signOut()" />
       </template>
     </v-app-bar>
 
