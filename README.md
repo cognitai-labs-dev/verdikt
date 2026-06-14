@@ -96,7 +96,7 @@ login UI on `:3000`) so you can develop without an external IdP.
 
    ```
    OIDC_ISSUER=http://localhost:8080
-   OIDC_AUDIENCE=<client-id>
+   OIDC_AUDIENCE=<client-id>        # comma-separated; add the SDK id too (below)
    ```
 
 5. Run the app and log in:
@@ -107,6 +107,36 @@ login UI on `:3000`) so you can develop without an external IdP.
 
    The frontend is served at <http://localhost:5173>; an unauthenticated route
    redirects to the Zitadel login.
+
+### SDK access (machine user)
+
+The Python SDK authenticates with the OAuth2 **client-credentials** grant,
+which in Zitadel means a **Service User**. Service Users are **org-level** —
+they survive project deletion, unlike the SPA app above.
+
+1. Console → **Users** → **Service Users** → **+ New**.
+   - **Username**: e.g. `sdk-test` (this becomes the client id **and** the
+     token's `aud`).
+   - **Access Token Type**: `Bearer`. Create.
+
+2. Open the service user → **Client Secret** → **Generate**. Copy the
+   **Client ID** (the username) and the **Client Secret** — the secret is shown
+   once.
+
+3. Add them to root `.env`, and append the SDK's id to the audience allowlist
+   so the backend accepts its token:
+
+   ```
+   VERDIKT_CLIENT_ID=sdk-test
+   VERDIKT_CLIENT_SECRET=<generated-secret>
+   OIDC_AUDIENCE=<spa-client-id>,sdk-test
+   ```
+
+   Restart the backend after changing `.env` (it reads it at startup).
+
+> The SDK token's `aud` is the service user's id, which differs from the SPA
+> client id — that's why `OIDC_AUDIENCE` is a list. See the SDK repo for client
+> usage.
 
 ## Quick Start
 
