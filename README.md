@@ -56,6 +56,58 @@ After login the IdP redirects to the redirect URI; the app exchanges the code
 for tokens and continues to the original destination (or `/`). Logout redirects
 back to `/`.
 
+### Local dev with Zitadel
+
+The `docker-compose.yaml` ships a self-hosted Zitadel (console on `:8080`,
+login UI on `:3000`) so you can develop without an external IdP.
+
+1. Start the stack (db + zitadel + login):
+
+   ```shell
+   make up-d        # docker compose up -d
+   ```
+
+   Wait until the `verdikt-zitadel` container is healthy (~30s on first run).
+
+2. Open the console at <http://localhost:8080/ui/console> and log in as the
+   default instance admin:
+
+   ```
+   zitadel-admin@zitadel.localhost
+   Password1!
+   ```
+
+3. Create (or reuse) a **Project**, then add an **Application**:
+   - Type: **User Agent** → **PKCE**.
+   - Enable **Dev Mode** on the app (allows the `http://` redirect below).
+   - **Redirect URI**: `http://localhost:5173/auth/signinwin/oidc`
+   - **Post-logout redirect URI**: `http://localhost:5173/`
+
+4. Copy the application's **Client ID**, then fill the env files:
+
+   `frontend/.env`:
+
+   ```
+   VITE_OIDC_ISSUER=http://localhost:8080
+   VITE_OIDC_CLIENT_ID=<client-id>
+   ```
+
+   root `.env`:
+
+   ```
+   OIDC_ISSUER=http://localhost:8080
+   OIDC_AUDIENCE=<client-id>
+   ```
+
+5. Run the app and log in:
+
+   ```shell
+   make dev         # db + migrations + backend + frontend
+   ```
+
+   The frontend is served at <http://localhost:5173>; an unauthenticated route
+   redirects to the Zitadel login.
+
 ## Quick Start
 
 ```shell
