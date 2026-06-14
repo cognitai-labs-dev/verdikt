@@ -59,8 +59,19 @@ class APISettings(PostgresSettings):
     # Generic OIDC config — point at any OIDC-compliant provider
     # (Google, Zitadel, Keycloak, Okta, Azure AD, ...).
     OIDC_ISSUER: str = "http://localhost:8080"
+    # Comma-separated list of accepted audiences. Different clients put
+    # different values in `aud` (e.g. the frontend SPA client id vs. the SDK
+    # machine client id), so list every client that calls this API.
     OIDC_AUDIENCE: str = ""
     # Optional explicit JWKS URI. If empty, discovered from the issuer's
     # {OIDC_ISSUER}/.well-known/openid-configuration document.
     OIDC_JWKS_URI: str = ""
     JWT_ALGORITHMS: list[str] = ["RS256"]
+
+    @property
+    def oidc_audiences(self) -> list[str]:
+        return [
+            a.strip()
+            for a in self.OIDC_AUDIENCE.split(",")
+            if a.strip()
+        ]

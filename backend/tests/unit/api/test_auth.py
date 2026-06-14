@@ -12,12 +12,12 @@ ISSUER = "https://issuer.example.com"
 AUDIENCE = "test-client-id"
 
 
-def _make_verifier(private_key) -> TokenVerifier:
+def _make_verifier(private_key, audience=AUDIENCE) -> TokenVerifier:
     # Arrange: a verifier wired to a fake JWKS client that returns the
     # public key matching `private_key` — no network, no real JWKS fetch.
     settings = APISettings(
         OIDC_ISSUER=ISSUER,
-        OIDC_AUDIENCE=AUDIENCE,
+        OIDC_AUDIENCE=audience,
         OIDC_JWKS_URI="https://issuer.example.com/keys",
     )
     verifier = TokenVerifier(settings)
@@ -59,6 +59,19 @@ async def test_decoded_token_valid_issuer_and_audience_returns_claims(private_ke
     # Assert
     assert claims["sub"] == "user-123"
     assert claims["email"] == "person@example.com"
+
+
+@pytest.mark.anyio
+async def test_decoded_token_accepts_any_audience_in_comma_separated_list(private_key):
+    # Arrange — backend accepts two clients; token carries the second one
+    verifier = _make_verifier(private_key, audience="frontend-spa,sdk-machine")
+    token = _mint_token(private_key, audience="sdk-machine")
+
+    # Act
+    claims = await verifier.decoded_token(token)
+
+    # Assert
+    assert claims["aud"] == "sdk-machine"
 
 
 @pytest.mark.anyio

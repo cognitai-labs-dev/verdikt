@@ -35,11 +35,15 @@ class TokenVerifier:
 
     async def decoded_token(self, token: str) -> dict:
         signing_key = self.jwks_client.get_signing_key_from_jwt(token)
+        audiences = self.settings.oidc_audiences
         return jwt.decode(
             token,
             signing_key.key,
             algorithms=self.settings.JWT_ALGORITHMS,
             issuer=self.settings.OIDC_ISSUER,
-            audience=self.settings.OIDC_AUDIENCE,
-            options={"verify_aud": True, "verify_iss": True},
+            audience=audiences or None,
+            options={
+                "verify_aud": bool(audiences),
+                "verify_iss": True,
+            },
         )
