@@ -78,7 +78,7 @@ login UI on `:3000`) so you can develop without an external IdP.
    ```
 
 3. Create (or reuse) a **Project**, then add an **Application**:
-   - Type: **User Agent** → **PKCE**.
+   - Use: **User Agent** → **PKCE**.
    - Enable **Dev Mode** on the app (allows the `http://` redirect below).
    - **Redirect URI**: `http://localhost:5173/auth/signinwin/oidc`
    - **Post-logout redirect URI**: `http://localhost:5173/`
@@ -111,10 +111,9 @@ login UI on `:3000`) so you can develop without an external IdP.
 ## Quick Start
 
 ```shell
-make api      # start DB + migrations + API server
+make dev # start DB + migrations + API server + FE
 make eval # seed with mock data
 make judge    # run LLM judgment worker
-make fe       # start frontend dev server
 ```
 
 ## Testing
