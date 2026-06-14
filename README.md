@@ -7,50 +7,143 @@ Standalone AI evaluation service that decouples evaluation and judging from the 
 - `backend/` — FastAPI REST API, LLM judge worker, PostgreSQL storage
 - `frontend/` — Vue 3 SPA for human judging and viewing results
 
-## Authentication (Zitadel)
+## Authentication (generic OIDC)
 
-The frontend uses Zitadel as an OIDC provider via `@zitadel/vue`. To replicate the setup:
+Verdikt authenticates against any **OIDC-compliant** provider — Google
+Workspace, Zitadel, Keycloak, Authentik, Okta, Azure AD, etc. Pick one per
+deployment and configure it via environment variables. The frontend runs the
+authorization-code + PKCE flow and sends the **id_token** to the backend, which
+verifies it against the issuer's JWKS.
 
-1. Login with
+### 1. Create an OAuth client in your IdP
+
+Create a **Web / SPA application with PKCE** and register:
+
+- **Redirect URI**: `{origin}/auth/signinwin/oidc`
+  (e.g. `http://localhost:5173/auth/signinwin/oidc`).
+  Path is `{origin}/auth/signinwin/{authName}` with `authName = "oidc"`; adjust
+  for your port/domain.
+- **Post-logout redirect URI**: `{origin}/` (e.g. `http://localhost:5173/`).
+
+### 2. Frontend config
+
+Copy `frontend/.env.example` to `frontend/.env`:
 
 ```
-zitadel-admin@zitadel.localhost
-Password1!
+# Zitadel
+VITE_OIDC_ISSUER=https://<your-instance>.zitadel.cloud
+VITE_OIDC_CLIENT_ID=<your-client-id>
+
+# Google
+VITE_OIDC_ISSUER=https://accounts.google.com
+VITE_OIDC_CLIENT_ID=<your-client-id>
 ```
 
-1. Create a Zitadel project and a **User Agent** (PKCE) application.
-1. Add the following **Redirect URI** in the Zitadel console:
+### 3. Backend config
 
-   > Enable **Dev Mode** on the application before adding the URI.
+Copy `.env.example` to `.env`:
+
+```
+OIDC_ISSUER=http://localhost:8080   # must match the token's `iss`
+OIDC_AUDIENCE=<your-client-id>      # the token's `aud`
+```
+
+The JWKS URI is auto-discovered from the issuer's
+`/.well-known/openid-configuration`. Set `OIDC_JWKS_URI` only to pin it
+explicitly.
+
+After login the IdP redirects to the redirect URI; the app exchanges the code
+for tokens and continues to the original destination (or `/`). Logout redirects
+back to `/`.
+
+### Local dev with Zitadel
+
+The `docker-compose.yaml` ships a self-hosted Zitadel (console on `:8080`,
+login UI on `:3000`) so you can develop without an external IdP.
+
+1. Start the stack (db + zitadel + login):
+
+   ```shell
+   make up-d        # docker compose up -d
+   ```
+
+   Wait until the `verdikt-zitadel` container is healthy (~30s on first run).
+
+2. Open the console at <http://localhost:8080/ui/console> and log in as the
+   default instance admin:
 
    ```
-   http://localhost:5173/auth/signinwin/zitadel
+   zitadel-admin@zitadel.localhost
+   Password1!
    ```
 
-   The path is constructed as `{origin}/auth/signinwin/{authName}` where `authName` defaults to `"zitadel"`. If you run the frontend on a different port or domain, update the URI accordingly.
-1. Add the following **Post-Logout Redirect URI**:
+3. Create (or reuse) a **Project**, then add an **Application**:
+   - Use: **User Agent** → **PKCE**.
+   - Enable **Dev Mode** on the app (allows the `http://` redirect below).
+   - **Redirect URI**: `http://localhost:5173/auth/signinwin/oidc`
+   - **Post-logout redirect URI**: `http://localhost:5173/`
+
+4. Copy the application's **Client ID**, then fill the env files:
+
+   `frontend/.env`:
 
    ```
-   http://localhost:5173/
+   VITE_OIDC_ISSUER=http://localhost:8080
+   VITE_OIDC_CLIENT_ID=<client-id>
    ```
 
-1. Copy `frontend/.env.example` to `frontend/.env` and fill in:
+   root `.env`:
 
    ```
-   VITE_ZITADEL_ISSUER=https://<your-instance>.zitadel.cloud
-   VITE_ZITADEL_CLIENT_ID=<your-client-id>
-   VITE_ZITADEL_PROJECT_RESOURCE_ID=<your-project-resource-id>
+   OIDC_ISSUER=http://localhost:8080
+   OIDC_AUDIENCE=<client-id>        # comma-separated; add the SDK id too (below)
    ```
 
-1. After login, Zitadel redirects the browser to the redirect URI above. The app exchanges the authorization code for tokens and sends the user to their original destination (or `/`). On logout, Zitadel redirects back to `/`.
+5. Run the app and log in:
+
+   ```shell
+   make dev         # db + migrations + backend + frontend
+   ```
+
+   The frontend is served at <http://localhost:5173>; an unauthenticated route
+   redirects to the Zitadel login.
+
+### SDK access (machine user)
+
+The Python SDK authenticates with the OAuth2 **client-credentials** grant,
+which in Zitadel means a **Service User**. Service Users are **org-level** —
+they survive project deletion, unlike the SPA app above.
+
+1. Console → **Users** → **Service Users** → **+ New**.
+   - **Username**: e.g. `sdk-test` (this becomes the client id **and** the
+     token's `aud`).
+   - **Access Token Type**: `Bearer`. Create.
+
+2. Open the service user → **Client Secret** → **Generate**. Copy the
+   **Client ID** (the username) and the **Client Secret** — the secret is shown
+   once.
+
+3. Add them to root `.env`, and append the SDK's id to the audience allowlist
+   so the backend accepts its token:
+
+   ```
+   VERDIKT_CLIENT_ID=sdk-test
+   VERDIKT_CLIENT_SECRET=<generated-secret>
+   OIDC_AUDIENCE=<spa-client-id>,sdk-test
+   ```
+
+   Restart the backend after changing `.env` (it reads it at startup).
+
+> The SDK token's `aud` is the service user's id, which differs from the SPA
+> client id — that's why `OIDC_AUDIENCE` is a list. See the SDK repo for client
+> usage.
 
 ## Quick Start
 
 ```shell
-make api      # start DB + migrations + API server
+make dev # start DB + migrations + API server + FE
 make eval # seed with mock data
 make judge    # run LLM judgment worker
-make fe       # start frontend dev server
 ```
 
 ## Testing

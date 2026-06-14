@@ -9,7 +9,7 @@ import * as components from "vuetify/components"
 import * as directives from "vuetify/directives"
 
 import App from "./App.vue"
-import zitadelAuth from "./services/zitadelAuth"
+import auth from "./services/auth"
 
 const vuetify = createVuetify({
   components,
@@ -52,12 +52,12 @@ const vuetify = createVuetify({
   },
 })
 
-zitadelAuth.oidcAuth.startup().then((ok) => {
+auth.oidcAuth.startup().then((ok) => {
   if (ok) {
     const app = createApp(App)
-    app.config.globalProperties.$zitadel = zitadelAuth
+    app.config.globalProperties.$auth = auth
     app.use(router).use(vuetify).mount("#app")
   } else {
-    console.error("Zitadel auth startup failed")
+    console.error("OIDC auth startup failed")
   }
 })

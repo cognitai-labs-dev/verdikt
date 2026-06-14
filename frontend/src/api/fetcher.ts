@@ -1,4 +1,4 @@
-import zitadelAuth from "@/services/zitadelAuth"
+import auth from "@/services/auth"
 
 const getBody = <T>(c: Response | Request): Promise<T> => {
   const contentType = c.headers.get("content-type")
@@ -21,8 +21,12 @@ const getUrl = (contextUrl: string): string => {
   return requestUrl.toString()
 }
 
-const getHeaders = (headers?: HeadersInit, method?: string): HeadersInit => {
-  const token = zitadelAuth.oidcAuth.accessToken
+const getHeaders = async (headers?: HeadersInit, method?: string): Promise<HeadersInit> => {
+  // Send the id_token (a JWT) rather than the access token. Some providers
+  // (e.g. Google) issue opaque, non-verifiable access tokens; the id_token is
+  // always a JWT the backend can verify against the issuer's JWKS.
+  const user = await auth.oidcAuth.mgr.getUser()
+  const token = user?.id_token
   const baseHeaders: HeadersInit = {
     ...headers,
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -41,7 +45,7 @@ const getHeaders = (headers?: HeadersInit, method?: string): HeadersInit => {
 
 export const customFetch = async <T>(url: string, options: RequestInit): Promise<T> => {
   const requestUrl = getUrl(url)
-  const requestHeaders = getHeaders(options.headers, options.method)
+  const requestHeaders = await getHeaders(options.headers, options.method)
 
   const requestInit: RequestInit = {
     ...options,
