@@ -10,7 +10,11 @@ jobs:
         working-directory: backend
 
     env:
-      PG_PORT: "5432"
+      APP_DB_HOST: localhost
+      APP_DB_PORT: "5432"
+      APP_DB_USER: evaluation
+      APP_DB_PASSWORD: alpharius
+      APP_DB_NAME: evaluation
 
     services:
       postgres:
