@@ -138,6 +138,46 @@ they survive project deletion, unlike the SPA app above.
 > client id — that's why `OIDC_AUDIENCE` is a list. See the SDK repo for client
 > usage.
 
+## Deployment
+
+Verdikt ships as two prebuilt Docker images on GHCR, built by CI on every
+`master` push (`latest` + `sha-…`) and on `v*` tags (semver tags):
+
+- `ghcr.io/<owner>/evaluation-app/frontend`
+- `ghcr.io/<owner>/evaluation-app/backend`
+
+### Frontend is configured at runtime, not build time
+
+Vite normally inlines `VITE_*` at build time, which would mean one image per
+deployment. Instead the frontend reads its config at **runtime** from
+`window.__APP_CONFIG__` (served as `/config.js`). The container entrypoint
+substitutes that file from env vars on startup (`envsubst`), so **the same
+image works against any IdP** — no rebuild, no per-customer artifact.
+
+Run it with the three config vars:
+
+```shell
+docker run -p 3000:3000 \
+  -e API_URL=https://verdikt-api.your-domain \
+  -e OIDC_ISSUER=https://accounts.google.com \
+  -e OIDC_CLIENT_ID=<your-client-id> \
+  ghcr.io/<owner>/evaluation-app/frontend:latest
+```
+
+| Var             | Purpose                                  |
+| --------------- | ---------------------------------------- |
+| `API_URL`       | Base URL of the backend API the SPA calls |
+| `OIDC_ISSUER`   | Your IdP issuer (Google, Zitadel, …)      |
+| `OIDC_CLIENT_ID`| The SPA's OAuth client id                 |
+
+The backend reads its config from env/`.env` at startup already (see
+[Backend config](#3-backend-config)), so it's reconfigured the same way — set
+`OIDC_ISSUER`, `OIDC_AUDIENCE`, and `APP_DB_*` on the container.
+
+> Local dev does **not** use these images — `make dev` runs the Vite dev server
+> and reads `frontend/.env` via `import.meta.env` (the `${…}` tokens in
+> `config.js` are detected and ignored in dev).
+
 ## Quick Start
 
 ```shell

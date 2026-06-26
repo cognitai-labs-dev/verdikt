@@ -14,3 +14,8 @@ class JudgmentStatus(StrEnum):
 class EvaluationType(StrEnum):
     LLM_ONLY = "LLM_ONLY"
     HUMAN_AND_LLM = "HUMAN_AND_LLM"
+
+
+class SubjectType(StrEnum):
+    EMAIL = "email"
+    CLIENT = "client"

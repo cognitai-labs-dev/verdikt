@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.app.commands import AppCommands
 from src.app.queries import AppDatasetQueries
+from src.auth.commands import AuthCommands
+from src.config import APISettings
 from src.db.pg import DBAdapter
 from src.evaluation.commands import EvaluationCommands
 from src.evaluation.queries import EvaluationQueries
@@ -13,7 +15,10 @@ from src.prompt_version.queries import PromptVersionQueries
 from src.repositories.app_dataset import AppDatasetRepository
 from src.repositories.apps import AppsRepository
 from src.repositories.evaluation import EvaluationsRepository
+from src.repositories.app_principal import AppPrincipalRepository
 from src.repositories.judgment import JudgmentRepository
+from src.repositories.machine_client import MachineClientRepository
+from src.repositories.machine_token import MachineTokenRepository
 from src.repositories.prompt_version import (
     PromptVersionRepository,
 )
@@ -39,6 +44,9 @@ sample_repo = SamplesRepository()
 app_repo = AppsRepository()
 app_dataset_repo = AppDatasetRepository()
 prompt_version_repo = PromptVersionRepository()
+machine_client_repo = MachineClientRepository()
+machine_token_repo = MachineTokenRepository()
+app_principal_repo = AppPrincipalRepository()
 
 # Queries
 
@@ -78,6 +86,12 @@ evaluation_commands = EvaluationCommands(
 
 app_commands = AppCommands(
     app_repo=app_repo, prompt_version_repo=prompt_version_repo
+)
+
+auth_commands = AuthCommands(
+    machine_client_repo=machine_client_repo,
+    machine_token_repo=machine_token_repo,
+    token_ttl=APISettings().MACHINE_TOKEN_TTL,
 )
 
 db_adpater = DBAdapter()

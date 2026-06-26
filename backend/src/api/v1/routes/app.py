@@ -1,6 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from src.api.deps import (
+    Principal,
+    allowed_app_ids,
+    authenticate,
+    require_app_access,
+)
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
     AppDatasetsRequest,
@@ -47,17 +53,22 @@ router = APIRouter(
 )
 async def get_app_by_slug(
     slug: str,
+    principal: Principal = Depends(authenticate),
     conn: AsyncConnection = Depends(get_connection),
 ) -> AppSchema:
     app = await app_repo.get_by_slug(conn, slug)
     if not app:
         raise HTTPException(status_code=404, detail="App not found")
+    ids = await allowed_app_ids(conn, principal)
+    if ids is not None and app.id not in ids:
+        raise HTTPException(status_code=403, detail="Forbidden")
     return app
 
 
 @router.get(
     "/{app_id}",
     operation_id="getApp",
+    dependencies=[Depends(require_app_access)],
     description="Get an app by its id",
     responses={
         404: {"model": ErrorResponse},
@@ -75,9 +86,13 @@ async def get_app(
 
 @router.get("", operation_id="getApps")
 async def get_apps(
+    principal: Principal = Depends(authenticate),
     conn: AsyncConnection = Depends(get_connection),
 ) -> list[AppSchema]:
-    return await app_repo.get_many(conn)
+    ids = await allowed_app_ids(conn, principal)
+    if ids is None:
+        return await app_repo.get_many(conn)
+    return await app_repo.get_by_many_ids(conn, ids)
 
 
 @router.post(
@@ -95,6 +110,7 @@ async def post_app(
 @router.delete(
     "/{app_id}",
     operation_id="deleteApp",
+    dependencies=[Depends(require_app_access)],
     status_code=204,
     responses={
         404: {"model": ErrorResponse},
@@ -112,6 +128,7 @@ async def delete_app(
 @router.post(
     "/{app_id}/datasets",
     operation_id="postAppDatasets",
+    dependencies=[Depends(require_app_access)],
     description="Upsert datasets for an app — inserts new questions, updates changed answers, no-ops identical entries",
     status_code=201,
     responses={
@@ -143,6 +160,7 @@ async def post_app_datasets(
 @router.get(
     "/{app_id}/datasets",
     operation_id="getAppDatasets",
+    dependencies=[Depends(require_app_access)],
     responses={
         404: {"model": ErrorResponse},
     },
@@ -161,6 +179,7 @@ async def get_app_datasets(
 @router.delete(
     "/{app_id}/datasets/{dataset_id}",
     operation_id="deleteAppDataset",
+    dependencies=[Depends(require_app_access)],
     status_code=204,
     responses={
         404: {"model": ErrorResponse},
@@ -183,6 +202,7 @@ async def delete_app_dataset(
 @router.post(
     "/{app_id}/evaluation",
     operation_id="postAppEvaluation",
+    dependencies=[Depends(require_app_access)],
     description="Create an evaluation, evaluation is an insance of a dataset where the app answers are provided that will be judged",
     status_code=201,
     responses={
@@ -206,6 +226,7 @@ async def post_app_evaluation(
 @router.get(
     "/{app_id}/prompt",
     operation_id="getAppPrompt",
+    dependencies=[Depends(require_app_access)],
     responses={
         404: {"model": ErrorResponse},
     },
@@ -224,6 +245,7 @@ async def get_app_prompts(
 @router.post(
     "/{app_id}/prompt",
     operation_id="postAppPrompt",
+    dependencies=[Depends(require_app_access)],
     status_code=201,
     responses={
         404: {"model": ErrorResponse},
@@ -253,6 +275,7 @@ async def post_app_prompt(
 @router.patch(
     "/{app_id}",
     operation_id="patchApp",
+    dependencies=[Depends(require_app_access)],
     responses={
         404: {"model": ErrorResponse},
     },
@@ -289,6 +312,7 @@ async def patch_app(
 @router.get(
     "/{app_id}/evaluation/summary",
     operation_id="getEvaluationsSummaries",
+    dependencies=[Depends(require_app_access)],
 )
 async def get_evaluations(
     app_id: int,
