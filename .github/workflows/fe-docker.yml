@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - "v*"
 
 env:
   REGISTRY: ghcr.io
@@ -34,6 +36,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
 
@@ -44,8 +48,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VITE_API_URL=${{ vars.VITE_API_URL }}
-            VITE_ZITADEL_ISSUER=${{ vars.VITE_ZITADEL_ISSUER }}
-            VITE_ZITADEL_CLIENT_ID=${{ vars.VITE_ZITADEL_CLIENT_ID }}
-            VITE_ZITADEL_PROJECT_RESOURCE_ID=${{ vars.VITE_ZITADEL_PROJECT_RESOURCE_ID }}
+          # No build-args: frontend config is injected at runtime (entrypoint
+          # envsubst), so the image is provider-agnostic and built once.

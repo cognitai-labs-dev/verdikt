@@ -5,3 +5,6 @@ from .tables.samples import samples_table  # noqa
 from .tables.judgments import judgments_table  # noqa
 from .tables.apps import apps_table  # noqa
 from .tables.app_datasets import app_datasets_table  # noqa
+from .tables.machine_clients import machine_clients_table  # noqa
+from .tables.machine_tokens import machine_tokens_table  # noqa
+from .tables.app_principals import app_principals_table  # noqa

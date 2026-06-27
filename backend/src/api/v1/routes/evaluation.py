@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from src.api.deps import require_evaluation_access
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
     ErrorResponse,
@@ -25,6 +26,7 @@ router = APIRouter(
 @router.get(
     "/{evaluation_id}/sample/summary",
     operation_id="getSamplesSummaries",
+    dependencies=[Depends(require_evaluation_access)],
     responses={
         404: {"model": ErrorResponse},
     },
@@ -52,6 +54,7 @@ async def get_evaluation_samples_summaries(
 @router.get(
     "/{evaluation_id}/sample/judgment",
     operation_id="getEvaluationSamples",
+    dependencies=[Depends(require_evaluation_access)],
 )
 async def get_evaluation_samples(
     evaluation_id: int,

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import secrets
 
 import typer
 import uvicorn
@@ -134,6 +135,104 @@ def run_judging():
 
     async def run():
         await processor_main()
+
+    asyncio.run(run())
+
+
+@app.command()
+def create_client(
+    name: str = typer.Argument(..., help="Human-readable client label"),
+    app_slug: str = typer.Option(
+        None, "--app", help="Bind the client to a single app (by slug)"
+    ),
+    admin: bool = typer.Option(
+        False, "--admin", help="Grant access to every app"
+    ),
+):
+    """Create a machine client and print its credentials once."""
+
+    async def run():
+        from src.auth.hashing import sha256_hex
+        from src.config import APISettings
+        from src.constants import SubjectType
+        from src.dependencies import (
+            app_principal_repo,
+            app_repo,
+            db_adpater,
+            machine_client_repo,
+        )
+        from src.schemas.machine_client import MachineClientCreateSchema
+
+        client_id = "mc_" + secrets.token_urlsafe(12)
+        client_secret = "secret_" + secrets.token_urlsafe(32)
+
+        settings = APISettings()
+        await db_adpater.connect(settings.postgres_dsn)
+        try:
+            async with db_adpater.engine.begin() as conn:
+                await machine_client_repo.create(
+                    conn,
+                    MachineClientCreateSchema(
+                        client_id=client_id,
+                        client_secret_hash=sha256_hex(client_secret),
+                        name=name,
+                        is_admin=admin,
+                    ),
+                )
+                if app_slug:
+                    app_row = await app_repo.get_by_slug(conn, app_slug)
+                    if app_row is None:
+                        raise typer.BadParameter(
+                            f"app '{app_slug}' not found"
+                        )
+                    await app_principal_repo.add(
+                        conn,
+                        app_row.id,
+                        SubjectType.CLIENT,
+                        client_id,
+                    )
+        finally:
+            await db_adpater.disconnect()
+
+        typer.echo(f"client_id={client_id}")
+        typer.echo(f"client_secret={client_secret}")
+        typer.echo("Store the secret now — it is not recoverable.")
+
+    asyncio.run(run())
+
+
+@app.command()
+def add_member(
+    app_slug: str = typer.Argument(..., help="App slug"),
+    email: str = typer.Argument(..., help="Member email"),
+):
+    """Bind a human (by email) to an app."""
+
+    async def run():
+        from src.config import APISettings
+        from src.constants import SubjectType
+        from src.dependencies import (
+            app_principal_repo,
+            app_repo,
+            db_adpater,
+        )
+
+        settings = APISettings()
+        await db_adpater.connect(settings.postgres_dsn)
+        try:
+            async with db_adpater.engine.begin() as conn:
+                app_row = await app_repo.get_by_slug(conn, app_slug)
+                if app_row is None:
+                    raise typer.BadParameter(
+                        f"app '{app_slug}' not found"
+                    )
+                await app_principal_repo.add(
+                    conn, app_row.id, SubjectType.EMAIL, email
+                )
+        finally:
+            await db_adpater.disconnect()
+
+        typer.echo(f"Bound {email} to app '{app_slug}'")
 
     asyncio.run(run())
 

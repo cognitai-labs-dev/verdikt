@@ -68,10 +68,28 @@ class APISettings(PostgresSettings):
     OIDC_JWKS_URI: str = ""
     JWT_ALGORITHMS: list[str] = ["RS256"]
 
+    # Comma-separated emails granted admin (access to every app). Humans whose
+    # OIDC `email` claim is listed here resolve to an admin Principal.
+    ADMIN_EMAILS: str = ""
+
+    # Verdikt's own public URL, advertised as the machine (M2M) issuer. Machine
+    # auth never touches the human login IdP — Verdikt mints its own opaque
+    # client_credentials tokens, so `make eval` works under any login provider.
+    SERVICE_BASE_URL: str = "http://localhost:8000"
+    MACHINE_TOKEN_TTL: int = 3600
+
     @property
     def oidc_audiences(self) -> list[str]:
         return [
             a.strip()
             for a in self.OIDC_AUDIENCE.split(",")
             if a.strip()
+        ]
+
+    @property
+    def admin_emails(self) -> list[str]:
+        return [
+            e.strip()
+            for e in self.ADMIN_EMAILS.split(",")
+            if e.strip()
         ]

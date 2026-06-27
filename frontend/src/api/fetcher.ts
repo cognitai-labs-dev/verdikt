@@ -1,3 +1,4 @@
+import { config } from "@/config"
 import auth from "@/services/auth"
 
 const getBody = <T>(c: Response | Request): Promise<T> => {
@@ -14,7 +15,7 @@ const getUrl = (contextUrl: string): string => {
   const url = new URL(contextUrl)
   const pathname = url.pathname
   const search = url.search
-  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000"
+  const baseUrl = config.apiUrl
 
   const requestUrl = new URL(`${baseUrl}${pathname}${search}`)
 
