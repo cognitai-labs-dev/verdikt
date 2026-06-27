@@ -6,6 +6,7 @@ import CostCell from "@/components/CostCell.vue"
 import { onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 
+definePageMeta({ name: "Evaluation Samples" })
 const router = useRouter()
 const items = ref<SampleSummary[]>([])
 const evaluationType = ref<EvaluationType>()
@@ -39,12 +40,8 @@ onMounted(async () => {
   headers.value.push({ title: "Cost", key: "total_cost" })
 })
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-})
+const route = useRoute()
+const props = { id: route.params.id as string }
 
 function goBack() {
   router.back()

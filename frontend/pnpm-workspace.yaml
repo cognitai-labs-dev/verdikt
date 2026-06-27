@@ -1,4 +1,9 @@
-allowBuilds:
-  core-js: true
-  esbuild: true
-  vue-demi: true
+# Skip pnpm's pre-run dependency check (it errors on un-approved native build
+# scripts like @parcel/watcher, which aren't needed for the build).
+verifyDepsBeforeRun: false
+# Native deps allowed to run install scripts.
+onlyBuiltDependencies:
+  - "@parcel/watcher"
+  - core-js
+  - esbuild
+  - vue-demi

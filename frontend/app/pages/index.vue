@@ -5,6 +5,7 @@ import { useRouter } from "vue-router"
 import { formatDate } from "@/utils/format"
 import { useActiveApp } from "@/stores/useActiveApp"
 
+definePageMeta({ name: "Apps" })
 const router = useRouter()
 const { setApp } = useActiveApp()
 const apps = ref<AppSchema[]>([])

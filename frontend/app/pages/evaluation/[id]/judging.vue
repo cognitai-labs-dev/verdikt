@@ -13,15 +13,11 @@ import SampleContentCards from "@/components/SampleContentCards.vue"
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
+definePageMeta({ name: "Judging" })
 const router = useRouter()
 const route = useRoute()
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-})
+const props = { id: route.params.id as string }
 
 const samples = ref<SampleJudgmentSummarySchema[]>([])
 const currentIndex = ref(0)
