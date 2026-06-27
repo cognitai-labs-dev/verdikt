@@ -42,13 +42,14 @@ def api_factory():
         title="AI Evaluation API",
         lifespan=lifespan,
     )
-    # TODO: Change for production
-    origins = ["*"]
-
+    # The frontend BFF reaches this API server-to-server (no browser CORS), so
+    # cross-origin is locked down by default. Set CORS_ORIGINS to opt specific
+    # browser origins in.
+    origins = APISettings().cors_origins
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
-        allow_credentials=True,
+        allow_credentials=bool(origins),
         allow_methods=["*"],
         allow_headers=["*"],
     )
