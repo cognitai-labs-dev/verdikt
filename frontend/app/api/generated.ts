@@ -5,6 +5,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import { customFetch } from "./fetcher"
+export interface AddAppBindingRequest {
+  app_id: number
+}
+
 export interface AppAnswerSchema {
   /** The answer the app produced for the question */
   answer: string
@@ -39,6 +43,11 @@ export interface AppDatasetsRequest {
   datasets: AppDatasetItem[]
 }
 
+export interface AppRef {
+  id: number
+  slug: string
+}
+
 export interface AppRequest {
   name: string
   slug: string
@@ -60,6 +69,30 @@ export interface AppSchema {
   id: number
   /** Timestamp when app was created */
   created_at: string
+}
+
+export interface BodyPostAuthToken {
+  grant_type: string
+}
+
+export interface CreateMachineClientRequest {
+  /** @maxLength 100 */
+  name: string
+  is_admin?: boolean
+  app_slugs?: string[]
+}
+
+export interface CreatedMachineClientResponse {
+  id: number
+  client_id: string
+  name: string
+  is_admin: boolean
+  revoked: boolean
+  created_at: string
+  /** Apps this client is bound to. Empty for admin clients, which implicitly access every app. */
+  apps?: AppRef[]
+  /** The raw client secret — returned only once, on creation, and never again. */
+  client_secret: string
 }
 
 export interface ErrorResponse {
@@ -198,6 +231,34 @@ export interface JudgmentSchema {
   updated_at: string
 }
 
+export interface MachineClientResponse {
+  id: number
+  client_id: string
+  name: string
+  is_admin: boolean
+  revoked: boolean
+  created_at: string
+  /** Apps this client is bound to. Empty for admin clients, which implicitly access every app. */
+  apps?: AppRef[]
+}
+
+export type SubjectType = (typeof SubjectType)[keyof typeof SubjectType]
+
+export const SubjectType = {
+  email: "email",
+  client: "client",
+} as const
+
+export interface MeResponse {
+  subject: string
+  subject_type: SubjectType
+  is_admin: boolean
+}
+
+export interface OpenIDConfigurationResponse {
+  token_endpoint: string
+}
+
 export interface PromptRequest {
   /** Prompt content */
   content: string
@@ -294,6 +355,12 @@ export interface SampleSummary {
   human_judgment_passed: boolean | null
 }
 
+export interface TokenResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+}
+
 export interface UpdateCurrentPromptRequest {
   /** Prompt version ID to set as current */
   prompt_id: number
@@ -332,6 +399,73 @@ export const getWellKnown = async (options?: RequestInit): Promise<getWellKnownR
   return customFetch<getWellKnownResponse>(getGetWellKnownUrl(), {
     ...options,
     method: "GET",
+  })
+}
+
+/**
+ * @summary Get Openid Configuration
+ */
+export type getOpenIDConfigurationResponse200 = {
+  data: OpenIDConfigurationResponse
+  status: 200
+}
+
+export type getOpenIDConfigurationResponseSuccess = getOpenIDConfigurationResponse200 & {
+  headers: Headers
+}
+export type getOpenIDConfigurationResponse = getOpenIDConfigurationResponseSuccess
+
+export const getGetOpenIDConfigurationUrl = () => {
+  return `http://127.0.0.1:8000/.well-known/openid-configuration`
+}
+
+export const getOpenIDConfiguration = async (
+  options?: RequestInit,
+): Promise<getOpenIDConfigurationResponse> => {
+  return customFetch<getOpenIDConfigurationResponse>(getGetOpenIDConfigurationUrl(), {
+    ...options,
+    method: "GET",
+  })
+}
+
+/**
+ * @summary Post Auth Token
+ */
+export type postAuthTokenResponse200 = {
+  data: TokenResponse
+  status: 200
+}
+
+export type postAuthTokenResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type postAuthTokenResponseSuccess = postAuthTokenResponse200 & {
+  headers: Headers
+}
+export type postAuthTokenResponseError = postAuthTokenResponse422 & {
+  headers: Headers
+}
+
+export type postAuthTokenResponse = postAuthTokenResponseSuccess | postAuthTokenResponseError
+
+export const getPostAuthTokenUrl = () => {
+  return `http://127.0.0.1:8000/auth/token`
+}
+
+export const postAuthToken = async (
+  bodyPostAuthToken: BodyPostAuthToken,
+  options?: RequestInit,
+): Promise<postAuthTokenResponse> => {
+  const formUrlEncoded = new URLSearchParams()
+  formUrlEncoded.append(`grant_type`, bodyPostAuthToken.grant_type)
+
+  return customFetch<postAuthTokenResponse>(getPostAuthTokenUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", ...options?.headers },
+    body: formUrlEncoded,
   })
 }
 
@@ -1099,6 +1233,302 @@ export const getEvaluationSamples = async (
     {
       ...options,
       method: "GET",
+    },
+  )
+}
+
+/**
+ * Return the authenticated principal's identity
+ * @summary Get Me
+ */
+export type getMeResponse200 = {
+  data: MeResponse
+  status: 200
+}
+
+export type getMeResponseSuccess = getMeResponse200 & {
+  headers: Headers
+}
+export type getMeResponse = getMeResponseSuccess
+
+export const getGetMeUrl = () => {
+  return `http://127.0.0.1:8000/v1/me`
+}
+
+export const getMe = async (options?: RequestInit): Promise<getMeResponse> => {
+  return customFetch<getMeResponse>(getGetMeUrl(), {
+    ...options,
+    method: "GET",
+  })
+}
+
+/**
+ * List all machine clients and the apps they are bound to.
+ * @summary Get Machine Clients
+ */
+export type getMachineClientsResponse200 = {
+  data: MachineClientResponse[]
+  status: 200
+}
+
+export type getMachineClientsResponseSuccess = getMachineClientsResponse200 & {
+  headers: Headers
+}
+export type getMachineClientsResponse = getMachineClientsResponseSuccess
+
+export const getGetMachineClientsUrl = () => {
+  return `http://127.0.0.1:8000/v1/admin/machine-clients`
+}
+
+export const getMachineClients = async (
+  options?: RequestInit,
+): Promise<getMachineClientsResponse> => {
+  return customFetch<getMachineClientsResponse>(getGetMachineClientsUrl(), {
+    ...options,
+    method: "GET",
+  })
+}
+
+/**
+ * Create a machine client. The client_secret is returned ONCE.
+ * @summary Post Machine Client
+ */
+export type postMachineClientResponse201 = {
+  data: CreatedMachineClientResponse
+  status: 201
+}
+
+export type postMachineClientResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type postMachineClientResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type postMachineClientResponseSuccess = postMachineClientResponse201 & {
+  headers: Headers
+}
+export type postMachineClientResponseError = (
+  | postMachineClientResponse400
+  | postMachineClientResponse422
+) & {
+  headers: Headers
+}
+
+export type postMachineClientResponse =
+  | postMachineClientResponseSuccess
+  | postMachineClientResponseError
+
+export const getPostMachineClientUrl = () => {
+  return `http://127.0.0.1:8000/v1/admin/machine-clients`
+}
+
+export const postMachineClient = async (
+  createMachineClientRequest: CreateMachineClientRequest,
+  options?: RequestInit,
+): Promise<postMachineClientResponse> => {
+  return customFetch<postMachineClientResponse>(getPostMachineClientUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createMachineClientRequest),
+  })
+}
+
+/**
+ * Soft-revoke a client and kill its live tokens.
+ * @summary Revoke Machine Client
+ */
+export type revokeMachineClientResponse200 = {
+  data: MachineClientResponse
+  status: 200
+}
+
+export type revokeMachineClientResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type revokeMachineClientResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type revokeMachineClientResponseSuccess = revokeMachineClientResponse200 & {
+  headers: Headers
+}
+export type revokeMachineClientResponseError = (
+  | revokeMachineClientResponse404
+  | revokeMachineClientResponse422
+) & {
+  headers: Headers
+}
+
+export type revokeMachineClientResponse =
+  | revokeMachineClientResponseSuccess
+  | revokeMachineClientResponseError
+
+export const getRevokeMachineClientUrl = (clientId: string) => {
+  return `http://127.0.0.1:8000/v1/admin/machine-clients/${clientId}/revoke`
+}
+
+export const revokeMachineClient = async (
+  clientId: string,
+  options?: RequestInit,
+): Promise<revokeMachineClientResponse> => {
+  return customFetch<revokeMachineClientResponse>(getRevokeMachineClientUrl(clientId), {
+    ...options,
+    method: "POST",
+  })
+}
+
+/**
+ * Reverse a soft-revoke.
+ * @summary Unrevoke Machine Client
+ */
+export type unrevokeMachineClientResponse200 = {
+  data: MachineClientResponse
+  status: 200
+}
+
+export type unrevokeMachineClientResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type unrevokeMachineClientResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type unrevokeMachineClientResponseSuccess = unrevokeMachineClientResponse200 & {
+  headers: Headers
+}
+export type unrevokeMachineClientResponseError = (
+  | unrevokeMachineClientResponse404
+  | unrevokeMachineClientResponse422
+) & {
+  headers: Headers
+}
+
+export type unrevokeMachineClientResponse =
+  | unrevokeMachineClientResponseSuccess
+  | unrevokeMachineClientResponseError
+
+export const getUnrevokeMachineClientUrl = (clientId: string) => {
+  return `http://127.0.0.1:8000/v1/admin/machine-clients/${clientId}/unrevoke`
+}
+
+export const unrevokeMachineClient = async (
+  clientId: string,
+  options?: RequestInit,
+): Promise<unrevokeMachineClientResponse> => {
+  return customFetch<unrevokeMachineClientResponse>(getUnrevokeMachineClientUrl(clientId), {
+    ...options,
+    method: "POST",
+  })
+}
+
+/**
+ * Bind a machine client to an app.
+ * @summary Bind Machine Client App
+ */
+export type bindMachineClientAppResponse201 = {
+  data: MachineClientResponse
+  status: 201
+}
+
+export type bindMachineClientAppResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type bindMachineClientAppResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type bindMachineClientAppResponseSuccess = bindMachineClientAppResponse201 & {
+  headers: Headers
+}
+export type bindMachineClientAppResponseError = (
+  | bindMachineClientAppResponse404
+  | bindMachineClientAppResponse422
+) & {
+  headers: Headers
+}
+
+export type bindMachineClientAppResponse =
+  | bindMachineClientAppResponseSuccess
+  | bindMachineClientAppResponseError
+
+export const getBindMachineClientAppUrl = (clientId: string) => {
+  return `http://127.0.0.1:8000/v1/admin/machine-clients/${clientId}/apps`
+}
+
+export const bindMachineClientApp = async (
+  clientId: string,
+  addAppBindingRequest: AddAppBindingRequest,
+  options?: RequestInit,
+): Promise<bindMachineClientAppResponse> => {
+  return customFetch<bindMachineClientAppResponse>(getBindMachineClientAppUrl(clientId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(addAppBindingRequest),
+  })
+}
+
+/**
+ * Remove a machine client's binding to an app.
+ * @summary Unbind Machine Client App
+ */
+export type unbindMachineClientAppResponse200 = {
+  data: MachineClientResponse
+  status: 200
+}
+
+export type unbindMachineClientAppResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type unbindMachineClientAppResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type unbindMachineClientAppResponseSuccess = unbindMachineClientAppResponse200 & {
+  headers: Headers
+}
+export type unbindMachineClientAppResponseError = (
+  | unbindMachineClientAppResponse404
+  | unbindMachineClientAppResponse422
+) & {
+  headers: Headers
+}
+
+export type unbindMachineClientAppResponse =
+  | unbindMachineClientAppResponseSuccess
+  | unbindMachineClientAppResponseError
+
+export const getUnbindMachineClientAppUrl = (clientId: string, appId: number) => {
+  return `http://127.0.0.1:8000/v1/admin/machine-clients/${clientId}/apps/${appId}`
+}
+
+export const unbindMachineClientApp = async (
+  clientId: string,
+  appId: number,
+  options?: RequestInit,
+): Promise<unbindMachineClientAppResponse> => {
+  return customFetch<unbindMachineClientAppResponse>(
+    getUnbindMachineClientAppUrl(clientId, appId),
+    {
+      ...options,
+      method: "DELETE",
     },
   )
 }

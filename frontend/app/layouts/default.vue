@@ -1,12 +1,17 @@
 <script setup lang="ts">
+import { onMounted } from "vue"
 import { useTheme } from "vuetify"
 import { useActiveApp } from "@/stores/useActiveApp"
+import { useMe } from "@/composables/useMe"
 
 const router = useRouter()
 const route = useRoute()
 const { activeApp, clearApp } = useActiveApp()
 // Session lives in an httpOnly cookie; the browser only sees the profile.
 const { user } = useUserSession()
+// Admin link is cosmetic — the /admin API is the real boundary.
+const { isAdmin, loadMe } = useMe()
+onMounted(loadMe)
 
 function goHome() {
   clearApp()
@@ -60,6 +65,15 @@ function toggleTheme() {
       </v-app-bar-title>
 
       <template #append>
+        <v-btn
+          v-if="isAdmin"
+          variant="text"
+          size="small"
+          prepend-icon="mdi-shield-account-outline"
+          @click="router.push('/admin')"
+        >
+          Admin
+        </v-btn>
         <v-btn
           :icon="
             theme.global.current.value.dark ? 'mdi-white-balance-sunny' : 'mdi-moon-waning-crescent'
