@@ -140,17 +140,13 @@ Verdikt exposes the standard `client_credentials` discovery + token endpoints
 mints opaque `vkt_` tokens. The SDK needs no special configuration beyond the
 backend URL and a client id/secret.
 
-1. Mint a client with the admin CLI (it prints the secret **once**):
+1. Mint a client from the **Admin UI** (the secret is shown **once**). Log in as
+   an admin, open the **Admin** page (`/admin`), and create a client — toggle
+   **Admin** for a central pipeline that may touch every app, or pick specific
+   apps to scope it. (Programmatically, this is `POST /v1/admin/machine-clients`,
+   gated by `require_admin`.)
 
-   ```shell
-   cd backend
-   # central pipeline that may touch every app:
-   uv run main.py create-client "ci-pipeline" --admin
-   # team client scoped to a single app:
-   uv run main.py create-client "team-a" --app <app-slug>
-   ```
-
-2. Paste the printed credentials into root `.env`:
+2. Paste the displayed credentials into root `.env`:
 
    ```
    VERDIKT_CLIENT_ID=mc_xxxxxxxx
@@ -161,16 +157,17 @@ backend URL and a client id/secret.
    `make eval` (and any SDK consumer) now authenticates against Verdikt. Restart
    the backend after changing `.env` (it reads it at startup).
 
-To revoke a client, set `revoked=true` on its `machine_clients` row; live tokens
-expire after `MACHINE_TOKEN_TTL` seconds.
+Revoke (or un-revoke) a client from the Admin UI; revoking soft-disables it and
+kills its live tokens immediately. Tokens otherwise expire after
+`MACHINE_TOKEN_TTL` seconds.
 
 ## Authorization (per-app access)
 
 Both humans and machines resolve to one `Principal` checked against the
 `app_principals` table:
 
-- **Admins see every app.** Humans whose `email` is in `ADMIN_EMAILS`; machine
-  clients created with `--admin`.
+- **Admins see every app.** Humans whose `email` is in `ADMIN_EMAILS` or the
+  access-config `admins:` list; machine clients created as admin.
 - **Everyone else sees only the apps they are bound to** — matched by email
   (human) or `client_id` (machine). Unbound app / evaluation / sample routes
   return `403`; nested ids (`/evaluation/{id}`, `/sample/{id}`) are resolved to
@@ -181,13 +178,24 @@ Both humans and machines resolve to one `Principal` checked against the
 > default — enable "User Info inside ID Token" (see [Local dev](#local-dev-with-zitadel)).
 > No email claim → the user matches nothing and sees no apps.
 
-Bind principals with the CLI:
+Bind **human (email) principals** declaratively via the access-config YAML — it
+is the source of truth for the email bindings of the apps it lists, reconciled
+into `app_principals` on startup. Point `ACCESS_CONFIG_PATH` at it (empty
+disables reconciliation):
 
-```shell
-cd backend
-uv run main.py add-member <app-slug> alice@example.com   # bind a human to an app
-uv run main.py create-client "team-a" --app <app-slug>   # bind a new machine client
+```yaml
+# access.yaml — GitOps for who can access what
+admins:
+  - admin@example.com
+apps:
+  team-a-app:
+    - alice@example.com
+    - bob@example.com
 ```
+
+Listed apps have their email bindings made to match the file exactly (extras are
+removed); apps not listed and all machine-client bindings are left untouched.
+Bind **machine clients** to apps from the Admin UI.
 
 Set the admin allowlist in root `.env`:
 
