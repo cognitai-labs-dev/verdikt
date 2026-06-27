@@ -95,8 +95,9 @@ login UI on `:3000`) so you can develop without an external IdP.
 3. Create (or reuse) a **Project**, then add an **Application**:
    - Use: **Web** → **Code** (confidential — the BFF holds the secret).
    - Enable **Dev Mode** on the app (allows the `http://` redirect below).
-   - **Redirect URI**: `http://localhost:3000/auth/callback`
-   - **Post-logout redirect URI**: `http://localhost:3000/`
+   - **Redirect URI**: `http://localhost:5173/auth/callback`
+   - **Post-logout redirect URI**: `http://localhost:5173/`
+   (Zitadel's own login UI uses `:3000`, so the dev frontend runs on `:5173`.)
 
 4. Copy the application's **Client ID** + **Secret**, then fill the env files:
 
@@ -123,7 +124,7 @@ login UI on `:3000`) so you can develop without an external IdP.
    make dev         # db + migrations + backend + frontend
    ```
 
-   The frontend (Nuxt) serves at <http://localhost:3000>; an unauthenticated
+   The frontend (Nuxt) serves at <http://localhost:5173>; an unauthenticated
    route redirects through the BFF to the Zitadel login.
 
 ### SDK access (machine clients)

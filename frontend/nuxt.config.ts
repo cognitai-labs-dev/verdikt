@@ -7,6 +7,10 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2025-01-01",
 
+  // Dev server on 5173 to avoid the local Zitadel login UI (docker, :3000).
+  // Production runs the Nitro node server on :3000 (PORT env).
+  devServer: { port: 5173 },
+
   modules: ["vuetify-nuxt-module", "nuxt-auth-utils"],
 
   css: ["@mdi/font/css/materialdesignicons.css"],
