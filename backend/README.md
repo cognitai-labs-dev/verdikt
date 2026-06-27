@@ -181,6 +181,32 @@ erDiagram
         datetime updated_at
     }
 
+    machine_clients {
+        int id PK
+        string client_id UK
+        string client_secret_hash
+        string name
+        bool is_admin
+        bool revoked
+        datetime created_at
+    }
+
+    machine_tokens {
+        int id PK
+        string token_hash UK
+        string client_id FK
+        datetime expires_at
+        bool revoked
+        datetime created_at
+    }
+
+    app_principals {
+        int id PK
+        int app_id FK
+        string subject_type
+        string subject
+    }
+
     apps ||--o{ prompt_versions : "has"
     apps ||--o| prompt_versions : "current"
     apps ||--o{ evaluations : "has"
@@ -188,7 +214,19 @@ erDiagram
     prompt_versions ||--o{ evaluations : "used in"
     evaluations ||--o{ samples : "contains"
     samples ||--o{ judgments : "judged by"
+    machine_clients ||--o{ machine_tokens : "issues"
+    apps ||--o{ app_principals : "bound to"
 ```
+
+## Auth
+
+- **Humans**: generic OIDC id_token verified against the issuer's JWKS
+  (`src/api/auth.py`).
+- **Machines**: Verdikt is its own OAuth2 `client_credentials` issuer — opaque
+  `vkt_` tokens stored in `machine_tokens` (`src/auth/`, discovery + `/auth/token`
+  in `src/api_app.py`). Mint clients with `main.py create-client`.
+- Both resolve to one `Principal` (`src/api/deps.py: authenticate`), authorized
+  per app via `app_principals`; admins (`ADMIN_EMAILS` / `--admin`) see all.
 
 ## Components
 

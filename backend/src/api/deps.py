@@ -153,7 +153,7 @@ async def require_sample_access(
     evaluation = await evaluation_repo.get(conn, sample.evaluation_id)
     if evaluation is None:
         raise HTTPException(
-            status_code=404, detail="Sample not found"
+            status_code=404, detail="Evaulation not found"
         )
     await _assert_app_access(conn, principal, evaluation.app_id)
     return principal

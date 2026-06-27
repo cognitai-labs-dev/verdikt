@@ -7,13 +7,21 @@ Standalone AI evaluation service that decouples evaluation and judging from the 
 - `backend/` — FastAPI REST API, LLM judge worker, PostgreSQL storage
 - `frontend/` — Vue 3 SPA for human judging and viewing results
 
-## Authentication (generic OIDC)
+## Authentication
 
-Verdikt authenticates against any **OIDC-compliant** provider — Google
-Workspace, Zitadel, Keycloak, Authentik, Okta, Azure AD, etc. Pick one per
-deployment and configure it via environment variables. The frontend runs the
-authorization-code + PKCE flow and sends the **id_token** to the backend, which
-verifies it against the issuer's JWKS.
+Verdikt has **two independent auth paths** — one for humans, one for machines —
+that both resolve to a single `Principal` checked against one per-app permission
+table (see [Authorization](#authorization-per-app-access)).
+
+- **Humans** log in via any **OIDC-compliant** provider — GitLab, Google
+  Workspace, Zitadel, Keycloak, Authentik, Okta, Azure AD, etc. Pick one per
+  deployment via env. The frontend runs authorization-code + PKCE and sends the
+  **id_token** to the backend, which verifies it against the issuer's JWKS.
+- **Machines** (the eval pipeline / SDK) authenticate against **Verdikt itself**,
+  not the login IdP. Verdikt is its own OAuth2 `client_credentials` issuer,
+  minting opaque, DB-backed `vkt_` tokens (instant revoke, no key management).
+  This is why `make eval` works regardless of which login provider you pick.
+  See [SDK access](#sdk-access-machine-clients).
 
 ### 1. Create an OAuth client in your IdP
 
@@ -30,14 +38,23 @@ Create a **Web / SPA application with PKCE** and register:
 Copy `frontend/.env.example` to `frontend/.env`:
 
 ```
-# Zitadel
-VITE_OIDC_ISSUER=https://<your-instance>.zitadel.cloud
-VITE_OIDC_CLIENT_ID=<your-client-id>
+# GitLab (self-hosted or gitlab.com)
+VITE_OIDC_ISSUER=https://gitlab.example.com
+VITE_OIDC_CLIENT_ID=<application-id>
 
 # Google
 VITE_OIDC_ISSUER=https://accounts.google.com
 VITE_OIDC_CLIENT_ID=<your-client-id>
+
+# Zitadel
+VITE_OIDC_ISSUER=https://<your-instance>.zitadel.cloud
+VITE_OIDC_CLIENT_ID=<your-client-id>
 ```
+
+> **GitLab**: create the OAuth application with scopes `openid email profile`,
+> redirect `{origin}/auth/signinwin/oidc`, and **Confidential unchecked** (public
+> PKCE — the SPA holds no secret). The **Application ID** is your client id; the
+> issuer is the GitLab base URL.
 
 ### 3. Backend config
 
@@ -45,12 +62,13 @@ Copy `.env.example` to `.env`:
 
 ```
 OIDC_ISSUER=http://localhost:8080   # must match the token's `iss`
-OIDC_AUDIENCE=<your-client-id>      # the token's `aud`
+OIDC_AUDIENCE=<spa-client-id>        # the frontend token's `aud` (comma-separated list)
 ```
 
-The JWKS URI is auto-discovered from the issuer's
-`/.well-known/openid-configuration`. Set `OIDC_JWKS_URI` only to pin it
-explicitly.
+`OIDC_AUDIENCE` lists only **human** (frontend SPA) client ids — machine clients
+do not use OIDC, so they are not listed here. The JWKS URI is auto-discovered
+from the issuer's `/.well-known/openid-configuration`. Set `OIDC_JWKS_URI` only
+to pin it explicitly.
 
 After login the IdP redirects to the redirect URI; the app exchanges the code
 for tokens and continues to the original destination (or `/`). Logout redirects
@@ -96,7 +114,7 @@ login UI on `:3000`) so you can develop without an external IdP.
 
    ```
    OIDC_ISSUER=http://localhost:8080
-   OIDC_AUDIENCE=<client-id>        # comma-separated; add the SDK id too (below)
+   OIDC_AUDIENCE=<client-id>        # the SPA client id (machines don't use OIDC)
    ```
 
 5. Run the app and log in:
@@ -108,35 +126,63 @@ login UI on `:3000`) so you can develop without an external IdP.
    The frontend is served at <http://localhost:5173>; an unauthenticated route
    redirects to the Zitadel login.
 
-### SDK access (machine user)
+### SDK access (machine clients)
 
-The Python SDK authenticates with the OAuth2 **client-credentials** grant,
-which in Zitadel means a **Service User**. Service Users are **org-level** —
-they survive project deletion, unlike the SPA app above.
+Machine auth is handled **entirely by Verdikt** — there is no IdP service user.
+Verdikt exposes the standard `client_credentials` discovery + token endpoints
+(`/.well-known`, `/.well-known/openid-configuration`, `POST /auth/token`) and
+mints opaque `vkt_` tokens. The SDK needs no special configuration beyond the
+backend URL and a client id/secret.
 
-1. Console → **Users** → **Service Users** → **+ New**.
-   - **Username**: e.g. `sdk-test` (this becomes the client id **and** the
-     token's `aud`).
-   - **Access Token Type**: `Bearer`. Create.
+1. Mint a client with the admin CLI (it prints the secret **once**):
 
-2. Open the service user → **Client Secret** → **Generate**. Copy the
-   **Client ID** (the username) and the **Client Secret** — the secret is shown
-   once.
-
-3. Add them to root `.env`, and append the SDK's id to the audience allowlist
-   so the backend accepts its token:
-
-   ```
-   VERDIKT_CLIENT_ID=sdk-test
-   VERDIKT_CLIENT_SECRET=<generated-secret>
-   OIDC_AUDIENCE=<spa-client-id>,sdk-test
+   ```shell
+   cd backend
+   # central pipeline that may touch every app:
+   uv run main.py create-client "ci-pipeline" --admin
+   # team client scoped to a single app:
+   uv run main.py create-client "team-a" --app <app-slug>
    ```
 
-   Restart the backend after changing `.env` (it reads it at startup).
+2. Paste the printed credentials into root `.env`:
 
-> The SDK token's `aud` is the service user's id, which differs from the SPA
-> client id — that's why `OIDC_AUDIENCE` is a list. See the SDK repo for client
-> usage.
+   ```
+   VERDIKT_CLIENT_ID=mc_xxxxxxxx
+   VERDIKT_CLIENT_SECRET=secret_xxxxxxxx
+   SERVICE_BASE_URL=http://localhost:8000   # Verdikt's own URL = the M2M issuer
+   ```
+
+   `make eval` (and any SDK consumer) now authenticates against Verdikt. Restart
+   the backend after changing `.env` (it reads it at startup).
+
+To revoke a client, set `revoked=true` on its `machine_clients` row; live tokens
+expire after `MACHINE_TOKEN_TTL` seconds.
+
+## Authorization (per-app access)
+
+Both humans and machines resolve to one `Principal` checked against the
+`app_principals` table:
+
+- **Admins see every app.** Humans whose `email` is in `ADMIN_EMAILS`; machine
+  clients created with `--admin`.
+- **Everyone else sees only the apps they are bound to** — matched by email
+  (human) or `client_id` (machine). Unbound app / evaluation / sample routes
+  return `403`; nested ids (`/evaluation/{id}`, `/sample/{id}`) are resolved to
+  their owning app first, so guessing another team's id is also `403`.
+
+Bind principals with the CLI:
+
+```shell
+cd backend
+uv run main.py add-member <app-slug> alice@example.com   # bind a human to an app
+uv run main.py create-client "team-a" --app <app-slug>   # bind a new machine client
+```
+
+Set the admin allowlist in root `.env`:
+
+```
+ADMIN_EMAILS=admin@example.com,lead@example.com
+```
 
 ## Deployment
 
@@ -172,7 +218,9 @@ docker run -p 3000:3000 \
 
 The backend reads its config from env/`.env` at startup already (see
 [Backend config](#3-backend-config)), so it's reconfigured the same way — set
-`OIDC_ISSUER`, `OIDC_AUDIENCE`, and `APP_DB_*` on the container.
+`OIDC_ISSUER`, `OIDC_AUDIENCE`, `ADMIN_EMAILS`, `SERVICE_BASE_URL`, and
+`APP_DB_*` on the container. `SERVICE_BASE_URL` must be the backend's public URL
+(it's advertised to SDK clients as the machine-token issuer).
 
 > Local dev does **not** use these images — `make dev` runs the Vite dev server
 > and reads `frontend/.env` via `import.meta.env` (the `${…}` tokens in
