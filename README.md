@@ -98,6 +98,11 @@ login UI on `:3000`) so you can develop without an external IdP.
    - **Redirect URI**: `http://localhost:5173/auth/callback`
    - **Post-logout redirect URI**: `http://localhost:5173/`
    (Zitadel's own login UI uses `:3000`, so the dev frontend runs on `:5173`.)
+   - In the app's **Token** settings, enable **"User Info inside ID Token"**.
+     Zitadel omits `email`/`profile` from the id_token by default, but the BFF
+     and backend authz both read the **`email` claim from the id_token** — without
+     this toggle you log in but see no apps and no profile. (Also make sure the
+     user has a verified email.)
 
 4. Copy the application's **Client ID** + **Secret**, then fill the env files:
 
@@ -170,6 +175,11 @@ Both humans and machines resolve to one `Principal` checked against the
   (human) or `client_id` (machine). Unbound app / evaluation / sample routes
   return `403`; nested ids (`/evaluation/{id}`, `/sample/{id}`) are resolved to
   their owning app first, so guessing another team's id is also `403`.
+
+> Humans are identified by the id_token's **`email` claim**, so your IdP must
+> include it. Most do; some (e.g. **Zitadel**) omit it from the id_token by
+> default — enable "User Info inside ID Token" (see [Local dev](#local-dev-with-zitadel)).
+> No email claim → the user matches nothing and sees no apps.
 
 Bind principals with the CLI:
 
