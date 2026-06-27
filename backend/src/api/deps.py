@@ -146,3 +146,14 @@ async def require_sample_access(
         )
     await _assert_app_access(conn, principal, evaluation.app_id)
     return principal
+
+
+def require_admin(
+    principal: Principal = Depends(authenticate),
+) -> Principal:
+    """Guard for admin-only routes."""
+    if not principal.is_admin:
+        raise HTTPException(
+            status_code=403, detail="Admin access required"
+        )
+    return principal

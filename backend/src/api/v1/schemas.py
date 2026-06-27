@@ -5,7 +5,7 @@ Schemas for API responses & requests
 from pydantic import BaseModel, Field
 from yalc import LLMModel
 
-from src.constants import EvaluationType
+from src.constants import EvaluationType, SubjectType
 from src.evaluation.schemas import AppAnswerSchema
 from src.schemas.evaluation import EvaluationSchema
 from src.schemas.judgment import JudgmentSchema
@@ -15,6 +15,12 @@ from src.schemas.sample import SampleSchema
 
 class ErrorResponse(BaseModel):
     detail: str
+
+
+class MeResponse(BaseModel):
+    subject: str
+    subject_type: SubjectType
+    is_admin: bool
 
 
 class EvaluationRequest(BaseModel):
