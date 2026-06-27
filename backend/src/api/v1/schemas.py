@@ -2,6 +2,8 @@
 Schemas for API responses & requests
 """
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 from yalc import LLMModel
 
@@ -21,6 +23,40 @@ class MeResponse(BaseModel):
     subject: str
     subject_type: SubjectType
     is_admin: bool
+
+
+class AppRef(BaseModel):
+    id: int
+    slug: str
+
+
+class MachineClientResponse(BaseModel):
+    id: int
+    client_id: str
+    name: str
+    is_admin: bool
+    revoked: bool
+    created_at: datetime
+    apps: list[AppRef] = Field(
+        default_factory=list,
+        description="Apps this client is bound to. Empty for admin clients, which implicitly access every app.",
+    )
+
+
+class CreatedMachineClientResponse(MachineClientResponse):
+    client_secret: str = Field(
+        description="The raw client secret — returned only once, on creation, and never again."
+    )
+
+
+class CreateMachineClientRequest(BaseModel):
+    name: str = Field(max_length=100)
+    is_admin: bool = False
+    app_slugs: list[str] = Field(default_factory=list)
+
+
+class AddAppBindingRequest(BaseModel):
+    app_id: int
 
 
 class EvaluationRequest(BaseModel):
