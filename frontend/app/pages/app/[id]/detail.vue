@@ -13,7 +13,9 @@ import {
 import PromptList from "@/components/PromptList.vue"
 import DatasetList from "@/components/DatasetList.vue"
 
-const props = defineProps<{ id: string }>()
+definePageMeta({ name: "Apps detail" })
+const route = useRoute()
+const props = { id: route.params.id as string }
 const router = useRouter()
 const { activeApp: app, loadApp } = useActiveApp()
 

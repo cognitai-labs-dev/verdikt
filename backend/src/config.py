@@ -78,6 +78,20 @@ class APISettings(PostgresSettings):
     SERVICE_BASE_URL: str = "http://localhost:8000"
     MACHINE_TOKEN_TTL: int = 3600
 
+    # Comma-separated browser origins allowed via CORS. With the frontend BFF,
+    # the browser only talks to its own origin and the API is reached
+    # server-to-server (no CORS), so this is empty by default. Set it only if a
+    # browser must call the API cross-origin (e.g. a separately-hosted Swagger).
+    CORS_ORIGINS: str = ""
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [
+            o.strip()
+            for o in self.CORS_ORIGINS.split(",")
+            if o.strip()
+        ]
+
     @property
     def oidc_audiences(self) -> list[str]:
         return [

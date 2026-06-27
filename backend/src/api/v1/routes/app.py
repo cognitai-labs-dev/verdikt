@@ -23,6 +23,7 @@ from src.dependencies import (
     app_commands,
     app_dataset_queries,
     app_dataset_repo,
+    app_principal_repo,
     app_repo,
     evaluation_commands,
     evaluation_queries,
@@ -102,9 +103,17 @@ async def get_apps(
 )
 async def post_app(
     request: AppRequest,
+    principal: Principal = Depends(authenticate),
     conn: AsyncConnection = Depends(get_connection),
 ) -> AppSchema:
-    return await app_commands.create(conn, request.name, request.slug)
+    app = await app_commands.create(conn, request.name, request.slug)
+    # Bind the creator to the new app so they can use it immediately (creator
+    # ownership). Admins already see every app, so binding them is redundant.
+    if not principal.is_admin and principal.subject:
+        await app_principal_repo.add(
+            conn, app.id, principal.subject_type, principal.subject
+        )
+    return app
 
 
 @router.delete(

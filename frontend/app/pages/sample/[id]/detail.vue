@@ -11,14 +11,10 @@ import SampleContentCards from "@/components/SampleContentCards.vue"
 import { onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 
+definePageMeta({ name: "Sample Detail" })
 const router = useRouter()
-
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-})
+const route = useRoute()
+const props = { id: route.params.id as string }
 
 const sample = ref<SampleJudgments | null>(null)
 const loading = ref(true)

@@ -1,13 +1,7 @@
 import { globalIgnores } from "eslint/config"
 import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript"
 import pluginVue from "eslint-plugin-vue"
-import pluginVitest from "@vitest/eslint-plugin"
 import eslintConfigPrettier from "eslint-config-prettier"
-
-// To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
-// import { configureVueProject } from '@vue/eslint-config-typescript'
-// configureVueProject({ scriptLangs: ['ts', 'tsx'] })
-// More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
 
 export default defineConfigWithVueTs(
   {
@@ -15,24 +9,27 @@ export default defineConfigWithVueTs(
     files: ["**/*.{vue,ts,mts,tsx}"],
   },
 
-  globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**"]),
+  globalIgnores([
+    "**/dist/**",
+    "**/.nuxt/**",
+    "**/.output/**",
+    "**/node_modules/**",
+    "app/api/generated.ts",
+  ]),
 
   ...pluginVue.configs["flat/essential"],
   vueTsConfigs.recommended,
 
   {
-    ...pluginVitest.configs.recommended,
-    files: ["src/**/__tests__/*"],
-  },
-  {
     rules: {
-      "vue/valid-v-slot": [
-        "error",
-        {
-          allowModifiers: true,
-        },
-      ],
+      "vue/valid-v-slot": ["error", { allowModifiers: true }],
     },
+  },
+
+  {
+    // Nuxt pages/layouts are file-routed and single-word by design.
+    files: ["app/pages/**/*.vue", "app/layouts/**/*.vue", "app/app.vue"],
+    rules: { "vue/multi-word-component-names": "off" },
   },
 
   eslintConfigPrettier,

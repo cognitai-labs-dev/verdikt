@@ -1,14 +1,11 @@
 {
+  // Nuxt generates the real tsconfigs under .nuxt; this just references them.
+  // https://nuxt.com/docs/guide/concepts/typescript
   "files": [],
   "references": [
-    {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.vitest.json"
-    }
+    { "path": "./.nuxt/tsconfig.app.json" },
+    { "path": "./.nuxt/tsconfig.server.json" },
+    { "path": "./.nuxt/tsconfig.shared.json" },
+    { "path": "./.nuxt/tsconfig.node.json" }
   ]
 }

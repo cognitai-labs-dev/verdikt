@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from "vue-router"
 import { useTheme } from "vuetify"
 import { useActiveApp } from "@/stores/useActiveApp"
-import auth from "@/services/auth"
 
 const router = useRouter()
 const route = useRoute()
 const { activeApp, clearApp } = useActiveApp()
+// Session lives in an httpOnly cookie; the browser only sees the profile.
+const { user } = useUserSession()
 
 function goHome() {
   clearApp()
   router.push("/")
 }
+
+function logout() {
+  // Server route clears the sealed session, then redirects.
+  navigateTo("/auth/logout", { external: true })
+}
+
 const theme = useTheme()
 
 const saved = localStorage.getItem("theme")
@@ -62,16 +68,16 @@ function toggleTheme() {
           variant="text"
           size="small"
         />
-        <span v-if="auth.oidcAuth.isAuthenticated" class="text-body-2 text-medium-emphasis mx-2">
-          {{ auth.oidcAuth.userProfile.name ?? auth.oidcAuth.userProfile.email }}
+        <span v-if="user" class="text-body-2 text-medium-emphasis mx-2">
+          {{ user.name ?? user.email }}
         </span>
-        <v-btn icon="mdi-logout" variant="text" size="small" @click="auth.oidcAuth.signOut()" />
+        <v-btn icon="mdi-logout" variant="text" size="small" @click="logout" />
       </template>
     </v-app-bar>
 
     <v-main>
       <div>
-        <RouterView />
+        <slot />
       </div>
     </v-main>
   </v-app>

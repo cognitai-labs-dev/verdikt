@@ -1,5 +1,13 @@
 # Plan: Provider-agnostic auth — human OIDC login + self-issued machine clients + per-app authz
 
+> **Status: implemented** (`f2ed39c`). Steps 1 & 3 are built and tested; Step 2
+> is config-only and code-ready (frontend is pure PKCE) — it needs the operator
+> to create the GitLab OAuth app and set `OIDC_ISSUER`/`OIDC_AUDIENCE` +
+> `VITE_OIDC_*`. See the README "Authentication" / "Authorization" sections for
+> usage. One deviation from the step ordering below: the `/v1` router guard was
+> swapped to `authenticate` in Step 1 (not Step 3) because `make eval` — Step 1's
+> goal — requires machine tokens to pass the guard.
+
 ## Context
 
 Verdikt is becoming an open-source, self-hostable AI-evaluation service that must also run inside the user's company. Two distinct auth needs collided:

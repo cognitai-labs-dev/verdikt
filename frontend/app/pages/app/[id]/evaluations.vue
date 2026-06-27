@@ -12,12 +12,9 @@ const router = useRouter()
 const { loadApp } = useActiveApp()
 const EVAL_TYPE_COOKIE = "selectedEvalType"
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-})
+definePageMeta({ name: "Evaluations" })
+const route = useRoute()
+const props = { id: route.params.id as string }
 
 function getEvalTypeCookie(): EvaluationType {
   const match = document.cookie.match(new RegExp(`(?:^|; )${EVAL_TYPE_COOKIE}=([^;]*)`))

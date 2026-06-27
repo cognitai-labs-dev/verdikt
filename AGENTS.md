@@ -28,6 +28,12 @@ Routes (thin) → Commands/Queries (business logic) → Repositories (DB only)
 ### Database
 - New tables require an Alembic migration in `alembic/versions/`
 
+### Auth & Authorization
+- Two auth paths, one `Principal`. **Humans**: generic OIDC id_token (provider = `OIDC_ISSUER`), verified by `TokenVerifier` (`src/api/auth.py`). **Machines**: Verdikt is its own `client_credentials` issuer — opaque `vkt_` tokens (`src/auth/`, `machine_clients`/`machine_tokens` tables); discovery + `/auth/token` live app-level in `src/api_app.py`.
+- `authenticate` (`src/api/deps.py`) resolves either token type to a `Principal{subject, subject_type, is_admin}`; it's the global `/v1` router guard.
+- Per-app authz via `app_principals` (email/client → app). Admins (`ADMIN_EMAILS` / client `--admin`) see all. Guard app-scoped routes with `require_app_access`; nested routes with `require_evaluation_access` / `require_sample_access` (resolve id → owning app before the check).
+- Admin CLI in `main.py`: `create-client`, `add-member`.
+
 ---
 
 ## Frontend Patterns

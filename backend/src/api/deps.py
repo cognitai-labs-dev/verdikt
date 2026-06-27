@@ -34,17 +34,6 @@ class Principal(BaseModel):
     is_admin: bool
 
 
-async def decoded_jwt_token(
-    auth: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-):
-    try:
-        return await token_verifier.decoded_token(auth.credentials)
-    except jwt.PyJWTError:
-        raise HTTPException(
-            status_code=401, detail="Invalid or expired token"
-        )
-
-
 async def authenticate(
     auth: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     conn: AsyncConnection = Depends(get_connection),
@@ -153,7 +142,7 @@ async def require_sample_access(
     evaluation = await evaluation_repo.get(conn, sample.evaluation_id)
     if evaluation is None:
         raise HTTPException(
-            status_code=404, detail="Sample not found"
+            status_code=404, detail="Evaluation not found"
         )
     await _assert_app_access(conn, principal, evaluation.app_id)
     return principal
