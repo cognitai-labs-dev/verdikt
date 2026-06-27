@@ -1,41 +1,118 @@
+from typing import AsyncIterator
+
+import httpx
 import pytest
+from httpx import ASGITransport
+from sqlalchemy.ext.asyncio import AsyncConnection
 
-from src.api.deps import Principal
-from src.api.v1.routes.me import get_me
+from src.api_app import api_factory
+from src.auth.commands import AuthCommands
 from src.constants import SubjectType
+from src.dependencies import get_connection
+from src.repositories.machine_client import MachineClientRepository
+from src.repositories.machine_token import MachineTokenRepository
+from tests.factories.machine_client import machine_client_db_factory
+
+
+def _build_client(db_conn: AsyncConnection) -> httpx.AsyncClient:
+    """An HTTP client over the real ASGI app, wired to the test connection."""
+    app = api_factory()
+
+    async def _conn() -> AsyncIterator[AsyncConnection]:
+        yield db_conn
+
+    app.dependency_overrides[get_connection] = _conn
+    return httpx.AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    )
 
 
 @pytest.mark.anyio
-async def test_get_me_returns_identity_for_authenticated_principal():
+async def test_get_me_without_token_returns_401(
+    db_conn: AsyncConnection,
+):
     # Arrange
-    principal = Principal(
-        subject="mc-test",
-        subject_type=SubjectType.CLIENT,
-        is_admin=False,
-    )
+    client = _build_client(db_conn)
 
     # Act
-    result = await get_me(principal)
+    async with client:
+        response = await client.get("/v1/me")
 
     # Assert
-    assert result.subject == "mc-test"
-    assert result.subject_type == SubjectType.CLIENT
-    assert result.is_admin is False
+    assert response.status_code == 401
 
 
 @pytest.mark.anyio
-async def test_get_me_returns_admin_flag_for_admin_principal():
+async def test_get_me_with_invalid_token_returns_401(
+    db_conn: AsyncConnection,
+):
     # Arrange
-    principal = Principal(
-        subject="boss@example.com",
-        subject_type=SubjectType.EMAIL,
-        is_admin=True,
-    )
+    client = _build_client(db_conn)
 
     # Act
-    result = await get_me(principal)
+    async with client:
+        response = await client.get(
+            "/v1/me",
+            headers={"Authorization": "Bearer not-a-real-token"},
+        )
 
     # Assert
-    assert result.subject == "boss@example.com"
-    assert result.subject_type == SubjectType.EMAIL
-    assert result.is_admin is True
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_get_me_returns_identity_for_authenticated_client(
+    db_conn: AsyncConnection,
+):
+    # Arrange — a non-admin machine client with a freshly issued token
+    await machine_client_db_factory(
+        db_conn, client_id="mc-me", secret="s", is_admin=False
+    )
+    raw_token, _ = await AuthCommands(
+        MachineClientRepository(), MachineTokenRepository(), 3600
+    ).issue_machine_token(db_conn, "mc-me", "s")
+    client = _build_client(db_conn)
+
+    # Act
+    async with client:
+        response = await client.get(
+            "/v1/me",
+            headers={"Authorization": f"Bearer {raw_token}"},
+        )
+
+    # Assert
+    assert response.status_code == 200
+    assert response.json() == {
+        "subject": "mc-me",
+        "subject_type": SubjectType.CLIENT,
+        "is_admin": False,
+    }
+
+
+@pytest.mark.anyio
+async def test_get_me_returns_admin_flag_for_admin_client(
+    db_conn: AsyncConnection,
+):
+    # Arrange — an admin machine client with a freshly issued token
+    await machine_client_db_factory(
+        db_conn, client_id="mc-me-admin", secret="s", is_admin=True
+    )
+    raw_token, _ = await AuthCommands(
+        MachineClientRepository(), MachineTokenRepository(), 3600
+    ).issue_machine_token(db_conn, "mc-me-admin", "s")
+    client = _build_client(db_conn)
+
+    # Act
+    async with client:
+        response = await client.get(
+            "/v1/me",
+            headers={"Authorization": f"Bearer {raw_token}"},
+        )
+
+    # Assert
+    assert response.status_code == 200
+    assert response.json() == {
+        "subject": "mc-me-admin",
+        "subject_type": SubjectType.CLIENT,
+        "is_admin": True,
+    }
