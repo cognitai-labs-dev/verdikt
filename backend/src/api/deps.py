@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.auth import TokenVerifier
+from src.auth import access_config
 from src.auth.commands import TOKEN_PREFIX
 from src.auth.hashing import sha256_hex, utcnow
 from src.config import APISettings
@@ -73,10 +74,14 @@ async def authenticate(
             status_code=401, detail="Invalid or expired token"
         )
     email = claims.get("email", "")
+    is_admin = (
+        email in APISettings().admin_emails
+        or email in access_config.admin_registry
+    )
     return Principal(
         subject=email,
         subject_type=SubjectType.EMAIL,
-        is_admin=email in APISettings().admin_emails,
+        is_admin=is_admin,
     )
 
 

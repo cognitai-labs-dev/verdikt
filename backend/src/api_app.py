@@ -8,14 +8,27 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.v1.router import router
+from src.auth import access_config
 from src.config import APISettings
-from src.dependencies import auth_commands, db_adpater, get_connection
+from src.dependencies import (
+    app_principal_repo,
+    app_repo,
+    auth_commands,
+    db_adpater,
+    get_connection,
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = APISettings()
     await db_adpater.connect(settings.postgres_dsn)
+    if settings.ACCESS_CONFIG_PATH:
+        cfg = access_config.load(settings.ACCESS_CONFIG_PATH)
+        async with db_adpater.engine.begin() as conn:
+            await access_config.reconcile(
+                conn, app_repo, app_principal_repo, cfg
+            )
     yield
     await db_adpater.disconnect()
 

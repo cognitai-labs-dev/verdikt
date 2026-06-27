@@ -37,6 +37,20 @@ class AppPrincipalRepository(
         result = await conn.execute(stmt)
         return [row.app_id for row in result.fetchall()]
 
+    async def subjects_for(
+        self,
+        conn: AsyncConnection,
+        app_id: int,
+        subject_type: SubjectType,
+    ) -> list[str]:
+        """Subjects of a given type bound to an app."""
+        stmt = select(self.table.c.subject).where(
+            self.table.c.app_id == app_id,
+            self.table.c.subject_type == subject_type,
+        )
+        result = await conn.execute(stmt)
+        return [row.subject for row in result.fetchall()]
+
     async def add(
         self,
         conn: AsyncConnection,

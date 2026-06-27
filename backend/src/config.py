@@ -69,8 +69,13 @@ class APISettings(PostgresSettings):
     JWT_ALGORITHMS: list[str] = ["RS256"]
 
     # Comma-separated emails granted admin (access to every app). Humans whose
-    # OIDC `email` claim is listed here resolve to an admin Principal.
+    # OIDC `email` claim is listed here resolve to an admin Principal. Unioned
+    # with admins declared in the access config file (see ACCESS_CONFIG_PATH).
     ADMIN_EMAILS: str = ""
+
+    # Path to the declarative access config YAML (admins + per-app email
+    # bindings), reconciled on startup. Empty disables reconciliation.
+    ACCESS_CONFIG_PATH: str = ""
 
     # Verdikt's own public URL, advertised as the machine (M2M) issuer. Machine
     # auth never touches the human login IdP — Verdikt mints its own opaque
