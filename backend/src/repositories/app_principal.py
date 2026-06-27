@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.constants import SubjectType
@@ -52,3 +52,18 @@ class AppPrincipalRepository(
                 subject=subject,
             ),
         )
+
+    async def remove(
+        self,
+        conn: AsyncConnection,
+        app_id: int,
+        subject_type: SubjectType,
+        subject: str,
+    ) -> None:
+        """Delete the binding matching (app_id, subject_type, subject)."""
+        stmt = delete(self.table).where(
+            self.table.c.app_id == app_id,
+            self.table.c.subject_type == subject_type,
+            self.table.c.subject == subject,
+        )
+        await conn.execute(stmt)

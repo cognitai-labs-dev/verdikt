@@ -92,6 +92,8 @@ auth_commands = AuthCommands(
     machine_client_repo=machine_client_repo,
     machine_token_repo=machine_token_repo,
     token_ttl=APISettings().MACHINE_TOKEN_TTL,
+    app_repo=app_repo,
+    app_principal_repo=app_principal_repo,
 )
 
 db_adpater = DBAdapter()

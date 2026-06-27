@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-import secrets
 
 import typer
 import uvicorn
@@ -152,49 +151,44 @@ def create_client(
     """Create a machine client and print its credentials once."""
 
     async def run():
-        from src.auth.hashing import sha256_hex
+        from src.auth.commands import AuthCommands
         from src.config import APISettings
-        from src.constants import SubjectType
         from src.dependencies import (
             app_principal_repo,
             app_repo,
             db_adpater,
             machine_client_repo,
+            machine_token_repo,
         )
-        from src.schemas.machine_client import MachineClientCreateSchema
 
-        client_id = "mc_" + secrets.token_urlsafe(12)
-        client_secret = "secret_" + secrets.token_urlsafe(32)
+        app_slugs = [app_slug] if app_slug else []
 
         settings = APISettings()
         await db_adpater.connect(settings.postgres_dsn)
         try:
             async with db_adpater.engine.begin() as conn:
-                await machine_client_repo.create(
-                    conn,
-                    MachineClientCreateSchema(
-                        client_id=client_id,
-                        client_secret_hash=sha256_hex(client_secret),
-                        name=name,
-                        is_admin=admin,
-                    ),
+                commands = AuthCommands(
+                    machine_client_repo=machine_client_repo,
+                    machine_token_repo=machine_token_repo,
+                    token_ttl=settings.MACHINE_TOKEN_TTL,
+                    app_repo=app_repo,
+                    app_principal_repo=app_principal_repo,
                 )
-                if app_slug:
-                    app_row = await app_repo.get_by_slug(conn, app_slug)
-                    if app_row is None:
-                        raise typer.BadParameter(
-                            f"app '{app_slug}' not found"
+                try:
+                    client, client_secret = (
+                        await commands.create_machine_client(
+                            conn,
+                            name=name,
+                            is_admin=admin,
+                            app_slugs=app_slugs,
                         )
-                    await app_principal_repo.add(
-                        conn,
-                        app_row.id,
-                        SubjectType.CLIENT,
-                        client_id,
                     )
+                except ValueError as exc:
+                    raise typer.BadParameter(str(exc)) from exc
         finally:
             await db_adpater.disconnect()
 
-        typer.echo(f"client_id={client_id}")
+        typer.echo(f"client_id={client.client_id}")
         typer.echo(f"client_secret={client_secret}")
         typer.echo("Store the secret now — it is not recoverable.")
 

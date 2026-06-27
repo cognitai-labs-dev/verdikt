@@ -4,11 +4,20 @@ from datetime import timedelta
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.auth.hashing import sha256_hex, utcnow
+from src.constants import SubjectType
+from src.repositories.app_principal import AppPrincipalRepository
+from src.repositories.apps import AppsRepository
 from src.repositories.machine_client import MachineClientRepository
 from src.repositories.machine_token import MachineTokenRepository
+from src.schemas.machine_client import (
+    MachineClientCreateSchema,
+    MachineClientSchema,
+)
 from src.schemas.machine_token import MachineTokenCreateSchema
 
 TOKEN_PREFIX = "vkt_"
+CLIENT_ID_PREFIX = "mc_"
+CLIENT_SECRET_PREFIX = "secret_"
 
 
 class AuthCommands:
@@ -19,10 +28,56 @@ class AuthCommands:
         machine_client_repo: MachineClientRepository,
         machine_token_repo: MachineTokenRepository,
         token_ttl: int,
+        app_repo: AppsRepository | None = None,
+        app_principal_repo: AppPrincipalRepository | None = None,
     ):
         self.machine_client_repo = machine_client_repo
         self.machine_token_repo = machine_token_repo
         self.token_ttl = token_ttl
+        self.app_repo = app_repo
+        self.app_principal_repo = app_principal_repo
+
+    async def create_machine_client(
+        self,
+        conn: AsyncConnection,
+        name: str,
+        is_admin: bool,
+        app_slugs: list[str],
+    ) -> tuple[MachineClientSchema, str]:
+        """Mint a new machine client, hash its secret, persist and bind apps.
+
+        Returns ``(MachineClientSchema, raw_secret)``. The raw secret is
+        returned exactly once and never stored in plaintext.
+
+        Raises ``ValueError`` if any slug in ``app_slugs`` does not resolve.
+        """
+        if self.app_repo is None or self.app_principal_repo is None:
+            raise RuntimeError(
+                "create_machine_client requires app_repo and app_principal_repo"
+            )
+
+        client_id = CLIENT_ID_PREFIX + secrets.token_urlsafe(12)
+        raw_secret = CLIENT_SECRET_PREFIX + secrets.token_urlsafe(32)
+
+        client = await self.machine_client_repo.create(
+            conn,
+            MachineClientCreateSchema(
+                client_id=client_id,
+                client_secret_hash=sha256_hex(raw_secret),
+                name=name,
+                is_admin=is_admin,
+            ),
+        )
+
+        for slug in app_slugs:
+            app = await self.app_repo.get_by_slug(conn, slug)
+            if app is None:
+                raise ValueError(f"app '{slug}' not found")
+            await self.app_principal_repo.add(
+                conn, app.id, SubjectType.CLIENT, client_id
+            )
+
+        return client, raw_secret
 
     async def issue_machine_token(
         self,
