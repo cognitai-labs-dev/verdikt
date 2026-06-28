@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api import deps
 from src.api.deps import authenticate
+from src.auth.access_config import AdminRegistry
 from src.auth.commands import AuthCommands
 from src.auth.hashing import sha256_hex, utcnow
 from src.constants import SubjectType
@@ -97,7 +98,7 @@ async def test_authenticate_human_token_returns_email_principal(
     db_conn: AsyncConnection, monkeypatch
 ):
     # Arrange — non-vkt token routes to the human path; verifier is stubbed
-    monkeypatch.setenv("ADMIN_EMAILS", "")
+    monkeypatch.setattr(deps, "admin_registry", AdminRegistry())
     monkeypatch.setattr(
         deps.token_verifier,
         "decoded_token",
@@ -117,8 +118,10 @@ async def test_authenticate_human_token_returns_email_principal(
 async def test_authenticate_human_token_admin_email_is_admin(
     db_conn: AsyncConnection, monkeypatch
 ):
-    # Arrange — the email claim is in ADMIN_EMAILS
-    monkeypatch.setenv("ADMIN_EMAILS", "boss@example.com")
+    # Arrange — the email claim is an admin in the access-config registry
+    registry = AdminRegistry()
+    registry.replace(["boss@example.com"])
+    monkeypatch.setattr(deps, "admin_registry", registry)
     monkeypatch.setattr(
         deps.token_verifier,
         "decoded_token",

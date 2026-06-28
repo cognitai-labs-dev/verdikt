@@ -227,8 +227,8 @@ erDiagram
   in `src/api_app.py`). Mint/revoke clients via the admin API/UI
   (`/v1/admin/machine-clients`, `require_admin`).
 - Both resolve to one `Principal` (`src/api/deps.py: authenticate`), authorized
-  per app via `app_principals`; admins (`ADMIN_EMAILS`, access-config `admins:`,
-  or an admin client) see all.
+  per app via `app_principals`; admins (access-config `admins:` list, or an
+  admin client) see all.
 - Email principals + admins are managed declaratively via the access-config YAML
   (`ACCESS_CONFIG_PATH`, `src/auth/access_config.py`), reconciled on startup.
 

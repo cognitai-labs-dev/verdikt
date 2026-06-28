@@ -28,9 +28,24 @@ from src.repositories.apps import AppsRepository
 
 logger = logging.getLogger(__name__)
 
-# Emails granted admin via the config file. Unioned with APISettings.admin_emails
-# by `authenticate`. Repopulated wholesale on every reconcile.
-admin_registry: set[str] = set()
+
+class AdminRegistry:
+    """Holds the set of admin emails from the access config.
+
+    A single shared instance lives in ``src.dependencies``; ``authenticate``
+    queries it and ``reconcile`` repopulates it wholesale on startup.
+    """
+
+    def __init__(self) -> None:
+        self._emails: set[str] = set()
+
+    def replace(self, emails: list[str]) -> None:
+        self._emails = {
+            email.strip() for email in emails if email.strip()
+        }
+
+    def __contains__(self, email: str) -> bool:
+        return email in self._emails
 
 
 class AccessConfig(BaseModel):
@@ -49,6 +64,7 @@ async def reconcile(
     conn: AsyncConnection,
     app_repo: AppsRepository,
     app_principal_repo: AppPrincipalRepository,
+    admin_registry: AdminRegistry,
     cfg: AccessConfig,
 ) -> None:
     """Make EMAIL bindings match the config and refresh the admin registry.
@@ -57,10 +73,7 @@ async def reconcile(
     that are present but no longer listed. Apps that do not exist are logged
     and skipped (a nonexistent app cannot be bound).
     """
-    global admin_registry
-    admin_registry = {
-        email.strip() for email in cfg.admins if email.strip()
-    }
+    admin_registry.replace(cfg.admins)
 
     for slug, emails in cfg.apps.items():
         app = await app_repo.get_by_slug(conn, slug)

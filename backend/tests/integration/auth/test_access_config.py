@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.auth import access_config
-from src.auth.access_config import AccessConfig
+from src.auth.access_config import AccessConfig, AdminRegistry
 from src.constants import SubjectType
 from src.repositories.app_principal import AppPrincipalRepository
 from src.repositories.apps import AppsRepository
@@ -62,7 +62,7 @@ async def test_reconcile_adds_missing_and_removes_extra_email_bindings(
 
     # Act
     await access_config.reconcile(
-        db_conn, _apps_repo(), repo, cfg
+        db_conn, _apps_repo(), repo, AdminRegistry(), cfg
     )
 
     # Assert — EMAIL bindings now match the file exactly; CLIENT untouched
@@ -85,7 +85,7 @@ async def test_reconcile_skips_unknown_app(db_conn: AsyncConnection):
 
     # Act / Assert — no exception raised for a missing app
     await access_config.reconcile(
-        db_conn, _apps_repo(), AppPrincipalRepository(), cfg
+        db_conn, _apps_repo(), AppPrincipalRepository(), AdminRegistry(), cfg
     )
 
 
@@ -95,11 +95,12 @@ async def test_reconcile_populates_admin_registry(
 ):
     # Arrange
     cfg = AccessConfig(admins=["admin@example.com"], apps={})
+    registry = AdminRegistry()
 
     # Act
     await access_config.reconcile(
-        db_conn, _apps_repo(), AppPrincipalRepository(), cfg
+        db_conn, _apps_repo(), AppPrincipalRepository(), registry, cfg
     )
 
     # Assert
-    assert "admin@example.com" in access_config.admin_registry
+    assert "admin@example.com" in registry

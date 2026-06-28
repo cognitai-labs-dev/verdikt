@@ -1,5 +1,10 @@
 from enum import StrEnum
 
+# Token / credential prefixes for Verdikt's own machine-auth issuer.
+TOKEN_PREFIX = "vkt_"
+CLIENT_ID_PREFIX = "mc_"
+CLIENT_SECRET_PREFIX = "secret_"
+
 
 class JudgmentType(StrEnum):
     HUMAN = "HUMAN"

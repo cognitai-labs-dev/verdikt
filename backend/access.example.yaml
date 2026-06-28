@@ -8,8 +8,8 @@
 # warning — create the app first (admin UI). Leave ACCESS_CONFIG_PATH empty to
 # disable reconciliation entirely.
 
-# Emails granted admin (access to every app). Unioned with the ADMIN_EMAILS env
-# var. An admin's /v1/me reports is_admin=true.
+# Emails granted admin (access to every app). This list is the only source of
+# admins. An admin's /v1/me reports is_admin=true.
 admins:
   - admin@example.com
   - lead@example.com

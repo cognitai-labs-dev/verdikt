@@ -11,6 +11,7 @@ from src.api.v1.router import router
 from src.auth import access_config
 from src.config import APISettings
 from src.dependencies import (
+    admin_registry,
     app_principal_repo,
     app_repo,
     auth_commands,
@@ -27,7 +28,11 @@ async def lifespan(app: FastAPI):
         cfg = access_config.load(settings.ACCESS_CONFIG_PATH)
         async with db_adpater.engine.begin() as conn:
             await access_config.reconcile(
-                conn, app_repo, app_principal_repo, cfg
+                conn,
+                app_repo,
+                app_principal_repo,
+                admin_registry,
+                cfg,
             )
     yield
     await db_adpater.disconnect()

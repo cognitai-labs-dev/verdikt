@@ -166,8 +166,8 @@ Tokens otherwise expire after `MACHINE_TOKEN_TTL` seconds.
 Both humans and machines resolve to one `Principal` checked against the
 `app_principals` table:
 
-- **Admins see every app.** Humans whose `email` is in `ADMIN_EMAILS` or the
-  access-config `admins:` list; machine clients created as admin.
+- **Admins see every app.** Humans whose `email` is in the access-config
+  `admins:` list; machine clients created as admin.
 - **Everyone else sees only the apps they are bound to** — matched by email
   (human) or `client_id` (machine). Unbound app / evaluation / sample routes
   return `403`; nested ids (`/evaluation/{id}`, `/sample/{id}`) are resolved to
@@ -195,13 +195,12 @@ apps:
 
 Listed apps have their email bindings made to match the file exactly (extras are
 removed); apps not listed and all machine-client bindings are left untouched.
-Bind **machine clients** to apps from the Admin UI.
+The `admins:` list is the **only** source of admins. Bind **machine clients** to
+apps from the Admin UI.
 
-Set the admin allowlist in root `.env`:
-
-```
-ADMIN_EMAILS=admin@example.com,lead@example.com
-```
+Copy `backend/access.example.yaml` to `backend/access.yaml`, edit it, and set
+`ACCESS_CONFIG_PATH=access.yaml` in root `.env` (resolved relative to the backend
+run dir).
 
 ## Deployment
 
@@ -241,7 +240,7 @@ exposed client-side.
 
 The backend reads its config from env/`.env` at startup (see
 [Backend config](#3-backend-config)) — set `OIDC_ISSUER`, `OIDC_AUDIENCE`,
-`ADMIN_EMAILS`, `SERVICE_BASE_URL`, and `APP_DB_*` on the container.
+`ACCESS_CONFIG_PATH`, `SERVICE_BASE_URL`, and `APP_DB_*` on the container.
 `SERVICE_BASE_URL` must be the backend's public URL (advertised to SDK clients as
 the machine-token issuer).
 

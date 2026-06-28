@@ -4,7 +4,12 @@ from datetime import timedelta
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.auth.hashing import sha256_hex, utcnow
-from src.constants import SubjectType
+from src.constants import (
+    CLIENT_ID_PREFIX,
+    CLIENT_SECRET_PREFIX,
+    TOKEN_PREFIX,
+    SubjectType,
+)
 from src.repositories.app_principal import AppPrincipalRepository
 from src.repositories.apps import AppsRepository
 from src.repositories.machine_client import MachineClientRepository
@@ -14,10 +19,6 @@ from src.schemas.machine_client import (
     MachineClientSchema,
 )
 from src.schemas.machine_token import MachineTokenCreateSchema
-
-TOKEN_PREFIX = "vkt_"
-CLIENT_ID_PREFIX = "mc_"
-CLIENT_SECRET_PREFIX = "secret_"
 
 
 class AuthCommands:
