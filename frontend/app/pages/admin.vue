@@ -30,6 +30,7 @@ const newAppSlugs = ref<string[]>([])
 const creating = ref(false)
 const createError = ref<string | null>(null)
 const createdSecret = ref<CreatedMachineClientResponse | null>(null)
+const idCopied = ref(false)
 const secretCopied = ref(false)
 
 const appSlugItems = computed(() =>
@@ -76,6 +77,7 @@ function openCreateDialog() {
   newAppSlugs.value = []
   createError.value = null
   createdSecret.value = null
+  idCopied.value = false
   secretCopied.value = false
   createDialog.value = true
 }
@@ -99,6 +101,12 @@ async function handleCreate() {
         ? res.data.detail
         : "Failed to create client. Please try again."
   }
+}
+
+async function copyId() {
+  if (!createdSecret.value) return
+  await navigator.clipboard.writeText(createdSecret.value.client_id)
+  idCopied.value = true
 }
 
 async function copySecret() {
@@ -178,26 +186,40 @@ async function removeApp(client: MachineClientResponse, appId: number) {
               <span class="text-caption text-medium-emphasis">all apps</span>
             </template>
             <template v-else>
-              <v-chip
-                v-for="app in client.apps ?? []"
-                :key="app.id"
-                size="x-small"
-                class="mr-1 mb-1"
-                closable
-                @click:close="removeApp(client, app.id)"
-              >
-                {{ app.slug }}
-              </v-chip>
-              <v-select
-                v-if="appsForSelect(client).length"
-                :items="appsForSelect(client)"
-                density="compact"
-                variant="plain"
-                hide-details
-                label="add app"
-                style="max-width: 160px"
-                @update:model-value="(v: number) => addApp(client, v)"
-              />
+              <div class="d-flex flex-wrap align-center ga-1">
+                <v-chip
+                  v-for="app in client.apps ?? []"
+                  :key="app.id"
+                  size="small"
+                  closable
+                  @click:close="removeApp(client, app.id)"
+                >
+                  {{ app.slug }}
+                </v-chip>
+
+                <v-menu v-if="appsForSelect(client).length">
+                  <template #activator="{ props }">
+                    <v-chip v-bind="props" size="small" variant="outlined" prepend-icon="mdi-plus">
+                      add app
+                    </v-chip>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item
+                      v-for="item in appsForSelect(client)"
+                      :key="item.value"
+                      :title="item.title"
+                      @click="addApp(client, item.value)"
+                    />
+                  </v-list>
+                </v-menu>
+
+                <span
+                  v-else-if="!(client.apps ?? []).length"
+                  class="text-caption text-medium-emphasis"
+                >
+                  no apps
+                </span>
+              </div>
             </template>
           </td>
           <td class="text-right">
@@ -246,17 +268,32 @@ async function removeApp(client: MachineClientResponse, appId: number) {
 
         <v-card-text v-else>
           <v-alert type="warning" variant="tonal" class="mb-3">
-            Store this secret now — it is shown once and cannot be recovered.
+            Store these now — the secret is shown once and cannot be recovered.
           </v-alert>
-          <v-text-field
-            :model-value="createdSecret.client_secret"
-            label="Client secret"
-            readonly
-            :append-inner-icon="secretCopied ? 'mdi-check' : 'mdi-content-copy'"
-            @click:append-inner="copySecret"
-          />
-          <div class="text-caption text-medium-emphasis">
-            client_id: <code>{{ createdSecret.client_id }}</code>
+          <div class="text-caption text-medium-emphasis mb-1">Client ID</div>
+          <div class="credential-box d-flex align-center mb-4">
+            <code class="flex-grow-1 text-truncate">{{ createdSecret.client_id }}</code>
+            <v-btn
+              :icon="idCopied ? 'mdi-check' : 'mdi-content-copy'"
+              :color="idCopied ? 'success' : undefined"
+              size="small"
+              variant="text"
+              density="comfortable"
+              @click="copyId"
+            />
+          </div>
+
+          <div class="text-caption text-medium-emphasis mb-1">Client secret</div>
+          <div class="credential-box d-flex align-center">
+            <code class="flex-grow-1 text-truncate">{{ createdSecret.client_secret }}</code>
+            <v-btn
+              :icon="secretCopied ? 'mdi-check' : 'mdi-content-copy'"
+              :color="secretCopied ? 'success' : undefined"
+              size="small"
+              variant="text"
+              density="comfortable"
+              @click="copySecret"
+            />
           </div>
         </v-card-text>
 
@@ -280,3 +317,18 @@ async function removeApp(client: MachineClientResponse, appId: number) {
     </v-dialog>
   </v-container>
 </template>
+
+<style scoped>
+.credential-box {
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 8px;
+  background: rgba(var(--v-theme-on-surface), 0.04);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+}
+.credential-box code {
+  font-family: monospace;
+  font-size: 0.875rem;
+  overflow-x: auto;
+}
+</style>

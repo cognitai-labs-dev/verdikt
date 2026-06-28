@@ -100,7 +100,9 @@ def evaluate(
             for d in DATASETS
         ]
 
-        await verdikt.create_app("eval-app", "Evaluation")
+        # The app must already exist and this client must be bound to it —
+        # machine clients cannot create apps. Create "eval-app" in the admin
+        # UI and bind this client to it before seeding.
         await verdikt.add_questions("eval-app", questions, True)
 
         app_answers = {
