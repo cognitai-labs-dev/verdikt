@@ -67,7 +67,12 @@ async def authenticate(
 
     try:
         claims = await token_verifier.decoded_token(token)
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as exc:
+        logger.warning(
+            "JWT verification failed: %s: %s",
+            type(exc).__name__,
+            exc,
+        )
         raise HTTPException(
             status_code=401, detail="Invalid or expired token"
         )
