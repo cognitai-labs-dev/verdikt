@@ -34,10 +34,10 @@ async def test_post_app_binds_non_admin_creator_to_new_app(
 
 
 @pytest.mark.anyio
-async def test_post_app_does_not_bind_admin_creator(
+async def test_post_app_binds_admin_creator_too(
     db_conn: AsyncConnection,
 ):
-    # Arrange — admins see every app, so no binding row is needed
+    # Arrange — admin creator is bound as well, so the app shows up as theirs
     principal = Principal(
         subject="boss@example.com",
         subject_type=SubjectType.EMAIL,
@@ -55,4 +55,4 @@ async def test_post_app_does_not_bind_admin_creator(
     ids = await AppPrincipalRepository().app_ids_for(
         db_conn, SubjectType.EMAIL, "boss@example.com"
     )
-    assert app.id not in ids
+    assert app.id in ids

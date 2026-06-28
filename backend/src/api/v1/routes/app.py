@@ -108,8 +108,9 @@ async def post_app(
 ) -> AppSchema:
     app = await app_commands.create(conn, request.name, request.slug)
     # Bind the creator to the new app so they can use it immediately (creator
-    # ownership). Admins already see every app, so binding them is redundant.
-    if not principal.is_admin and principal.subject:
+    # ownership). Admins are bound too — so the app shows up as theirs even
+    # though their admin status already grants access to every app.
+    if principal.subject:
         await app_principal_repo.add(
             conn, app.id, principal.subject_type, principal.subject
         )
