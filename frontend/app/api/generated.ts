@@ -43,6 +43,17 @@ export interface AppDatasetsRequest {
   datasets: AppDatasetItem[]
 }
 
+/**
+ * A machine client as seen within one app's scope (no cross-app slugs).
+ */
+export interface AppMachineClientResponse {
+  id: number
+  client_id: string
+  name: string
+  revoked: boolean
+  created_at: string
+}
+
 export interface AppRef {
   id: number
   slug: string
@@ -75,11 +86,26 @@ export interface BodyPostAuthToken {
   grant_type: string
 }
 
+export interface CreateAppMachineClientRequest {
+  /** @maxLength 100 */
+  name: string
+}
+
 export interface CreateMachineClientRequest {
   /** @maxLength 100 */
   name: string
   is_admin?: boolean
   app_slugs?: string[]
+}
+
+export interface CreatedAppMachineClientResponse {
+  id: number
+  client_id: string
+  name: string
+  revoked: boolean
+  created_at: string
+  /** The raw client secret — returned only once, on creation, and never again. */
+  client_secret: string
 }
 
 export interface CreatedMachineClientResponse {
@@ -1032,6 +1058,146 @@ export const getEvaluationsSummaries = async (
     {
       ...options,
       method: "GET",
+    },
+  )
+}
+
+/**
+ * List the machine clients bound to this app.
+ * @summary Get App Machine Clients
+ */
+export type getAppMachineClientsResponse200 = {
+  data: AppMachineClientResponse[]
+  status: 200
+}
+
+export type getAppMachineClientsResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type getAppMachineClientsResponseSuccess = getAppMachineClientsResponse200 & {
+  headers: Headers
+}
+export type getAppMachineClientsResponseError = getAppMachineClientsResponse422 & {
+  headers: Headers
+}
+
+export type getAppMachineClientsResponse =
+  | getAppMachineClientsResponseSuccess
+  | getAppMachineClientsResponseError
+
+export const getGetAppMachineClientsUrl = (appId: number) => {
+  return `http://127.0.0.1:8000/v1/app/${appId}/machine-clients`
+}
+
+export const getAppMachineClients = async (
+  appId: number,
+  options?: RequestInit,
+): Promise<getAppMachineClientsResponse> => {
+  return customFetch<getAppMachineClientsResponse>(getGetAppMachineClientsUrl(appId), {
+    ...options,
+    method: "GET",
+  })
+}
+
+/**
+ * Create a machine client scoped to this app. The client_secret is returned ONCE.
+ * @summary Post App Machine Client
+ */
+export type postAppMachineClientResponse201 = {
+  data: CreatedAppMachineClientResponse
+  status: 201
+}
+
+export type postAppMachineClientResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type postAppMachineClientResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type postAppMachineClientResponseSuccess = postAppMachineClientResponse201 & {
+  headers: Headers
+}
+export type postAppMachineClientResponseError = (
+  | postAppMachineClientResponse404
+  | postAppMachineClientResponse422
+) & {
+  headers: Headers
+}
+
+export type postAppMachineClientResponse =
+  | postAppMachineClientResponseSuccess
+  | postAppMachineClientResponseError
+
+export const getPostAppMachineClientUrl = (appId: number) => {
+  return `http://127.0.0.1:8000/v1/app/${appId}/machine-clients`
+}
+
+export const postAppMachineClient = async (
+  appId: number,
+  createAppMachineClientRequest: CreateAppMachineClientRequest,
+  options?: RequestInit,
+): Promise<postAppMachineClientResponse> => {
+  return customFetch<postAppMachineClientResponse>(getPostAppMachineClientUrl(appId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createAppMachineClientRequest),
+  })
+}
+
+/**
+ * Unbind a machine client from this app. If the client is left bound to no apps, it is revoked and its tokens are killed.
+ * @summary Delete App Machine Client
+ */
+export type deleteAppMachineClientResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteAppMachineClientResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteAppMachineClientResponse422 = {
+  data: HTTPValidationError
+  status: 422
+}
+
+export type deleteAppMachineClientResponseSuccess = deleteAppMachineClientResponse204 & {
+  headers: Headers
+}
+export type deleteAppMachineClientResponseError = (
+  | deleteAppMachineClientResponse404
+  | deleteAppMachineClientResponse422
+) & {
+  headers: Headers
+}
+
+export type deleteAppMachineClientResponse =
+  | deleteAppMachineClientResponseSuccess
+  | deleteAppMachineClientResponseError
+
+export const getDeleteAppMachineClientUrl = (appId: number, clientId: string) => {
+  return `http://127.0.0.1:8000/v1/app/${appId}/machine-clients/${clientId}`
+}
+
+export const deleteAppMachineClient = async (
+  appId: number,
+  clientId: string,
+  options?: RequestInit,
+): Promise<deleteAppMachineClientResponse> => {
+  return customFetch<deleteAppMachineClientResponse>(
+    getDeleteAppMachineClientUrl(appId, clientId),
+    {
+      ...options,
+      method: "DELETE",
     },
   )
 }

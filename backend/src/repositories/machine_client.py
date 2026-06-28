@@ -34,6 +34,23 @@ class MachineClientRepository(
             return None
         return self.schema.model_validate(row._mapping)
 
+    async def get_by_client_ids(
+        self, conn: AsyncConnection, client_ids: list[str]
+    ) -> list[MachineClientSchema]:
+        """Return clients matching the given client_ids, newest first."""
+        if not client_ids:
+            return []
+        stmt = (
+            select(self.table)
+            .where(self.table.c.client_id.in_(client_ids))
+            .order_by(self.table.c.created_at.desc())
+        )
+        result = await conn.execute(stmt)
+        return [
+            self.schema.model_validate(row._mapping)
+            for row in result.fetchall()
+        ]
+
     async def get_many(
         self, conn: AsyncConnection
     ) -> list[MachineClientSchema]:

@@ -59,6 +59,26 @@ class AddAppBindingRequest(BaseModel):
     app_id: int
 
 
+class AppMachineClientResponse(BaseModel):
+    """A machine client as seen within one app's scope (no cross-app slugs)."""
+
+    id: int
+    client_id: str
+    name: str
+    revoked: bool
+    created_at: datetime
+
+
+class CreatedAppMachineClientResponse(AppMachineClientResponse):
+    client_secret: str = Field(
+        description="The raw client secret — returned only once, on creation, and never again."
+    )
+
+
+class CreateAppMachineClientRequest(BaseModel):
+    name: str = Field(max_length=100)
+
+
 class EvaluationRequest(BaseModel):
     app_version: str
     evaluation_type: EvaluationType
