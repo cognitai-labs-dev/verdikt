@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from typing import Annotated
 
@@ -19,12 +20,17 @@ from src.dependencies import (
     get_connection,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = APISettings()
     await db_adpater.connect(settings.postgres_dsn)
     if settings.ACCESS_CONFIG_PATH:
+        logger.info(
+            "access config: loading '%s'", settings.ACCESS_CONFIG_PATH
+        )
         cfg = access_config.load(settings.ACCESS_CONFIG_PATH)
         async with db_adpater.engine.begin() as conn:
             await access_config.reconcile(
@@ -34,6 +40,11 @@ async def lifespan(app: FastAPI):
                 admin_registry,
                 cfg,
             )
+    else:
+        logger.info(
+            "access config: ACCESS_CONFIG_PATH not set — skipping "
+            "reconciliation (no admins, no email bindings configured)"
+        )
     yield
     await db_adpater.disconnect()
 

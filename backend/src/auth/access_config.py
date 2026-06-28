@@ -73,14 +73,24 @@ async def reconcile(
     that are present but no longer listed. Apps that do not exist are logged
     and skipped (a nonexistent app cannot be bound).
     """
+    logger.info(
+        "access config: reconciling %d admin(s) and %d app(s)",
+        len(cfg.admins),
+        len(cfg.apps),
+    )
     admin_registry.replace(cfg.admins)
+    logger.info("access config: admins = %s", sorted(cfg.admins))
 
+    total_added = 0
+    total_removed = 0
     for slug, emails in cfg.apps.items():
         app = await app_repo.get_by_slug(conn, slug)
         if app is None:
             logger.warning(
-                "access config references unknown app '%s' — skipping",
+                "access config: app '%s' not found — skipping its %d "
+                "email binding(s)",
                 slug,
+                len(emails),
             )
             continue
 
@@ -91,11 +101,37 @@ async def reconcile(
             )
         )
 
-        for email in desired - current:
+        to_add = desired - current
+        to_remove = current - desired
+        for email in to_add:
             await app_principal_repo.add(
                 conn, app.id, SubjectType.EMAIL, email
             )
-        for email in current - desired:
+        for email in to_remove:
             await app_principal_repo.remove(
                 conn, app.id, SubjectType.EMAIL, email
             )
+
+        total_added += len(to_add)
+        total_removed += len(to_remove)
+        if to_add or to_remove:
+            logger.info(
+                "access config: app '%s' — added %s, removed %s",
+                slug,
+                sorted(to_add) or "none",
+                sorted(to_remove) or "none",
+            )
+        else:
+            logger.info(
+                "access config: app '%s' — already in sync (%d email(s))",
+                slug,
+                len(desired),
+            )
+
+    logger.info(
+        "access config: reconciliation done — %d email binding(s) added, "
+        "%d removed across %d app(s)",
+        total_added,
+        total_removed,
+        len(cfg.apps),
+    )
