@@ -1,10 +1,12 @@
 from typing import AsyncIterator
 
 import httpx
+import jwt
 import pytest
 from httpx import ASGITransport
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from src.api import deps
 from src.api_app import api_factory
 from src.auth.commands import AuthCommands
 from src.constants import SubjectType
@@ -44,9 +46,14 @@ async def test_get_me_without_token_returns_401(
 
 @pytest.mark.anyio
 async def test_get_me_with_invalid_token_returns_401(
-    db_conn: AsyncConnection,
+    db_conn: AsyncConnection, monkeypatch
 ):
-    # Arrange
+    # Arrange — a non-vkt token routes to the human path; the verifier rejects
+    # it (stubbed so the test never reaches out to the OIDC issuer).
+    async def _reject(_token: str) -> dict:
+        raise jwt.InvalidTokenError("bad token")
+
+    monkeypatch.setattr(deps.token_verifier, "decoded_token", _reject)
     client = _build_client(db_conn)
 
     # Act

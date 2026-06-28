@@ -29,8 +29,8 @@ table (see [Authorization](#authorization-per-app-access)).
 
 Create a **confidential web application** (the BFF holds the secret) and register:
 
-- **Redirect URI**: `{origin}/auth/callback` (e.g. `http://localhost:3000/auth/callback`).
-- **Post-logout redirect URI**: `{origin}/` (e.g. `http://localhost:3000/`).
+- **Redirect URI**: `{origin}/auth/callback` (e.g. `http://localhost:5173/auth/callback` in local dev).
+- **Post-logout redirect URI**: `{origin}/` (e.g. `http://localhost:5173/`).
 - **Scopes**: `openid email profile`.
 
 ### 2. Frontend (BFF) config
