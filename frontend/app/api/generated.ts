@@ -1386,53 +1386,6 @@ export const revokeMachineClient = async (
 }
 
 /**
- * Reverse a soft-revoke.
- * @summary Unrevoke Machine Client
- */
-export type unrevokeMachineClientResponse200 = {
-  data: MachineClientResponse
-  status: 200
-}
-
-export type unrevokeMachineClientResponse404 = {
-  data: ErrorResponse
-  status: 404
-}
-
-export type unrevokeMachineClientResponse422 = {
-  data: HTTPValidationError
-  status: 422
-}
-
-export type unrevokeMachineClientResponseSuccess = unrevokeMachineClientResponse200 & {
-  headers: Headers
-}
-export type unrevokeMachineClientResponseError = (
-  | unrevokeMachineClientResponse404
-  | unrevokeMachineClientResponse422
-) & {
-  headers: Headers
-}
-
-export type unrevokeMachineClientResponse =
-  | unrevokeMachineClientResponseSuccess
-  | unrevokeMachineClientResponseError
-
-export const getUnrevokeMachineClientUrl = (clientId: string) => {
-  return `http://127.0.0.1:8000/v1/admin/machine-clients/${clientId}/unrevoke`
-}
-
-export const unrevokeMachineClient = async (
-  clientId: string,
-  options?: RequestInit,
-): Promise<unrevokeMachineClientResponse> => {
-  return customFetch<unrevokeMachineClientResponse>(getUnrevokeMachineClientUrl(clientId), {
-    ...options,
-    method: "POST",
-  })
-}
-
-/**
  * Bind a machine client to an app.
  * @summary Bind Machine Client App
  */

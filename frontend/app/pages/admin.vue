@@ -6,7 +6,6 @@ import {
   getMachineClients,
   postMachineClient,
   revokeMachineClient,
-  unrevokeMachineClient,
   bindMachineClientApp,
   unbindMachineClientApp,
   type MachineClientResponse,
@@ -115,10 +114,8 @@ async function copySecret() {
   secretCopied.value = true
 }
 
-async function toggleRevoke(client: MachineClientResponse) {
-  const res = client.revoked
-    ? await unrevokeMachineClient(client.client_id)
-    : await revokeMachineClient(client.client_id)
+async function revokeClient(client: MachineClientResponse) {
+  const res = await revokeMachineClient(client.client_id)
   if (res.status === 200) {
     replaceClient(res.data)
   }
@@ -224,12 +221,13 @@ async function removeApp(client: MachineClientResponse, appId: number) {
           </td>
           <td class="text-right">
             <v-btn
+              v-if="!client.revoked"
               size="small"
               variant="tonal"
-              :color="client.revoked ? 'success' : 'error'"
-              @click="toggleRevoke(client)"
+              color="error"
+              @click="revokeClient(client)"
             >
-              {{ client.revoked ? "Unrevoke" : "Revoke" }}
+              Revoke
             </v-btn>
           </td>
         </tr>

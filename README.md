@@ -157,9 +157,9 @@ backend URL and a client id/secret.
    `make eval` (and any SDK consumer) now authenticates against Verdikt. Restart
    the backend after changing `.env` (it reads it at startup).
 
-Revoke (or un-revoke) a client from the Admin UI; revoking soft-disables it and
-kills its live tokens immediately. Tokens otherwise expire after
-`MACHINE_TOKEN_TTL` seconds.
+Revoke a client from the Admin UI; revoking soft-disables it and kills its live
+tokens immediately (it cannot be un-revoked — create a new client instead).
+Tokens otherwise expire after `MACHINE_TOKEN_TTL` seconds.
 
 ## Authorization (per-app access)
 

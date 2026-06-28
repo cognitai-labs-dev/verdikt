@@ -125,28 +125,6 @@ async def revoke_machine_client(
 
 
 @router.post(
-    "/machine-clients/{client_id}/unrevoke",
-    operation_id="unrevokeMachineClient",
-    description="Reverse a soft-revoke.",
-    responses={
-        404: {"model": ErrorResponse},
-    },
-)
-async def unrevoke_machine_client(
-    client_id: str,
-    conn: AsyncConnection = Depends(get_connection),
-) -> MachineClientResponse:
-    client = await machine_client_repo.set_revoked(
-        conn, client_id, False
-    )
-    if client is None:
-        raise HTTPException(
-            status_code=404, detail="Machine client not found"
-        )
-    return await _to_response(conn, client)
-
-
-@router.post(
     "/machine-clients/{client_id}/apps",
     operation_id="bindMachineClientApp",
     status_code=201,
