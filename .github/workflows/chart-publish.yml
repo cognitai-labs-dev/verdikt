@@ -26,11 +26,11 @@ jobs:
       - name: Lint chart
         run: |
           helm lint chart/verdikt \
-            -f chart/verdikt/values.dev.yaml \
             --set image.repository=lint/backend \
             --set image.tag=lint \
             --set frontendImage.repository=lint/frontend \
-            --set frontendImage.tag=lint
+            --set frontendImage.tag=lint \
+            --set api.serviceBaseUrl=https://api.verdikt.example.com
 
   publish:
     if: github.event_name == 'push'

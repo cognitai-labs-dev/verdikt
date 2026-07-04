@@ -98,13 +98,8 @@ frontendSecurityContext:
   runAsUser: 1001
   runAsGroup: 1001
 
-ingress:
-  enabled: true
-  className: nginx
-  annotations: {}
-  hosts: []
-  tls: []
-
+# Ingress is NOT managed by this chart — route your own ingress (or gateway)
+# to the {deployment.name}-frontend and {deployment.name}-api services below.
 services:
   api:
     type: ClusterIP
