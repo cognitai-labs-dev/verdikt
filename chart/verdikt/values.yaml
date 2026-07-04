@@ -1,0 +1,150 @@
+# Default values for verdikt.
+deployment:
+  name: verdikt
+  env: ""
+
+# Backend (API + judging worker + migrations) image.
+image:
+  # Will be added from helm command
+  repository: ""
+  pullPolicy: Always
+  # Will be added from helm command
+  tag: ""
+
+# Frontend (Nuxt BFF) image.
+frontendImage:
+  # Will be added from helm command
+  repository: ""
+  pullPolicy: Always
+  # Will be added from helm command
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+app:
+  env: dev
+  logLevel: INFO
+
+api:
+  replicas: 1
+  # Verdikt's own public URL — the machine-token issuer. The discovery document
+  # and token endpoint are derived from it, so it MUST equal the external API
+  # URL (the api ingress host).
+  serviceBaseUrl: ""
+  machineTokenTTL: 3600
+  # Comma-separated browser origins allowed via CORS. Empty: the frontend BFF
+  # reaches the API server-to-server, no browser CORS needed.
+  corsOrigins: ""
+  oidc:
+    # Human-login OIDC provider (id_token verification).
+    issuer: ""
+    # Comma-separated accepted `aud` values.
+    audience: ""
+    # Optional explicit JWKS URI; empty = discovered from the issuer.
+    jwksUri: ""
+
+frontend:
+  replicas: 1
+  oidc:
+    # Human-login OIDC provider (server-side confidential client).
+    # Client id/secret + session password come from the frontend secret.
+    issuer: ""
+
+judging:
+  # Continuous worker processing pending LLM judgments (poll loop).
+  enabled: true
+  replicas: 1
+  waitTime: 5
+  batchSize: 10
+
+# Rendered verbatim into the access.yaml ConfigMap (ACCESS_CONFIG_PATH) —
+# declarative admins + per-app email bindings, reconciled on API startup.
+# See backend/access.example.yaml for the format.
+access:
+  admins: []
+  apps: {}
+
+postgres:
+  host: null
+  port: 5432
+  user: verdikt
+  dbName: verdikt
+
+# Expected secret keys (provisioned via ExternalSecret below, or manually):
+#   {deployment.name}-backend:  APP_DB_PASSWORD, OPENAI_API_KEY, ANTHROPIC_API_KEY
+#   {deployment.name}-frontend: NUXT_OIDC_CLIENT_ID, NUXT_OIDC_CLIENT_SECRET,
+#                               NUXT_SESSION_PASSWORD
+externalSecrets:
+  enabled: false
+  refreshInterval: "15s"
+  # Vault KV path holding the keys listed above.
+  vaultPath: kv-verdikt/app
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+# The frontend image runs as its own non-root user (uid 1001).
+frontendSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts: []
+  tls: []
+
+services:
+  api:
+    type: ClusterIP
+    port: 80
+  frontend:
+    type: ClusterIP
+    port: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+resources:
+  api:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  frontend:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  judging:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  migrateDb:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

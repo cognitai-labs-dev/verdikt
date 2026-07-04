@@ -1,0 +1,18 @@
+{{- if .Values.judging.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.deployment.name }}-judging
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }} judging
+data:
+  APP_ENV: {{ .Values.app.env | quote }}
+  LOG_LEVEL: {{ .Values.app.logLevel | quote }}
+  APP_DB_HOST: {{ .Values.postgres.host | quote }}
+  APP_DB_PORT: {{ .Values.postgres.port | quote }}
+  APP_DB_USER: {{ .Values.postgres.user | quote }}
+  APP_DB_NAME: {{ .Values.postgres.dbName | quote }}
+  WORKER_WAIT_TIME: {{ .Values.judging.waitTime | quote }}
+  WORKER_BATCH_SIZE: {{ .Values.judging.batchSize | quote }}
+{{- end }}

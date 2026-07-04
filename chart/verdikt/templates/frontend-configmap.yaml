@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.deployment.name }}-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }} frontend
+data:
+  # BFF proxies to the API server-to-server via the cluster service.
+  NUXT_VERDIKT_API_URL: "http://{{ .Values.deployment.name }}-api:{{ .Values.services.api.port }}"
+  NUXT_OIDC_ISSUER: {{ .Values.frontend.oidc.issuer | quote }}

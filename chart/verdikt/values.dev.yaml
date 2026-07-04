@@ -1,0 +1,44 @@
+deployment:
+  env: dev
+
+app:
+  env: dev
+  logLevel: DEBUG
+
+api:
+  serviceBaseUrl: https://api.verdikt.dev.heu.group
+  oidc:
+    issuer: https://accounts.google.com
+    audience: ""
+
+frontend:
+  oidc:
+    issuer: https://accounts.google.com
+
+access:
+  admins:
+    - samuel.kopecky@heureka.group
+  apps: {}
+
+postgres:
+  host: null # dev DB host
+
+ingress:
+  hosts:
+    - host: verdikt.dev.heu.group
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+    - host: api.verdikt.dev.heu.group
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api
+  annotations:
+    cert-manager.io/cluster-issuer: "zerossl"
+  tls:
+    - secretName: verdikt-dev-heu-group
+      hosts:
+        - verdikt.dev.heu.group
+        - api.verdikt.dev.heu.group

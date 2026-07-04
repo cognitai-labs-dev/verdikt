@@ -1,0 +1,46 @@
+deployment:
+  env: prod
+
+app:
+  env: prod
+  logLevel: INFO
+
+api:
+  replicas: 2
+  serviceBaseUrl: https://api.verdikt.prod.heu.group
+  oidc:
+    issuer: https://accounts.google.com
+    audience: ""
+
+frontend:
+  replicas: 2
+  oidc:
+    issuer: https://accounts.google.com
+
+access:
+  admins:
+    - samuel.kopecky@heureka.group
+  apps: {}
+
+postgres:
+  host: null # prod DB host
+
+ingress:
+  hosts:
+    - host: verdikt.prod.heu.group
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+    - host: api.verdikt.prod.heu.group
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api
+  annotations:
+    cert-manager.io/cluster-issuer: "zerossl"
+  tls:
+    - secretName: verdikt-prod-heu-group
+      hosts:
+        - verdikt.prod.heu.group
+        - api.verdikt.prod.heu.group
