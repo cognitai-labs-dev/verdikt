@@ -51,19 +51,6 @@ class MachineClientRepository(
             for row in result.fetchall()
         ]
 
-    async def get_many(
-        self, conn: AsyncConnection
-    ) -> list[MachineClientSchema]:
-        """Return all machine clients."""
-        stmt = select(self.table).order_by(
-            self.table.c.created_at.desc()
-        )
-        result = await conn.execute(stmt)
-        return [
-            self.schema.model_validate(row._mapping)
-            for row in result.fetchall()
-        ]
-
     async def set_revoked(
         self, conn: AsyncConnection, client_id: str, revoked: bool
     ) -> MachineClientSchema | None:

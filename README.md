@@ -140,11 +140,10 @@ Verdikt exposes the standard `client_credentials` discovery + token endpoints
 mints opaque `vkt_` tokens. The SDK needs no special configuration beyond the
 backend URL and a client id/secret.
 
-1. Mint a client from the **Admin UI** (the secret is shown **once**). Log in as
-   an admin, open the **Admin** page (`/admin`), and create a client — toggle
-   **Admin** for a central pipeline that may touch every app, or pick specific
-   apps to scope it. (Programmatically, this is `POST /v1/admin/machine-clients`,
-   gated by `require_admin`.)
+1. Mint a client from the **app's detail page** (the secret is shown **once**).
+   Anyone with access to the app can open it and create a machine client under
+   "Machine Clients" — it is bound only to that app. (Programmatically, this is
+   `POST /v1/app/{app_id}/machine-clients`, gated by `require_app_access`.)
 
 2. Paste the displayed credentials into root `.env`:
 
@@ -157,9 +156,10 @@ backend URL and a client id/secret.
    `make eval` (and any SDK consumer) now authenticates against Verdikt. Restart
    the backend after changing `.env` (it reads it at startup).
 
-Revoke a client from the Admin UI; revoking soft-disables it and kills its live
-tokens immediately (it cannot be un-revoked — create a new client instead).
-Tokens otherwise expire after `MACHINE_TOKEN_TTL` seconds.
+Remove a client from the app's detail page; if that was the client's only app it
+is revoked and its live tokens are killed immediately (it cannot be un-revoked —
+create a new client instead). Tokens otherwise expire after `MACHINE_TOKEN_TTL`
+seconds.
 
 ## Authorization (per-app access)
 
@@ -167,7 +167,7 @@ Both humans and machines resolve to one `Principal` checked against the
 `app_principals` table:
 
 - **Admins see every app.** Humans whose `email` is in the access-config
-  `admins:` list; machine clients created as admin.
+  `admins:` list.
 - **Everyone else sees only the apps they are bound to** — matched by email
   (human) or `client_id` (machine). Unbound app / evaluation / sample routes
   return `403`; nested ids (`/evaluation/{id}`, `/sample/{id}`) are resolved to
@@ -195,8 +195,8 @@ apps:
 
 Listed apps have their email bindings made to match the file exactly (extras are
 removed); apps not listed and all machine-client bindings are left untouched.
-The `admins:` list is the **only** source of admins. Bind **machine clients** to
-apps from the Admin UI.
+The `admins:` list is the **only** source of admins. **Machine clients** are
+created and bound per-app from each app's detail page (self-service).
 
 Copy `backend/access.example.yaml` to `backend/access.yaml`, edit it, and set
 `ACCESS_CONFIG_PATH=access.yaml` in root `.env` (resolved relative to the backend

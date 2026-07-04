@@ -31,8 +31,8 @@ Routes (thin) → Commands/Queries (business logic) → Repositories (DB only)
 ### Auth & Authorization
 - Two auth paths, one `Principal`. **Humans**: generic OIDC id_token (provider = `OIDC_ISSUER`), verified by `TokenVerifier` (`src/api/auth.py`). **Machines**: Verdikt is its own `client_credentials` issuer — opaque `vkt_` tokens (`src/auth/`, `machine_clients`/`machine_tokens` tables); discovery + `/auth/token` live app-level in `src/api_app.py`.
 - `authenticate` (`src/api/deps.py`) resolves either token type to a `Principal{subject, subject_type, is_admin}`; it's the global `/v1` router guard.
-- Per-app authz via `app_principals` (email/client → app). Admins (the access-config `admins:` list, or a client created with `is_admin`) see all. Guard app-scoped routes with `require_app_access`; nested routes with `require_evaluation_access` / `require_sample_access` (resolve id → owning app before the check). Admin-only routes use `require_admin`.
-- Account/permission management (no CLI): **machine clients** via the admin API/UI (`/v1/admin/machine-clients`, gated by `require_admin`). **Email principals + admins** declaratively via the access-config YAML (`ACCESS_CONFIG_PATH`, `src/auth/access_config.py`), reconciled into `app_principals` on startup.
+- Per-app authz via `app_principals` (email/client → app). Admins (the access-config `admins:` list) see all. Guard app-scoped routes with `require_app_access`; nested routes with `require_evaluation_access` / `require_sample_access` (resolve id → owning app before the check).
+- Account/permission management (no CLI): **machine clients** are app-scoped and self-service — any principal with access to an app manages that app's clients via `/v1/app/{app_id}/machine-clients` (gated by `require_app_access`; created clients are non-admin and bound only to that app). There is no separate admin machine-client API. **Email principals + admins** declaratively via the access-config YAML (`ACCESS_CONFIG_PATH`, `src/auth/access_config.py`), reconciled into `app_principals` on startup; admins are the only global role (they see every app).
 
 ---
 

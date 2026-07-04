@@ -224,8 +224,8 @@ erDiagram
   (`src/api/auth.py`).
 - **Machines**: Verdikt is its own OAuth2 `client_credentials` issuer — opaque
   `vkt_` tokens stored in `machine_tokens` (`src/auth/`, discovery + `/auth/token`
-  in `src/api_app.py`). Mint/revoke clients via the admin API/UI
-  (`/v1/admin/machine-clients`, `require_admin`).
+  in `src/api_app.py`). Clients are created/removed per-app via
+  `/v1/app/{app_id}/machine-clients` (`require_app_access`).
 - Both resolve to one `Principal` (`src/api/deps.py: authenticate`), authorized
   per app via `app_principals`; admins (access-config `admins:` list, or an
   admin client) see all.
