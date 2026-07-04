@@ -6,7 +6,7 @@ app:
   logLevel: DEBUG
 
 api:
-  serviceBaseUrl: https://api.verdikt.dev.heu.group
+  serviceBaseUrl: https://api.verdikt.dev.example.com
   oidc:
     issuer: https://accounts.google.com
     audience: ""
@@ -17,7 +17,7 @@ frontend:
 
 access:
   admins:
-    - samuel.kopecky@heureka.group
+    - admin@example.com
   apps: {}
 
 postgres:
@@ -25,20 +25,20 @@ postgres:
 
 ingress:
   hosts:
-    - host: verdikt.dev.heu.group
+    - host: verdikt.dev.example.com
       paths:
         - path: /
           pathType: Prefix
           service: frontend
-    - host: api.verdikt.dev.heu.group
+    - host: api.verdikt.dev.example.com
       paths:
         - path: /
           pathType: Prefix
           service: api
   annotations:
-    cert-manager.io/cluster-issuer: "zerossl"
+    cert-manager.io/cluster-issuer: "letsencrypt"
   tls:
-    - secretName: verdikt-dev-heu-group
+    - secretName: verdikt-dev-tls
       hosts:
-        - verdikt.dev.heu.group
-        - api.verdikt.dev.heu.group
+        - verdikt.dev.example.com
+        - api.verdikt.dev.example.com
