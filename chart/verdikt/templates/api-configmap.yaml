@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.deployment.name }}-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }} api
+data:
+  APP_ENV: {{ .Values.app.env | quote }}
+  LOG_LEVEL: {{ .Values.app.logLevel | quote }}
+  APP_DB_HOST: {{ .Values.postgres.host | quote }}
+  APP_DB_PORT: {{ .Values.postgres.port | quote }}
+  APP_DB_USER: {{ .Values.postgres.user | quote }}
+  APP_DB_NAME: {{ .Values.postgres.dbName | quote }}
+  OIDC_ISSUER: {{ .Values.api.oidc.issuer | quote }}
+  OIDC_AUDIENCE: {{ .Values.api.oidc.audience | quote }}
+  OIDC_JWKS_URI: {{ .Values.api.oidc.jwksUri | quote }}
+  ACCESS_CONFIG_PATH: "/config/access.yaml"
+  SERVICE_BASE_URL: {{ required "api.serviceBaseUrl is required (external API URL — the machine-token issuer)" .Values.api.serviceBaseUrl | quote }}
+  MACHINE_TOKEN_TTL: {{ .Values.api.machineTokenTTL | quote }}
+  CORS_ORIGINS: {{ .Values.api.corsOrigins | quote }}

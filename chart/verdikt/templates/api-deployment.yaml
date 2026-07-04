@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.name }}-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }} api
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      {{- include "chart.selectorLabels" . | nindent 6 }} api
+  template:
+    metadata:
+      annotations:
+        # Access config is reconciled on startup only — restart pods when it changes.
+        checksum/access-config: {{ include (print $.Template.BasePath "/access-configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "chart.selectorLabels" . | nindent 8 }} api
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-api
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["api", "--no-reload"]
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ .Values.deployment.name }}-backend
+            - configMapRef:
+                name: {{ .Values.deployment.name }}-api
+          livenessProbe:
+            periodSeconds: 10
+            timeoutSeconds: 5
+            initialDelaySeconds: 10
+            failureThreshold: 3
+            httpGet:
+              path: /.well-known/openid-configuration
+              port: http
+          readinessProbe:
+            periodSeconds: 5
+            timeoutSeconds: 5
+            initialDelaySeconds: 5
+            failureThreshold: 3
+            httpGet:
+              path: /.well-known/openid-configuration
+              port: http
+          resources:
+            {{- toYaml .Values.resources.api | nindent 12 }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+            - mountPath: /config
+              name: access-config
+              readOnly: true
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+        - name: access-config
+          configMap:
+            name: {{ .Values.deployment.name }}-access
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

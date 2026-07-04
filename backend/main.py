@@ -141,14 +141,18 @@ def run_judging():
 
 
 @app.command()
-def api():
+def api(
+    reload: bool = typer.Option(
+        True, help="Auto-reload on code changes (disable in production)."
+    ),
+):
     """Start the FastAPI server."""
     uvicorn.run(
         "src.api_app:api_factory",
         host="0.0.0.0",
         factory=True,
         port=8000,
-        reload=True,
+        reload=reload,
         log_config=None,
     )
 
