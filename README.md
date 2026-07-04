@@ -136,7 +136,7 @@ login UI on `:3000`) so you can develop without an external IdP.
 
 Machine auth is handled **entirely by Verdikt** — there is no IdP service user.
 Verdikt exposes the standard `client_credentials` discovery + token endpoints
-(`/.well-known`, `/.well-known/openid-configuration`, `POST /auth/token`) and
+(`/.well-known/openid-configuration`, `POST /auth/token`) and
 mints opaque `vkt_` tokens. The SDK needs no special configuration beyond the
 backend URL and a client id/secret.
 

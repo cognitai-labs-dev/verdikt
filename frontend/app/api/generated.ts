@@ -339,10 +339,6 @@ export interface UpdateCurrentPromptRequest {
   prompt_id: number
 }
 
-export interface WellKnownResponse {
-  issuer: string
-}
-
 export type GetEvaluationsSummariesParams = {
   eval_type: EvaluationType
 }
@@ -352,31 +348,8 @@ export type GetEvaluationSamplesParams = {
 }
 
 /**
- * @summary Get Well Known
- */
-export type getWellKnownResponse200 = {
-  data: WellKnownResponse
-  status: 200
-}
-
-export type getWellKnownResponseSuccess = getWellKnownResponse200 & {
-  headers: Headers
-}
-export type getWellKnownResponse = getWellKnownResponseSuccess
-
-export const getGetWellKnownUrl = () => {
-  return `http://127.0.0.1:8000/.well-known`
-}
-
-export const getWellKnown = async (options?: RequestInit): Promise<getWellKnownResponse> => {
-  return customFetch<getWellKnownResponse>(getGetWellKnownUrl(), {
-    ...options,
-    method: "GET",
-  })
-}
-
-/**
- * @summary Get Openid Configuration
+ * Minimal OpenID Connect discovery document for the machine issuer. Only `token_endpoint` is published — Verdikt issues opaque client_credentials tokens and supports no other OIDC flow (no authorization endpoint, no JWKS: the tokens are not JWTs). Standard OAuth2 client libraries use this to locate POST /auth/token. Unauthenticated.
+ * @summary OIDC discovery document (token endpoint only)
  */
 export type getOpenIDConfigurationResponse200 = {
   data: OpenIDConfigurationResponse
@@ -402,11 +375,22 @@ export const getOpenIDConfiguration = async (
 }
 
 /**
- * @summary Post Auth Token
+ * Exchange machine-client credentials for an opaque bearer token (`vkt_…`). Credentials are sent via HTTP Basic (client_id / client_secret — minted on an app's detail page) and the form field `grant_type` must be `client_credentials`. The token is stored hashed, expires after MACHINE_TOKEN_TTL seconds, and dies immediately if the client is revoked. Use it as `Authorization: Bearer vkt_…` on /v1 routes.
+ * @summary Mint a machine token (OAuth2 client_credentials)
  */
 export type postAuthTokenResponse200 = {
   data: TokenResponse
   status: 200
+}
+
+export type postAuthTokenResponse400 = {
+  data: void
+  status: 400
+}
+
+export type postAuthTokenResponse401 = {
+  data: void
+  status: 401
 }
 
 export type postAuthTokenResponse422 = {
@@ -417,7 +401,11 @@ export type postAuthTokenResponse422 = {
 export type postAuthTokenResponseSuccess = postAuthTokenResponse200 & {
   headers: Headers
 }
-export type postAuthTokenResponseError = postAuthTokenResponse422 & {
+export type postAuthTokenResponseError = (
+  | postAuthTokenResponse400
+  | postAuthTokenResponse401
+  | postAuthTokenResponse422
+) & {
   headers: Headers
 }
 

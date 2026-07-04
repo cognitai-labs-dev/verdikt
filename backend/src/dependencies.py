@@ -49,9 +49,12 @@ machine_client_repo = MachineClientRepository()
 machine_token_repo = MachineTokenRepository()
 app_principal_repo = AppPrincipalRepository()
 
-# Admin registry — populated from the access config on startup, read by
+# Admin registry — loads/reconciles the access config on startup, read by
 # authenticate to decide is_admin for human (email) principals.
-admin_registry = AdminRegistry()
+admin_registry = AdminRegistry(
+    app_repo=app_repo,
+    app_principal_repo=app_principal_repo,
+)
 
 # Queries
 

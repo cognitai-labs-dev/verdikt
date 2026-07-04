@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from src.auth import access_config
 from src.auth.access_config import AccessConfig, AdminRegistry
 from src.constants import SubjectType
 from src.repositories.app_principal import AppPrincipalRepository
@@ -11,8 +10,11 @@ from src.repositories.apps import AppsRepository
 from tests.factories.app import app_db_schema_factory
 
 
-def _apps_repo() -> AppsRepository:
-    return AppsRepository()
+def _registry() -> AdminRegistry:
+    return AdminRegistry(
+        app_repo=AppsRepository(),
+        app_principal_repo=AppPrincipalRepository(),
+    )
 
 
 def test_load_parses_admins_and_app_bindings(tmp_path: Path):
@@ -27,7 +29,7 @@ def test_load_parses_admins_and_app_bindings(tmp_path: Path):
     )
 
     # Act
-    cfg = access_config.load(str(cfg_file))
+    cfg = AdminRegistry.load(str(cfg_file))
 
     # Assert
     assert cfg.admins == ["alice@example.com"]
@@ -40,7 +42,7 @@ def test_load_empty_file_yields_empty_config(tmp_path: Path):
     cfg_file.write_text("")
 
     # Act
-    cfg = access_config.load(str(cfg_file))
+    cfg = AdminRegistry.load(str(cfg_file))
 
     # Assert
     assert cfg.admins == []
@@ -61,9 +63,7 @@ async def test_reconcile_adds_missing_and_removes_extra_email_bindings(
     )
 
     # Act
-    await access_config.reconcile(
-        db_conn, _apps_repo(), repo, AdminRegistry(), cfg
-    )
+    await _registry().reconcile(db_conn, cfg)
 
     # Assert — EMAIL bindings now match the file exactly; CLIENT untouched
     emails = set(
@@ -84,9 +84,7 @@ async def test_reconcile_skips_unknown_app(db_conn: AsyncConnection):
     )
 
     # Act / Assert — no exception raised for a missing app
-    await access_config.reconcile(
-        db_conn, _apps_repo(), AppPrincipalRepository(), AdminRegistry(), cfg
-    )
+    await _registry().reconcile(db_conn, cfg)
 
 
 @pytest.mark.anyio
@@ -95,12 +93,10 @@ async def test_reconcile_populates_admin_registry(
 ):
     # Arrange
     cfg = AccessConfig(admins=["admin@example.com"], apps={})
-    registry = AdminRegistry()
+    registry = _registry()
 
     # Act
-    await access_config.reconcile(
-        db_conn, _apps_repo(), AppPrincipalRepository(), registry, cfg
-    )
+    await registry.reconcile(db_conn, cfg)
 
     # Assert
     assert "admin@example.com" in registry
