@@ -72,15 +72,11 @@ postgres:
   user: verdikt
   dbName: verdikt
 
-# Expected secret keys (provisioned via ExternalSecret below, or manually):
+# Secrets are NOT managed by this chart — provision them in the deploy layer
+# (e.g. ExternalSecrets) or manually. Expected keys:
 #   {deployment.name}-backend:  APP_DB_PASSWORD, OPENAI_API_KEY, ANTHROPIC_API_KEY
 #   {deployment.name}-frontend: NUXT_OIDC_CLIENT_ID, NUXT_OIDC_CLIENT_SECRET,
 #                               NUXT_SESSION_PASSWORD
-externalSecrets:
-  enabled: false
-  refreshInterval: "15s"
-  # Vault KV path holding the keys listed above.
-  vaultPath: kv-verdikt/app
 
 podAnnotations: {}
 
