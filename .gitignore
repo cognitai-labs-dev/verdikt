@@ -125,6 +125,10 @@ celerybeat.pid
 # Environments
 .env
 .venv
+
+# Live access config (local; access.example.yaml is the committed template)
+access.yaml
+backend/access.yaml
 env/
 venv/
 ENV/

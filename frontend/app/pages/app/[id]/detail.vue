@@ -12,6 +12,7 @@ import {
 } from "@/api/generated"
 import PromptList from "@/components/PromptList.vue"
 import DatasetList from "@/components/DatasetList.vue"
+import MachineClientsSection from "@/components/MachineClientsSection.vue"
 
 definePageMeta({ name: "Apps detail" })
 const route = useRoute()
@@ -145,6 +146,10 @@ const goToEvaluations = () => {
           @created="(items) => datasets.unshift(...items)"
           @deleted="(id) => (datasets = datasets.filter((d) => d.id !== id))"
         />
+      </div>
+
+      <div class="mt-8">
+        <MachineClientsSection :app-id="appId" />
       </div>
     </template>
 

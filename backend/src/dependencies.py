@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.app.commands import AppCommands
 from src.app.queries import AppDatasetQueries
+from src.auth.access_config import AdminRegistry
 from src.auth.commands import AuthCommands
 from src.config import APISettings
 from src.db.pg import DBAdapter
@@ -47,6 +48,13 @@ prompt_version_repo = PromptVersionRepository()
 machine_client_repo = MachineClientRepository()
 machine_token_repo = MachineTokenRepository()
 app_principal_repo = AppPrincipalRepository()
+
+# Admin registry — loads/reconciles the access config on startup, read by
+# authenticate to decide is_admin for human (email) principals.
+admin_registry = AdminRegistry(
+    app_repo=app_repo,
+    app_principal_repo=app_principal_repo,
+)
 
 # Queries
 
@@ -92,6 +100,8 @@ auth_commands = AuthCommands(
     machine_client_repo=machine_client_repo,
     machine_token_repo=machine_token_repo,
     token_ttl=APISettings().MACHINE_TOKEN_TTL,
+    app_repo=app_repo,
+    app_principal_repo=app_principal_repo,
 )
 
 db_adpater = DBAdapter()

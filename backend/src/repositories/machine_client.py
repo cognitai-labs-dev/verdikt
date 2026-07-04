@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.db.tables.machine_clients import machine_clients_table
@@ -27,6 +27,39 @@ class MachineClientRepository(
     ) -> MachineClientSchema | None:
         stmt = select(self.table).where(
             self.table.c.client_id == client_id
+        )
+        result = await conn.execute(stmt)
+        row = result.fetchone()
+        if row is None:
+            return None
+        return self.schema.model_validate(row._mapping)
+
+    async def get_by_client_ids(
+        self, conn: AsyncConnection, client_ids: list[str]
+    ) -> list[MachineClientSchema]:
+        """Return clients matching the given client_ids, newest first."""
+        if not client_ids:
+            return []
+        stmt = (
+            select(self.table)
+            .where(self.table.c.client_id.in_(client_ids))
+            .order_by(self.table.c.created_at.desc())
+        )
+        result = await conn.execute(stmt)
+        return [
+            self.schema.model_validate(row._mapping)
+            for row in result.fetchall()
+        ]
+
+    async def set_revoked(
+        self, conn: AsyncConnection, client_id: str, revoked: bool
+    ) -> MachineClientSchema | None:
+        """Set the revoked state for a client by client_id."""
+        stmt = (
+            update(self.table)
+            .where(self.table.c.client_id == client_id)
+            .values(revoked=revoked)
+            .returning(self.table)
         )
         result = await conn.execute(stmt)
         row = result.fetchone()

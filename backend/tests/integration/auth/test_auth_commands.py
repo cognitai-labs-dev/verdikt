@@ -1,8 +1,9 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from src.auth.commands import TOKEN_PREFIX, AuthCommands
+from src.auth.commands import AuthCommands
 from src.auth.hashing import sha256_hex
+from src.constants import TOKEN_PREFIX
 from src.repositories.machine_client import MachineClientRepository
 from src.repositories.machine_token import MachineTokenRepository
 from tests.factories.machine_client import machine_client_db_factory

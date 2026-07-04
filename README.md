@@ -29,8 +29,8 @@ table (see [Authorization](#authorization-per-app-access)).
 
 Create a **confidential web application** (the BFF holds the secret) and register:
 
-- **Redirect URI**: `{origin}/auth/callback` (e.g. `http://localhost:3000/auth/callback`).
-- **Post-logout redirect URI**: `{origin}/` (e.g. `http://localhost:3000/`).
+- **Redirect URI**: `{origin}/auth/callback` (e.g. `http://localhost:5173/auth/callback` in local dev).
+- **Post-logout redirect URI**: `{origin}/` (e.g. `http://localhost:5173/`).
 - **Scopes**: `openid email profile`.
 
 ### 2. Frontend (BFF) config
@@ -136,21 +136,16 @@ login UI on `:3000`) so you can develop without an external IdP.
 
 Machine auth is handled **entirely by Verdikt** — there is no IdP service user.
 Verdikt exposes the standard `client_credentials` discovery + token endpoints
-(`/.well-known`, `/.well-known/openid-configuration`, `POST /auth/token`) and
+(`/.well-known/openid-configuration`, `POST /auth/token`) and
 mints opaque `vkt_` tokens. The SDK needs no special configuration beyond the
 backend URL and a client id/secret.
 
-1. Mint a client with the admin CLI (it prints the secret **once**):
+1. Mint a client from the **app's detail page** (the secret is shown **once**).
+   Anyone with access to the app can open it and create a machine client under
+   "Machine Clients" — it is bound only to that app. (Programmatically, this is
+   `POST /v1/app/{app_id}/machine-clients`, gated by `require_app_access`.)
 
-   ```shell
-   cd backend
-   # central pipeline that may touch every app:
-   uv run main.py create-client "ci-pipeline" --admin
-   # team client scoped to a single app:
-   uv run main.py create-client "team-a" --app <app-slug>
-   ```
-
-2. Paste the printed credentials into root `.env`:
+2. Paste the displayed credentials into root `.env`:
 
    ```
    VERDIKT_CLIENT_ID=mc_xxxxxxxx
@@ -161,16 +156,18 @@ backend URL and a client id/secret.
    `make eval` (and any SDK consumer) now authenticates against Verdikt. Restart
    the backend after changing `.env` (it reads it at startup).
 
-To revoke a client, set `revoked=true` on its `machine_clients` row; live tokens
-expire after `MACHINE_TOKEN_TTL` seconds.
+Remove a client from the app's detail page; if that was the client's only app it
+is revoked and its live tokens are killed immediately (it cannot be un-revoked —
+create a new client instead). Tokens otherwise expire after `MACHINE_TOKEN_TTL`
+seconds.
 
 ## Authorization (per-app access)
 
 Both humans and machines resolve to one `Principal` checked against the
 `app_principals` table:
 
-- **Admins see every app.** Humans whose `email` is in `ADMIN_EMAILS`; machine
-  clients created with `--admin`.
+- **Admins see every app.** Humans whose `email` is in the access-config
+  `admins:` list.
 - **Everyone else sees only the apps they are bound to** — matched by email
   (human) or `client_id` (machine). Unbound app / evaluation / sample routes
   return `403`; nested ids (`/evaluation/{id}`, `/sample/{id}`) are resolved to
@@ -181,19 +178,29 @@ Both humans and machines resolve to one `Principal` checked against the
 > default — enable "User Info inside ID Token" (see [Local dev](#local-dev-with-zitadel)).
 > No email claim → the user matches nothing and sees no apps.
 
-Bind principals with the CLI:
+Bind **human (email) principals** declaratively via the access-config YAML — it
+is the source of truth for the email bindings of the apps it lists, reconciled
+into `app_principals` on startup. Point `ACCESS_CONFIG_PATH` at it (empty
+disables reconciliation):
 
-```shell
-cd backend
-uv run main.py add-member <app-slug> alice@example.com   # bind a human to an app
-uv run main.py create-client "team-a" --app <app-slug>   # bind a new machine client
+```yaml
+# access.yaml — GitOps for who can access what
+admins:
+  - admin@example.com
+apps:
+  team-a-app:
+    - alice@example.com
+    - bob@example.com
 ```
 
-Set the admin allowlist in root `.env`:
+Listed apps have their email bindings made to match the file exactly (extras are
+removed); apps not listed and all machine-client bindings are left untouched.
+The `admins:` list is the **only** source of admins. **Machine clients** are
+created and bound per-app from each app's detail page (self-service).
 
-```
-ADMIN_EMAILS=admin@example.com,lead@example.com
-```
+Copy `backend/access.example.yaml` to `backend/access.yaml`, edit it, and set
+`ACCESS_CONFIG_PATH=access.yaml` in root `.env` (resolved relative to the backend
+run dir).
 
 ## Deployment
 
@@ -233,7 +240,7 @@ exposed client-side.
 
 The backend reads its config from env/`.env` at startup (see
 [Backend config](#3-backend-config)) — set `OIDC_ISSUER`, `OIDC_AUDIENCE`,
-`ADMIN_EMAILS`, `SERVICE_BASE_URL`, and `APP_DB_*` on the container.
+`ACCESS_CONFIG_PATH`, `SERVICE_BASE_URL`, and `APP_DB_*` on the container.
 `SERVICE_BASE_URL` must be the backend's public URL (advertised to SDK clients as
 the machine-token issuer).
 

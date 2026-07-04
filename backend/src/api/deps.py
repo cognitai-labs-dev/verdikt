@@ -8,11 +8,10 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from src.api.auth import TokenVerifier
-from src.auth.commands import TOKEN_PREFIX
 from src.auth.hashing import sha256_hex, utcnow
-from src.config import APISettings
-from src.constants import SubjectType
+from src.constants import TOKEN_PREFIX, SubjectType
 from src.dependencies import (
+    admin_registry,
     app_principal_repo,
     evaluation_repo,
     get_connection,
@@ -68,7 +67,12 @@ async def authenticate(
 
     try:
         claims = await token_verifier.decoded_token(token)
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as exc:
+        logger.warning(
+            "JWT verification failed: %s: %s",
+            type(exc).__name__,
+            exc,
+        )
         raise HTTPException(
             status_code=401, detail="Invalid or expired token"
         )
@@ -76,7 +80,7 @@ async def authenticate(
     return Principal(
         subject=email,
         subject_type=SubjectType.EMAIL,
-        is_admin=email in APISettings().admin_emails,
+        is_admin=email in admin_registry,
     )
 
 

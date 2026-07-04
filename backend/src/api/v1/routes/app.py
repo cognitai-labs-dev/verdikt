@@ -10,7 +10,10 @@ from src.api.deps import (
 from src.api.v1.response import ORJsonResponse
 from src.api.v1.schemas import (
     AppDatasetsRequest,
+    AppMachineClientResponse,
     AppRequest,
+    CreateAppMachineClientRequest,
+    CreatedAppMachineClientResponse,
     ErrorResponse,
     EvaluationRequest,
     EvaluationSummary,
@@ -18,23 +21,27 @@ from src.api.v1.schemas import (
     PromptVersionSummary,
     UpdateCurrentPromptRequest,
 )
-from src.constants import EvaluationType
+from src.constants import EvaluationType, SubjectType
 from src.dependencies import (
     app_commands,
     app_dataset_queries,
     app_dataset_repo,
     app_principal_repo,
     app_repo,
+    auth_commands,
     evaluation_commands,
     evaluation_queries,
     evaluation_repo,
     get_connection,
+    machine_client_repo,
+    machine_token_repo,
     prompt_queries,
     prompt_version_repo,
 )
 from src.evaluation.schemas import EvaluationSchema
 from src.schemas.app import AppSchema, AppUpdateSchema
 from src.schemas.app_dataset import AppDatasetSchema
+from src.schemas.machine_client import MachineClientSchema
 from src.schemas.prompt_version import PromptVersionCreateSchema
 
 router = APIRouter(
@@ -108,8 +115,9 @@ async def post_app(
 ) -> AppSchema:
     app = await app_commands.create(conn, request.name, request.slug)
     # Bind the creator to the new app so they can use it immediately (creator
-    # ownership). Admins already see every app, so binding them is redundant.
-    if not principal.is_admin and principal.subject:
+    # ownership). Admins are bound too — so the app shows up as theirs even
+    # though their admin status already grants access to every app.
+    if principal.subject:
         await app_principal_repo.add(
             conn, app.id, principal.subject_type, principal.subject
         )
@@ -337,3 +345,99 @@ async def get_evaluations(
     return await evaluation_queries.evaluation_summaries_by_eval_ids(
         conn, evaluations, eval_type
     )
+
+
+def _app_machine_client_response(
+    client: MachineClientSchema,
+) -> AppMachineClientResponse:
+    return AppMachineClientResponse(
+        id=client.id,
+        client_id=client.client_id,
+        name=client.name,
+        revoked=client.revoked,
+        created_at=client.created_at,
+    )
+
+
+@router.get(
+    "/{app_id}/machine-clients",
+    operation_id="getAppMachineClients",
+    dependencies=[Depends(require_app_access)],
+    description="List the machine clients bound to this app.",
+)
+async def get_app_machine_clients(
+    app_id: int,
+    conn: AsyncConnection = Depends(get_connection),
+) -> list[AppMachineClientResponse]:
+    client_ids = await app_principal_repo.subjects_for(
+        conn, app_id, SubjectType.CLIENT
+    )
+    clients = await machine_client_repo.get_by_client_ids(
+        conn, client_ids
+    )
+    return [_app_machine_client_response(c) for c in clients]
+
+
+@router.post(
+    "/{app_id}/machine-clients",
+    operation_id="postAppMachineClient",
+    dependencies=[Depends(require_app_access)],
+    status_code=201,
+    description="Create a machine client scoped to this app. The client_secret is returned ONCE.",
+    responses={
+        404: {"model": ErrorResponse},
+    },
+)
+async def post_app_machine_client(
+    app_id: int,
+    request: CreateAppMachineClientRequest,
+    conn: AsyncConnection = Depends(get_connection),
+) -> CreatedAppMachineClientResponse:
+    app = await app_repo.get(conn, app_id)
+    if app is None:
+        raise HTTPException(status_code=404, detail="App not found")
+    # Always non-admin and bound only to this app — an app principal cannot
+    # mint admin clients or grant access to apps they don't control.
+    client, raw_secret = await auth_commands.create_machine_client(
+        conn, name=request.name, is_admin=False, app_slugs=[app.slug]
+    )
+    base = _app_machine_client_response(client)
+    return CreatedAppMachineClientResponse(
+        **base.model_dump(), client_secret=raw_secret
+    )
+
+
+@router.delete(
+    "/{app_id}/machine-clients/{client_id}",
+    operation_id="deleteAppMachineClient",
+    dependencies=[Depends(require_app_access)],
+    status_code=204,
+    description="Unbind a machine client from this app. If the client is left bound to no apps, it is revoked and its tokens are killed.",
+    responses={
+        404: {"model": ErrorResponse},
+    },
+)
+async def delete_app_machine_client(
+    app_id: int,
+    client_id: str,
+    conn: AsyncConnection = Depends(get_connection),
+) -> None:
+    bound = await app_principal_repo.subjects_for(
+        conn, app_id, SubjectType.CLIENT
+    )
+    if client_id not in bound:
+        raise HTTPException(
+            status_code=404,
+            detail="Machine client not found for this app",
+        )
+    await app_principal_repo.remove(
+        conn, app_id, SubjectType.CLIENT, client_id
+    )
+    # If this app was the client's only binding, fully revoke it (kill tokens).
+    # If it's still bound elsewhere, leave those bindings and tokens untouched.
+    remaining = await app_principal_repo.app_ids_for(
+        conn, SubjectType.CLIENT, client_id
+    )
+    if not remaining:
+        await machine_client_repo.set_revoked(conn, client_id, True)
+        await machine_token_repo.revoke_for_client(conn, client_id)

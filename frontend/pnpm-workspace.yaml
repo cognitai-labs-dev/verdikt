@@ -1,9 +1,12 @@
-# Skip pnpm's pre-run dependency check (it errors on un-approved native build
-# scripts like @parcel/watcher, which aren't needed for the build).
+# pnpm 11 reads settings from here (not the "pnpm" field in package.json).
+# Skip pnpm's pre-run dependency check.
 verifyDepsBeforeRun: false
-# Native deps allowed to run install scripts.
-onlyBuiltDependencies:
-  - "@parcel/watcher"
-  - core-js
-  - esbuild
-  - vue-demi
+# Explicit per-dependency build decisions. pnpm 11 fails a frozen-lockfile
+# install (ERR_PNPM_IGNORED_BUILDS) until every dep with an install script is
+# resolved here. @parcel/watcher is only nuxt-dev's native file watcher (unused
+# in build/lint/type-check), so its build is skipped; the rest are built.
+allowBuilds:
+  "@parcel/watcher": false
+  core-js: true
+  esbuild: true
+  vue-demi: true

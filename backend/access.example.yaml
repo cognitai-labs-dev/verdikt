@@ -1,0 +1,24 @@
+# Declarative access config for Verdikt (GitOps).
+#
+# Point ACCESS_CONFIG_PATH at a copy of this file. On startup the backend
+# reconciles it into the app_principals table: for every app slug listed below,
+# its EMAIL bindings are made to match the listed emails exactly (missing ones
+# are added, extras are removed). Apps not listed here and all machine-client
+# (CLIENT) bindings are left untouched. Apps that don't exist are skipped with a
+# warning — create the app first (admin UI). Leave ACCESS_CONFIG_PATH empty to
+# disable reconciliation entirely.
+
+# Emails granted admin (access to every app). This list is the only source of
+# admins. An admin's /v1/me reports is_admin=true.
+admins:
+  - admin@example.com
+  - lead@example.com
+
+# Per-app human (email) access. The key is the app slug; the value is the exact
+# set of emails allowed to access that app.
+apps:
+  my-app:
+    - alice@example.com
+    - bob@example.com
+  another-app:
+    - carol@example.com
