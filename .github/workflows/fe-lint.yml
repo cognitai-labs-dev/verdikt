@@ -1,6 +1,9 @@
 name: fe-lint
 
-on: [push]
+on:
+  push:
+    branches: [master]
+  pull_request:
 
 jobs:
   fe-lint:

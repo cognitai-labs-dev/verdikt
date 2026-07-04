@@ -1,6 +1,9 @@
 name: be-lint
 
-on: [push]
+on:
+  push:
+    branches: [master]
+  pull_request:
 
 jobs:
   be-lint:
