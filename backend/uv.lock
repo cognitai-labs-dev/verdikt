@@ -1982,7 +1982,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.45" },
     { name = "starlette", specifier = ">=0.50.0" },
     { name = "uvicorn", specifier = ">=0.40.0" },
-    { name = "verdikt-sdk", specifier = ">=0.4.0" },
+    { name = "verdikt-sdk", specifier = ">=0.5.0" },
     { name = "yalc", specifier = ">=0.3.2" },
 ]
 
@@ -1999,16 +1999,16 @@ dev = [
 
 [[package]]
 name = "verdikt-sdk"
-version = "0.4.0"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
     { name = "yalc" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a2/f8/d8f0d157c9df6f73ff2d43526cf223fa5d77059f8e818134e9a5585f9ca7/verdikt_sdk-0.4.0.tar.gz", hash = "sha256:c2c47d13550ef87dd211dadc55721c117d3ed35cc5aa6f4ec155aed9334a5cc4", size = 112271, upload-time = "2026-06-14T09:01:02.62Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/30/35/52a8e275e4660a36479ccfe5feb4c1dc7899d170f3a47e5ae8aadb1baecd/verdikt_sdk-0.5.0.tar.gz", hash = "sha256:be2edb95247f8ebd28ea6edea352462a704a7e3e46c905945370448868273744", size = 112108, upload-time = "2026-07-04T08:45:28.43Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/b2/a8f382d70438b1d40ca5c3d6f35898b2190845b67f5bc9cea819545ae90c/verdikt_sdk-0.4.0-py3-none-any.whl", hash = "sha256:68bfdb65a37a14b23346d2b7178e15cdcf6113d75840414a2c903d22f6cdc942", size = 8344, upload-time = "2026-06-14T09:01:01.452Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/1d/edc4b94594ea941d5d33bbe7f60cbe96164c362239bce4e482dcbab90ccd/verdikt_sdk-0.5.0-py3-none-any.whl", hash = "sha256:ff8a563a5b4120f34263e98611282a77a4daab9fe45bcefa9b64c709231db29c", size = 7861, upload-time = "2026-07-04T08:45:27.369Z" },
 ]
 
 [[package]]

@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from yalc import LLMModel
 
 # Single repo-root .env, shared with docker-compose. Resolved absolutely so it
 # loads regardless of the process working directory (backend/, tests, etc.).
@@ -36,16 +35,21 @@ class PostgresSettings(BaseSettings):
         return f"postgresql+psycopg://{self.APP_DB_USER}:{self.APP_DB_PASSWORD}@{self.APP_DB_HOST}:{self.APP_DB_PORT}/{self.APP_DB_NAME}"
 
 
+class EvalSettings(BaseSettings):
+    """Verdikt instance + machine-client creds used by the eval commands."""
+
+    model_config = settings_config_dict
+
+    VERDIKT_BASE_URL: str = "http://localhost:8000"
+    VERDIKT_CLIENT_ID: str = ""
+    VERDIKT_CLIENT_SECRET: str = ""
+
+
 class LLMSettings(BaseSettings):
     model_config = settings_config_dict
 
     OPENAI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
-
-    JUDGING_LLM_MODELS: list[LLMModel] = [
-        LLMModel.gpt_4o_mini,
-        LLMModel.gpt_5_mini,
-    ]
 
     WORKER_WAIT_TIME: int = 5
     WORKER_BATCH_SIZE: int = 10

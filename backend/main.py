@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 
 import typer
 import uvicorn
@@ -12,6 +11,7 @@ from verdikt_sdk import (
 )
 from yalc import LLMModel
 
+from src.config import EvalSettings
 from src.logging import setup_logging
 from src.processors.judgment_processor import main as processor_main
 
@@ -20,7 +20,6 @@ setup_logging()
 logger = logging.getLogger(__name__)
 app = typer.Typer(pretty_exceptions_enable=False)
 
-BASE_URL = "http://localhost:8000/v1"
 
 DATASETS = [
     {
@@ -87,10 +86,11 @@ def evaluate(
     """Create an evaluation using hardcoded app answers."""
 
     async def run():
+        settings = EvalSettings()
         verdikt = VerdiktClient(
-            "http://localhost:8000",
-            client_id=os.environ["VERDIKT_CLIENT_ID"],
-            client_secret=os.environ["VERDIKT_CLIENT_SECRET"],
+            settings.VERDIKT_BASE_URL,
+            client_id=settings.VERDIKT_CLIENT_ID,
+            client_secret=settings.VERDIKT_CLIENT_SECRET,
         )
 
         questions = [
@@ -103,7 +103,9 @@ def evaluate(
         # The app must already exist and this client must be bound to it —
         # machine clients cannot create apps. Create "eval-app" in the admin
         # UI and bind this client to it before seeding.
-        await verdikt.add_questions("eval-app", questions, True)
+        await verdikt.add_questions(
+            "ppc-ai-assitant", questions, True
+        )
 
         app_answers = {
             d["question"]: d["app_answer"] for d in DATASETS
@@ -115,7 +117,7 @@ def evaluate(
             )
 
         await verdikt.run_evaluation(
-            app_slug="eval-app",
+            app_slug="ppc-ai-assitant",
             app_version="1.0.0",
             callback=callback,
             evaluation_type=EvaluationType(eval_type),
@@ -143,7 +145,8 @@ def run_judging():
 @app.command()
 def api(
     reload: bool = typer.Option(
-        True, help="Auto-reload on code changes (disable in production)."
+        True,
+        help="Auto-reload on code changes (disable in production).",
     ),
 ):
     """Start the FastAPI server."""
