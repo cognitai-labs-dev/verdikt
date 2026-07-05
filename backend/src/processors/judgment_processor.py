@@ -40,10 +40,9 @@ class JudgmentProcessor:
 
         self.batch_size = settings.WORKER_BATCH_SIZE
         self.wait_time = settings.WORKER_WAIT_TIME
-        self.clients = {
-            model: create_client(model)
-            for model in settings.JUDGING_LLM_MODELS
-        }
+        # Evaluations choose their judge models — clients are created on
+        # demand (see _get_client).
+        self.clients: dict[LLMModel, object] = {}
 
         self.judgment_repo = judgment_repo
         self.judgment_commands = judgment_commands
@@ -77,10 +76,23 @@ class JudgmentProcessor:
             self._process_one_judgment(judgment)
             for judgment in judgments
         ]
-        await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for judgment, result in zip(judgments, results):
+            if isinstance(result, Exception):
+                self.logger.error(
+                    "Judgment %d (%s) failed: %s",
+                    judgment.id,
+                    judgment.judgment_model,
+                    result,
+                )
         self.logger.info(
             "Done processing pending judgments in a batch"
         )
+
+    def _get_client(self, model: LLMModel):
+        if model not in self.clients:
+            self.clients[model] = create_client(model)
+        return self.clients[model]
 
     async def _process_one_judgment(self, judgment: JudgmentSchema):
         self.logger.info(
@@ -89,7 +101,7 @@ class JudgmentProcessor:
             judgment.id,
         )
 
-        client = self.clients[LLMModel(judgment.judgment_model)]
+        client = self._get_client(LLMModel(judgment.judgment_model))
         async with self.db_engine.begin() as conn:
             sample = await self.sample_repo.get(
                 conn, judgment.sample_id
